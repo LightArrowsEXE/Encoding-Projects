@@ -2,6 +2,7 @@
 *.264
 *.aac
 *.ac3
+*.d2v
 *.flac
 *.jpeg
 *.jpg
@@ -15,6 +16,7 @@
 *.undefined
 *.vorbis
 *.wav
+*.w64
 
 # VapourSynth files
 *.bookmarks
@@ -28,13 +30,17 @@
 *.mocha
 *.autosave
 
-# BDMV files
+# BDMV/DVD files
 *.bdmv
 *.clpi
 *.inf
 *.ini
 *.mpls
 *.xml
+*.vob
+*.ifo
+*.bup
+*.iso
 
 # Misc
 *.exe
@@ -42,4 +48,5 @@
 *.txt
 *.7z
 *.rar
+*.parts
 
