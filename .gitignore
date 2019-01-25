@@ -17,6 +17,8 @@
 *.vorbis
 *.wav
 *.w64
+*.h264
+*.webm
 
 # VapourSynth files
 *.bookmarks
