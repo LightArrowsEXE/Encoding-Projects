@@ -72,7 +72,5 @@ grain_2 = kgf.adaptive_grain(out, 0, luma_scaling=12, show_mask=True)
 grainmask = core.std.Expr([grain_1, grain_2], expr="x y +")
 grain = core.std.MaskedMerge(out, core.grain.Add(out, 1), grainmask)
 
-final = fvf.Depth(grain, 10) #sakuga: 7179, 15315, 17545
-ED = final[edstart:]
-ED = core.std.CropRel(ED, 0, 0, 89, 89)
-ED.set_output()
+final = fvf.Depth(grain, 10)
+final.set_output()

@@ -88,5 +88,4 @@ op_out = op_grain
 out = grain
 final = kgf.insert_clip(out, op_out, opstart)
 final = fvf.Depth(final, 10)
-#final = final[7256:7256+814]
-final.set_output() # TO-DO: nothing 
+final.set_output()
