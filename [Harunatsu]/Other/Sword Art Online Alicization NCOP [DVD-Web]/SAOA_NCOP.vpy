@@ -8,12 +8,18 @@ import vsTAAmbk as taa
 import adjust
 core = vs.core
 
+"""
+	Note: this is not an official release. 
+	This is something I started working that I could show Haru and be like "hey, you up for releasing this?".
+	As of writing this I have not even brought it up to him yet, so don't get your hopes up as it's unlikely to happen until BDs hit (which I'm not encoding).
+"""
+
 src_a = lvf.src("Sword Art Online - Alicization E12 [1080p][AAC][JapDub][GerSub][Web-DL].mp4")
 src_a = src_a[1581:3737]
 src_a = core.resize.Spline36(src_a, 848, 480)
 src_a = fvf.Depth(src_a, 16)
 
-src_b = lvf.src("[181212] ADAMAS／赤い罠(who loves it)(期間生産限定盤)／LiSA [VVCL-1373~4](WAV+CUE+LOG+BK+DVDISO)\VVCL-1374\VIDEO_TS\VTS_01_1.VOB.d2v")
+src_b = lvf.src("VTS_01_1.VOB.d2v")
 src_b = src_b[6990:9690]
 src_b = core.vivtc.VFM(src_b, 1)
 src_b = core.vivtc.VDecimate(src_b)
@@ -58,9 +64,7 @@ C_1 = fvf.rfs(C_1a, C_1b, mappings="[593 611]")
 
 C = kgf.insert_clip(src, C_1[563:602], 563)
 
-
 out = C
 final = fvf.Depth(out, 10)
-comp = lvf.compare([src_a, final],[1373, 1405]) 
 final.set_output()
 
