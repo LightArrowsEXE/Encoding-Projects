@@ -72,5 +72,11 @@ grain_2 = kgf.adaptive_grain(out, 0, luma_scaling=12, show_mask=True)
 grainmask = core.std.Expr([grain_1, grain_2], expr="x y +")
 grain = core.std.MaskedMerge(out, core.grain.Add(out, 1), grainmask)
 
+temp_a = lvf.src(r"Kaguya03 (premux) (1).mkv")
+temp_b = lvf.src(r"Kaguya03 (premux) (2).mkv")
+
 final = fvf.Depth(grain, 10)
-src.set_output()
+fix = final[4533:5641] #5639
+#scaled = final[5641:]
+#comp = lvf.stack_compare(scaled, temp_b, height=480)
+fix.set_output()

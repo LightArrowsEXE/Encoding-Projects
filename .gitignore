@@ -19,6 +19,7 @@
 *.w64
 *.h264
 *.webm
+*.log
 
 # VapourSynth files
 *.bookmarks
