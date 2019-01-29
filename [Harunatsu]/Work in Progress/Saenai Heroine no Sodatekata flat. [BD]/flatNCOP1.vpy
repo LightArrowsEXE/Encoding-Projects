@@ -34,8 +34,10 @@ op_mask_b = core.std.Prewitt(op_aa, scale=4, planes=0).std.Deflate().std.Binariz
 op_mask = fvf.rfs(op_mask_a, op_mask_b, mappings="[1129 1204]")
 op_maskmerged = core.std.MaskedMerge(op_deband, op_aa, op_mask)
 
-op_grain = kgf.adaptive_grain(op_maskmerged, 0.5)
+op_merge = fvf.rfs(op_maskmerged, src_op, mappings="[971 1076]")
+
+op_grain = kgf.adaptive_grain(op_merge, 0.5)
 
 out = op_grain
 final = fvf.Depth(out, 10)
-final.set_output()
+src_op.set_output()

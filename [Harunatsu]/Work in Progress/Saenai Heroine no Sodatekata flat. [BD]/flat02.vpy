@@ -7,7 +7,9 @@ import havsfunc as haf
 core = vs.core
 
 opstart = 1440
+opend = 3597
 edstart = 30716
+epend = 32873
 
 src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.02/BDMV/STREAM/00001.m2ts")
 src = src[:-27] #32873
@@ -20,6 +22,9 @@ src_op = fvf.Depth(src_op, 16)
 src_ed = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00010.m2ts")
 src_ed = src_ed[24:2184]
 src_ed = fvf.Depth(src_ed, 16)
+
+blank = core.std.BlankClip(src)
+blank = blank[0]
 
 # # # # # # # # OP filtering # # # # # # # #
 
@@ -47,8 +52,12 @@ op_mask_b = core.std.Prewitt(op_aa, scale=4, planes=0).std.Deflate().std.Binariz
 op_mask = fvf.rfs(op_mask_a, op_mask_b, mappings="[1129 1204]")
 op_maskmerged = core.std.MaskedMerge(op_deband, op_aa, op_mask)
 
-op_grain = kgf.adaptive_grain(op_maskmerged, 0.5)
-op_out = op_grain
+op_merge = fvf.rfs(op_maskmerged, src_op, mappings="[971 1076]")
+
+op_grain = kgf.adaptive_grain(op_merge, 0.5)
+
+op_out = blank*opstart+op_grain
+op_out = op_out[opstart:opend]
 
 # # # # # # # # OP filtering # # # # # # # #
 # # # # # # # # ED filtering # # # # # # # #
@@ -58,8 +67,11 @@ ed_denoised = haf.ContraSharpening(ed_denoised, src_ed)
 
 ed_aa = taa.TAAmbk(ed_denoised, aatype='Eedi3', opencl=True)
 ed_deband = core.f3kdb.Deband(ed_aa, range=16, y=48, cr=40, cb=40, grainy=0, grainc=0, output_depth=16)
+
 ed_grain = kgf.adaptive_grain(ed_deband, 0.5)
-ed_out = ed_grain
+
+ed_out = blank*edstart+ed_grain
+ed_out = ed_out[edstart:edend]
 
 # # # # # # # # ED filtering # # # # # # # #
 
@@ -81,5 +93,6 @@ out = kgf.insert_clip(out, op_out, opstart)
 out = kgf.insert_clip(out, ed_out[:2156], edstart)
 
 final = fvf.Depth(out, 10)
-oped_comp = lvf.comp(src, out, [opstart+970, edstart+1600, edstart+2155]) # Comparing OPs to keep an eye on version changes and ED to ensure it's actually synced properly
-final.set_output()
+oped_comp = lvf.comp(src, out, [opstart+1045, opend, opend+1, edstart+1600, edend, edend+1]) # Comparing OPs to keep an eye on version changes and ED to ensure it's actually synced properly
+comp = lvf.comp(src, out, [3957, edend+1])
+oped_comp.set_output()
