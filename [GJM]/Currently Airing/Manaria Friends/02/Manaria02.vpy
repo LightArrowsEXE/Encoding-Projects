@@ -9,10 +9,11 @@ core = vs.core
 preview = 16662
 part_b = 16902
 edstart = 15584
-
+endcard = 16782
+src = src[24:preview]+blank[0:48]+src[part_b:]+src[preview:part_b]
 src = lvf.src(r"[DragsterPS] Manariafurenzu Ekusutorapaato Zuke S01E02 [1080p] [Japanese Audio] [7A8A7C74].mkv")
 blank = core.std.BlankClip(src)
-src = src[24:preview]+blank[0:48]+src[part_b:]+src[preview:part_b]
+src = src[24:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
 src = fvf.Depth(src, 16)
 
 scaled = core.resize.Spline36(src, 1440, 810)

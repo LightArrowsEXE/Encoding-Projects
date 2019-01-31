@@ -24,6 +24,7 @@
 # VapourSynth files
 *.bookmarks
 *.lwi
+*.ffindex
 
 # Aegisub files (those get uploaded to the group's specific repositories) & Fonts
 *.ass
@@ -54,3 +55,4 @@
 *.parts
 *sakuga.vpy
 *.zip
+*comp.vpy
