@@ -20,6 +20,7 @@
 *.h264
 *.webm
 *.log
+*.m4a
 
 # VapourSynth files
 *.bookmarks
@@ -45,6 +46,12 @@
 *.ifo
 *.bup
 *.iso
+*.cer
+*.tbl
+*.cmap
+*.cci
+*.dat
+*.lst
 
 # Misc
 *.exe
