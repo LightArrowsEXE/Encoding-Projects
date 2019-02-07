@@ -74,7 +74,7 @@ grain = fvf.rfs(grain_1, grain_2, mappings="[15603 16287] [29176 29178]")
 grain = fvf.rfs(grain, grain_3, mappings="0")
 
 final = kgf.insert_clip(grain, op_grain, opstart)
-final = kgf.insert_clip(grain, ed_grain, edstart)
+final = kgf.insert_clip(final, ed_grain, edstart)
 
 out = final
 final = fvf.Depth(out, 10)
