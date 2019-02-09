@@ -16,11 +16,13 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)					# NOTE: FRAMERANGES FOR UP TO '6700' ARE INTRO. DON'T REMOVE THEM UNLESS INTRO CHANGES.
-src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+316} {opstart+443}] [10 27][39 55][1209 1317][3522 3584][6000 6700] [11169 11189] [11358 11364] [13235 13243] [13283 13286] [13580 13685] [13841 13844] [15307 15346] [15663 15704] [17956 17977] [21832 21841] [21891 21895] [21924 21927] [22058 22128] [22312 22417] [22823 22825] [23720 23739] [24924 24986] [25447 25543] [26539 26786] [28727 28806] [32325 {edstart}]")
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+300} {opstart+500}] [0 80][1100 {opstart}][{opstart+2150} 3650][6000 6700] [11169 11189] [11358 11364] [13235 13243] [13283 13286] [13580 13685] [13841 13844] [15307 15346] [15663 15704] [17956 17977] [21832 21841] [21891 21895] [21924 21927] [22058 22128] [22312 22417] [22823 22825] [23720 23739] [24924 24986] [25447 25543] [26539 26786] [28727 28806] [32325 {edstart}]")
+
+scaled = kgf.inverse_scale(src, width=None, height=874, kernel='bicubic', a1=0, a2=1/2, mask_detail=True, masking_areas=[[1209,opstart],[opstart,opstart+2159],[edstart,edstart+2157]])
+scaled = core.resize.Spline36(scaled, 1280, 720, format=vs.YUV444P16)
 
 # # # OP filtering # # #
-op = src[opstart:opstart+2157]
-op = core.resize.Spline36(op, 1280, 720, format=vs.YUV444P16)
+op = scaled[opstart:opstart+2157]
 
 op_denoise = lvf.denoise(op, h=0.7)
 
@@ -34,8 +36,7 @@ op_grain = kgf.adaptive_grain(op_dbn, 0.5, luma_scaling=12)
 
 # # # OP filtering # # #
 # # # ED filtering # # #
-ed = src[edstart:edstart+2160]
-ed = core.resize.Spline36(ed, 1280, 720, format=vs.YUV444P16)
+ed = scaled[edstart:edstart+2160]
 
 ed_denoise = lvf.denoise(ed, h=0.7)
 
@@ -47,16 +48,13 @@ ed_grain = kgf.adaptive_grain(ed_dbn, 0.5, luma_scaling=12)
 
 # # # ED filtering # # #
 
-scaled = kgf.inverse_scale(src, width=None, height=874, kernel='bicubic', a1=0, a2=1/2, mask_detail=True, masking_areas=[[1209,opstart],[opstart,opstart+2159],[edstart,edstart+2157]])
-scaled = core.resize.Spline36(scaled, 1280, 720, format=vs.YUV444P16)
-
 denoise = lvf.denoise(scaled, h=0.7)
 aa = taa.TAAmbk(denoise, aatype='Eedi3')
 
 dbn_1 = core.f3kdb.Deband(aa, range=17, y=40, cb=32, cr=32, grainy=0, grainc=0, output_depth=16)
 dbn_2 = core.f3kdb.Deband(aa, range=20, y=40, cb=32, cr=32, grainy=0, grainc=0, output_depth=16)
 dbn_3 = core.f3kdb.Deband(aa, range=23, y=64, cb=56, cr=56, grainy=24, grainc=0, output_depth=16)
-dbn = fvf.rfs(dbn_1, dbn_2, mappings="0")
+dbn = fvf.rfs(dbn_1, dbn_2, mappings="[300 491]")
 dbn = fvf.rfs(dbn, dbn_3, mappings="[5380 5534] [5710 6154] [9703 9720] [9987 10032] [18362 18546] [19487 19525] [20678 20691] [24092 24177] [28487 28591] [29951 30261] [30449 30491] [30623 31003] [31004 31514]")
 
 grain_1 = kgf.adaptive_grain(dbn, 0, luma_scaling=2, show_mask=True)
@@ -70,7 +68,7 @@ grain = dbn
 out = grain
 
 insert = kgf.insert_clip(out, op_out, opstart)
-insert = kgf.insert_clip(insert, ed_out, opstart)
+insert = kgf.insert_clip(insert, ed_out[1:2159], edstart) # I don't get why this doesn't work without cutting part of it??
 
 final = fvf.Depth(insert, 10)
 final.set_output()
