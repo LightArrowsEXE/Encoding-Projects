@@ -52,6 +52,7 @@
 *.cci
 *.dat
 *.lst
+*.cue
 
 # Misc
 *.exe
@@ -64,3 +65,4 @@
 *.zip
 *comp.vpy
 *.torrent
+*fix.vpy

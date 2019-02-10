@@ -19,7 +19,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
-src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart} {opstart+2500}] [2742 2860] [7024 7044] [8002 8109] [12761 12871] [21972 22088] [23925 23942] [23973 23986] [29987 30006]")
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart} {opstart+2500}] [2742 2860] [7024 7044] [8002 8109] [12761 12871] [21972 22088] [23925 23942] [23973 23986] [29987 30091]")
 scomp2 = lvf.stack_compare(src, src_a, height=480, mark=True, mark_a=" masked ", mark_b=" Wakanim ", stack_vertical=True) # checking for leftover hardsubbed signs
 
 scaled = kgf.inverse_scale(src, width=None, height=874, kernel='bicubic', a1=0, a2=1/2, mask_detail=True, masking_areas=[[0,opstart],[opstart,opstart+2159],[edstart,edstart+2157]])
@@ -76,5 +76,10 @@ grainmask = core.std.Expr([grain_1, grain_2], expr="x y +")
 grain = core.std.MaskedMerge(out, core.grain.Add(out, 1), grainmask)
 
 out = grain
+
+temp = lvf.src(r"kaguya05 (premux) (1).mkv")
+
 final = fvf.Depth(out, 10)
-scomp2.set_output()
+fix = final[29983:30091]
+scomp = lvf.scomp(fix, temp, height=480)
+fix.set_output()
