@@ -15,12 +15,12 @@ src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
 src_us = fvf.Depth(src_us, 16)
 
 src_us = kgf.insert_clip(src_us, src_us[1712], 1711)
-src_us = kgf.insert_clip(src_us, src_us[1973], 1974)
-src_us = kgf.insert_clip(src_us, src_us[2062], 2061)
-src_us = kgf.insert_clip(src_us, src_us[2073], 2074)
+#src_us = kgf.insert_clip(src_us, src_us[1973], 1974)
 
-nn3 = core.nnedi3.nnedi3(src_us, field=0) # Fixing some leftover combing in a transition
-src_us = fvf.rfs(src_us, nn3, mappings="[893 899]")
+nn3 = core.nnedi3.nnedi3(src_us, field=0)
+w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
+w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=2, scale=2, gpu=2), 712, 480), 16)
+src_us = fvf.rfs(src_us, w2x, mappings="[892 899] [1527 1529] [1655 1672] [1691 1709]")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
@@ -29,7 +29,7 @@ scaled = core.resize.Spline36(scaled, 960, 720, matrix_s='709')
 
 denoised_a = lvf.denoise(scaled, h=0.8)
 denoised_b = lvf.denoise(scaled, h=1.6, sigma=5)
-denoised = fvf.rfs(denoised_a, denoised_b, mappings="[148 243] [829 896] [1661 1709]")
+denoised = fvf.rfs(denoised_a, denoised_b, mappings="[148 243] [544 804] [829 896] [1661 1709]")
 
 sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode=2)
 
@@ -45,11 +45,13 @@ deband_b = core.f3kdb.Deband(aa, range=18, y=64, cb=56, cr=56, grainy=12, grainc
 deband_c = core.f3kdb.Deband(aa, range=5, y=160, cb=152, cr=152, grainy=0, grainc=0, output_depth=16)
 deband_c = core.f3kdb.Deband(deband_c, range=18, y=56, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
 deband = fvf.rfs(deband_a, deband_b, mappings="[829 896] [1661 1709]")
-deband = fvf.rfs(deband, deband_c, mappings="[1784 1851]")
+deband = fvf.rfs(deband, deband_c, mappings="[817 849] [1784 1851]")
 
-grain_a = kgf.adaptive_grain(deband, 1)
-grain_b = kgf.adaptive_grain(deband, 2)
-grain = fvf.rfs(grain_a, grain_b, mappings="[1784 1851]")
+grain_a = kgf.adaptive_grain(deband, 0.1)
+grain_b = kgf.adaptive_grain(deband, 1)
+grain_c = kgf.adaptive_grain(deband, 2)
+grain = fvf.rfs(grain_a, grain_b, mappings="[0 142] [1784 1851]")
+grain = fvf.rfs(grain, grain_c, mappings="[829 849]")
 
 out = grain
 final = fvf.Depth(out, 10)
