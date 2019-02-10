@@ -77,9 +77,5 @@ grain = core.std.MaskedMerge(out, core.grain.Add(out, 1), grainmask)
 
 out = grain
 
-temp = lvf.src(r"kaguya05 (premux) (1).mkv")
-
 final = fvf.Depth(out, 10)
-fix = final[29983:30091]
-scomp = lvf.scomp(fix, temp, height=480)
-fix.set_output()
+final.set_output()
