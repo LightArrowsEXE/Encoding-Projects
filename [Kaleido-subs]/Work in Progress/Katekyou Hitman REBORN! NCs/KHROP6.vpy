@@ -14,8 +14,6 @@ src_us = lvf.src(r"REBORN CS BD\REBORN SEASONS 5-9 BD\REBORN SEASONS 5-9 D1\BDMV
 src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
 src_us = fvf.Depth(src_us, 16)
 
-#src_us = kgf.insert_clip(src_us, src_us[1712], 1711)
-
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
@@ -30,14 +28,9 @@ denoised = lvf.denoise(scaled, h=0.8)
 
 sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode=2)
 
-darken = haf.FastLineDarkenMOD(sharp, strength=48)
-darken = fvf.rfs(sharp, darken, mappings="")
+aa = taa.TAAmbk(sharp, aatype='Eedi3')
 
-aa = taa.TAAmbk(darken, aatype='Eedi3')
-
-deband_a = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(aa, range=18, y=64, cb=56, cr=56, grainy=12, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings="0")
+deband = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
 
 grain_a = kgf.adaptive_grain(deband, 0.1)
 grain_b = kgf.adaptive_grain(deband, 1)
