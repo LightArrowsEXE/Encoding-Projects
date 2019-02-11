@@ -19,7 +19,7 @@ src_us = kgf.insert_clip(src_us, src_us[1795], 1794)
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
-src_us = fvf.rfs(src_us, w2x, mappings="[0 14] [507 511] [525 530] [560 565] [617 622] [1535 1542] [1850 1860] [1897 1908]")
+#src_us = fvf.rfs(src_us, w2x, mappings="[0 14] [507 511] [525 530] [560 565] [617 622] [1535 1542] [1850 1860] [1897 1908]")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
@@ -41,4 +41,4 @@ grain = kgf.adaptive_grain(deband, 0.1)
 
 out = grain
 final = fvf.Depth(out, 10)
-final.set_output()
+scaled.set_output()
