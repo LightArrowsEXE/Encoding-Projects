@@ -7,15 +7,15 @@ import havsfunc as haf
 import finesharp
 core = vs.core
 
-opstart = 2158
-edstart = 33254
+opstart = 744
+edstart = 31482
 
-src = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]\VOL1\BDMV\STREAM\00005.m2ts")
-NCOP = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]\VOL6\BDMV\STREAM\00007.m2ts")
-NCED = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]\VOL6\BDMV\STREAM\00017.m2ts")
-endcard = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]\VOL6\BDMV\STREAM\00101.m2ts")
+src = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL1/BDMV/STREAM/00005.m2ts")
+NCOP = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00007.m2ts")
+NCED = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00018.m2ts")
+endcard = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00102.m2ts")
 
-src = src[24:36466]
+src = src[36466:70778]
 src = core.std.CropRel(src, 20, 20, 8, 6)
 src = fvf.Depth(src, 16)
 
@@ -54,8 +54,8 @@ Y, U, V = kgf.split(OP)
 
 op_Ya = low_dehalo(Y)
 op_Yb = high_dehalo(Y)
-op_Y = fvf.rfs(op_Ya, op_Yb, mappings=f"[134 140] [146 242] [268 275] [408 541] [777 810] [1334 1541]")
-op_Y = fvf.rfs(op_Y, Y, mappings=f"[543 611]")
+op_Y = fvf.rfs(op_Ya, op_Yb, mappings="[134 140] [146 242] [268 275] [408 541] [777 810] [1334 1541]")
+op_Y = fvf.rfs(op_Y, Y, mappings="[543 611]")
 
 op_Ydenoise = lvf.denoise(op_Y, h=30, sigma=40)
 op_Ydenoise = fvf.rfs(op_Y, op_Ydenoise, mappings=f"[1556 1596]")
@@ -99,30 +99,17 @@ Y, U, V = kgf.split(scaled)
 
 Y_a = low_dehalo(Y)
 Y_b = high_dehalo(Y)
-Y = fvf.rfs(Y_a, Y_b, mappings=f"[30791 30861] [31190 31314]")
-
+Y = fvf.rfs(Y_a, Y_b, mappings="[15374 15608] [17386 17499]")
 
 Y_sharp = haf.LSFmod(Y, strength=80, soft=10, edgemode=1, Smethod=2, Lmode=2)
-
-Y_mask = kgf.retinex_edgemask(scaled).std.Deflate()
-Y_mask = kgf.iterate(Y_mask, core.std.Inflate, 2).std.Maximum().std.Maximum().std.Binarize()
-Y_masked = core.std.MaskedMerge(Y, Y_sharp, Y_mask)
-
-Y_masked = Y_sharp
-merge = kgf.join([Y_masked, U, V])
+merge = kgf.join([Y_sharp, U, V])
 
 aa = taa.TAAmbk(merge, aatype='Eedi3')
 
 deband_a = core.f3kdb.Deband(aa, range=17, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16)
-grain_a = kgf.adaptive_grain(deband_a, 0.5)
-deband_b = lvf.denoise(aa, h=1)
-deband_b = core.f3kdb.Deband(aa, range=18, y=64, cb=56, cr=56, grainy=36, grainc=0, output_depth=16)
-grain_b = kgf.adaptive_grain(deband_b, 2)
-deband = fvf.rfs(grain_a, grain_b, mappings="[0 722]")
+grain = kgf.adaptive_grain(deband_a, 0.5)
 
-out = deband
-
-out = kgf.insert_clip(out, op_out, opstart)
+out = kgf.insert_clip(grain, op_out, opstart)
 out = kgf.insert_clip(out, ed_out, edstart)
 
 endcard = core.std.CropRel(endcard, 160, 160, 96, 96)
