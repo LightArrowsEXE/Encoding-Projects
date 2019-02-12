@@ -14,10 +14,13 @@ src_us = lvf.src(r"REBORN CS BD\REBORN SEASONS 5-9 BD\REBORN SEASONS 5-9 D1\BDMV
 src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
 src_us = fvf.Depth(src_us, 16)
 
+src_us = kgf.insert_clip(src_us, src_us[1534], 1535)
+src_us = kgf.insert_clip(src_us, src_us[1540], 1539)
+
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
-src_us = fvf.rfs(src_us, w2x, mappings="[1931 1942]")
+src_us = fvf.rfs(src_us, w2x, mappings="[1624 1643] [1931 1942]")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
@@ -38,4 +41,4 @@ grain = fvf.rfs(grain_a, grain_b, mappings="[0 296] [1016 1029] [1091 1203] [130
 
 out = grain
 final = fvf.Depth(out, 10)
-final.set_output()
+src_us.set_output()

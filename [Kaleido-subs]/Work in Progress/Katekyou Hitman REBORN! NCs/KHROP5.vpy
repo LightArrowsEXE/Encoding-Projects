@@ -24,7 +24,7 @@ src_us = kgf.insert_clip(src_us, src_us[873], 875)
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
-#src_us = fvf.rfs(src_us, w2x, mappings="[89 114] [245 252] [468 471] [825 833] [1291 1309]")
+src_us = fvf.rfs(src_us, w2x, mappings="[89 114] [245 252] [468 471] [825 833] [1291 1309]")
 src_us = core.std.AssumeFPS(src_us, fpsnum=24000, fpsden=1001)
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
@@ -48,8 +48,8 @@ deband_a = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc
 deband_b = core.f3kdb.Deband(aa, range=5, y=96, cb=88, cr=88, grainy=0, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(deband_b, range=21, y=56, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
 deband_c = core.f3kdb.Deband(aa, range=21, y=72, cb=64, cr=64, grainy=0, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings="[468 471]")
-deband = fvf.rfs(deband, deband_c, mappings="[210 425] [556 585] [678 824] [1221 1290] [1380 1514] [1856 1922]")
+deband = fvf.rfs(deband_a, deband_b, mappings="[468 471] [678 712] [1856 1922]")
+deband = fvf.rfs(deband, deband_c, mappings="[210 425] [556 585] [713 824] [1221 1290] [1380 1514]")
 
 grain_a = kgf.adaptive_grain(deband, 0.1)
 grain_b = kgf.adaptive_grain(deband, 1)
