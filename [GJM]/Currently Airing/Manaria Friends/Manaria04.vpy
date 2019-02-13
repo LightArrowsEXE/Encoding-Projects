@@ -26,20 +26,14 @@ denoise = lvf.denoise(scaled, h=0.4)
 aa = taa.TAAmbk(denoise, aatype='Eedi3', opencl=True)
 
 dbn_a = core.f3kdb.Deband(aa, range=18, y=48, cb=40, cr=40, grainy=0, grainc=0, output_depth=16)
-dbn_b = core.f3kdb.Deband(aa, range=5, y=200, cb=200, cr=200, grainy=0, grainc=0, output_depth=16)
-dbn_b = core.f3kdb.Deband(dbn_b, range=21, y=80, cb=72, cr=72, grainy=24, grainc=0, output_depth=16)
-dbn = fvf.rfs(dbn_a, dbn_b, mappings="0")
+dbn_b = core.f3kdb.Deband(aa, range=21, y=80, cb=72, cr=72, grainy=24, grainc=0, output_depth=16)
+dbn = fvf.rfs(dbn_a, dbn_b, mappings="[4146 4248] [4542 4900] [4951 5290] [6274 6425] [6738 6820] [6876 7034] [7261 7454] [7707 7807] [7994 8065] [8212 8708] [8826 8945] [9074 9228] [9613 9696] [11656 11776] [12135 12349] [19334 19514]")
 
-grain_a = kgf.adaptive_grain(dbn, 0.4)
-grain_b = core.grain.Add(dbn, var=0.7, uvar=0, constant=False)
-grain_c = kgf.adaptive_grain(dbn, 1)
-grain = fvf.rfs(grain_a, grain_b, mappings="")
-grain = fvf.rfs(grain, grain_c, mappings="[14923 15549]")
+grain = kgf.adaptive_grain(dbn, 0.4)
 
 ed = scaled[edstart:preview]
 insert = kgf.insert_clip(grain, ed, edstart)
 
-out = grain
-
+out = insert
 final = fvf.Depth(out, 10)
-src.set_output()
+final.set_output()
