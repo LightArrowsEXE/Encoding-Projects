@@ -18,7 +18,7 @@ part_b_b = 16928
 edstart_b = 15609
 epend_b = 19995
 
-src = lvf.src(r"[DragsterPS] Manariafurenzu Ekusutorapaato Zuke S01E03 [1080p] [Japanese Audio] [E13CFD37].mkv")
+src = lvf.src(r"03/[DragsterPS] Manariafurenzu Ekusutorapaato Zuke S01E03 [1080p] [Japanese Audio] [E13CFD37].mkv")
 blank = core.std.BlankClip(src)
 src = src[:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
 src = fvf.Depth(src, 16)

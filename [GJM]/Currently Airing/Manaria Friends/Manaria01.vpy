@@ -10,8 +10,8 @@ preview = 16688
 part_b = 16928
 edstart = 15586
 
-src_a = lvf.src(r"..\01\Mysteria Friends E01 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv")
-src_b = lvf.src(r"..\01\Mysteria Friends E01v2 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv")
+src_a = lvf.src(r"01/Mysteria Friends E01 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv")
+src_b = lvf.src(r"01/Mysteria Friends E01v2 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv")
 blank = core.std.BlankClip(src_a)
 src = src_a[24:preview]+blank[:48]+src_b[part_b:]+src_a[preview:part_b]
 src = fvf.Depth(src, 16)
