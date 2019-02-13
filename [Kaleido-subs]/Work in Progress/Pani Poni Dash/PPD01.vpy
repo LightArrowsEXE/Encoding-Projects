@@ -58,15 +58,15 @@ op_Y = fvf.rfs(op_Ya, op_Yb, mappings=f"[134 140] [146 242] [268 275] [408 541] 
 op_Y = fvf.rfs(op_Y, Y, mappings=f"[543 611]")
 
 op_Ydenoise = lvf.denoise(op_Y, h=30, sigma=40)
-op_Ydenoise = fvf.rfs(op_Y, op_Ydenoise, mappings=f"[1556 1596]")
+op_Ydenoise = fvf.rfs(op_Y, op_Ydenoise, mappings="[1556 1596]")
 
 op_Ysharp = haf.LSFmod(op_Ydenoise, strength=80, soft=10, edgemode=1, Smethod=2, Lmode=2)
 
 op_merge = kgf.join([op_Ysharp, U, V])
 
 op_aa_1 = taa.TAAmbk(op_merge, aatype='Eedi3')
-op_aa_2 = taa.TAAmbk(op_merge, aatype=4)
-op_aa = fvf.rfs(op_aa_1, op_aa_2, mappings=f"[0 67] [80 132] [146 242] [1315 1466] [1732 1875]")
+op_aa_2 = taa.TAAmbk(op_merge, aatype='Nnedi3UpscaleSangNom')
+op_aa = fvf.rfs(op_aa_1, op_aa_2, mappings="[0 67] [80 132] [146 242] [1315 1466] [1732 1875]")
 
 op_deband = core.f3kdb.Deband(op_aa, range=17, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16)
 op_grain = kgf.adaptive_grain(op_deband, 0.5)
