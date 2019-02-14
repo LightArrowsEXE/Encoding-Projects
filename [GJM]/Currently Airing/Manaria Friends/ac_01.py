@@ -8,7 +8,6 @@ import os
 
 preview = 16664
 part_b = 16904
-edstart = 15586
 endcard = 16784
 
 core = vs.core
@@ -23,7 +22,14 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('01_cut.aac', audio_source='0/track1_jpn.aac')
+    ac.cut_audio('01_cut.aac', audio_source='01/track1_jpn.aac')
+    
+os.remove("tmp-001.mka")
+os.remove("tmp-002.mka")
+os.remove("tmp-003.mka")
+os.remove("tmp-004.mka")    
+
+shutil.move("01_cut.aac", "01/01_cut.aac")
     
 # NOTE FOR MANARIA:
 #		Make sure to use the E-AC3 audio from danimestore Amazon, NOT the AAC from Crunchyroll
