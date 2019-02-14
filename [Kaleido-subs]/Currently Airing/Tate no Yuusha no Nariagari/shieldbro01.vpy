@@ -9,7 +9,7 @@ core.max_cache_size = 8192
 
 opstart = 65815
 
-src = lvf.src(r"The Rising of the Shield Hero E01v2 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
+src = lvf.src(r"01/The Rising of the Shield Hero E01v2 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
 src = fvf.Depth(src, 16)
 
 scaled = core.std.CropRel(src, 2, 2, 0, 0)

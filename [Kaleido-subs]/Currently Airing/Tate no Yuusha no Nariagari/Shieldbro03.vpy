@@ -10,7 +10,7 @@ core.max_cache_size = 8192
 opstart = 1224
 edstart = 31768
 
-src = lvf.src(r"The Rising of the Shield Hero E03 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
+src = lvf.src(r"03/The Rising of the Shield Hero E03 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
 src = fvf.Depth(src, 16)
 
 
@@ -23,7 +23,7 @@ op_aa = fvf.rfs(op, op_aa, mappings="[1242 1247] [1684 1686]")
 op_dimming = adjust.Tweak(op_aa, sat=2, cont=2, bright=1.2)
 op_dimming = fvf.rfs(op_aa, op_dimming, mappings="[1299 1332] [1361 1369]")
 
-op_credit_mask = core.resize.Spline36(core.imwri.Read(r"ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
+op_credit_mask = core.resize.Spline36(core.imwri.Read(r"02/ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.Deflate, 5)
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.BoxBlur, 2)
 op_credit = core.std.MaskedMerge(op_dimming, op_aa, op_credit_mask)
@@ -84,8 +84,6 @@ dimming = fvf.rfs(dimming, dim6, mappings="20700 23388 [24252 24256] [27088 2710
 dimming = fvf.rfs(dimming, dim7, mappings="20701")
 dimming = fvf.rfs(dimming, dim8, mappings="20702 27267")
 dimming = fvf.rfs(dimming, dim9, mappings="20703 27044 27197 27198 27200 27268 27269")
-
-dim = dimming[27195]+dimming[27199]
 
 grain_1 = kgf.adaptive_grain(dimming, 0.4, luma_scaling=3)
 grain_2 = kgf.adaptive_grain(dimming, 3, luma_scaling=3, static=False)

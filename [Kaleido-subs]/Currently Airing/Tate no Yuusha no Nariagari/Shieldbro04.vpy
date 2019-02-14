@@ -7,10 +7,10 @@ import kagefunc as kgf
 core = vs.core
 core.max_cache_size = 8192
 
-opstart = 1224
-edstart = 31768
+opstart = 3189
+# no ED because Sp ED
 
-src = lvf.src(r"The Rising of the Shield Hero E03 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
+src = lvf.src(r"04/The Rising of the Shield Hero E04 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
 src = fvf.Depth(src, 16)
 
 
@@ -23,7 +23,7 @@ op_aa = fvf.rfs(op, op_aa, mappings="[1242 1247] [1684 1686]")
 op_dimming = adjust.Tweak(op_aa, sat=2, cont=2, bright=1.2)
 op_dimming = fvf.rfs(op_aa, op_dimming, mappings="[1299 1332] [1361 1369]")
 
-op_credit_mask = core.resize.Spline36(core.imwri.Read(r"ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
+op_credit_mask = core.resize.Spline36(core.imwri.Read(r"02/ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.Deflate, 5)
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.BoxBlur, 2)
 op_credit = core.std.MaskedMerge(op_dimming, op_aa, op_credit_mask)
@@ -42,12 +42,6 @@ op_grain_3 = kgf.adaptive_grain(op_dbn, 1, luma_scaling=3)
 op_grain = fvf.rfs(op_grain_1, op_grain_2, mappings="[0 79]")
 op_grain = fvf.rfs(op_grain, op_grain_3, mappings="[80 146] [286 428] [941 984] [1299 1427] [1500 1856] [2036 2131] [1225 1255] [1299 1332]")
 # # # # OP filtering # # # #
-# # # # ED filtering (lol what filtering) # # # #
-ed = src[edstart:edstart+2157]
-
-ed_grain = kgf.adaptive_grain(ed, 0.3)
-
-# # # # ED filtering (lol what filtering) # # # #
 
 
 aa_1 = taa.TAAmbk(src, aatype='Eedi3', opencl=True)
@@ -57,50 +51,39 @@ aa = fvf.rfs(aa_1, aa_2, mappings="0")
 aa = fvf.rfs(aa, aa_3, mappings="[5438 5514]")
 
 dbn = core.f3kdb.Deband(aa, range=21, y=56, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
-dbn = fvf.rfs(dbn, aa, mappings="[6237 6325] [9151 9216] [12027 12080] [12129 12199] [15943 16084] [16231 16287] [16383 16471] [16823 16957] [20172 20266] [28505 28623]")
+dbn = fvf.rfs(dbn, aa, mappings="")
 
-dimming_1 = adjust.Tweak(dbn, sat=1.7, cont=1.7, bright=0)
-dimming_2 = adjust.Tweak(dbn, sat=2, cont=2, bright=0)
-dimming_3 = adjust.Tweak(dbn, sat=3, cont=3, bright=0)
-dimming = fvf.rfs(dbn, dimming_1, mappings="[20704 20724] ")
-dimming = fvf.rfs(dimming, dimming_2, mappings="[22287 22292] [27110 27122] ")
-dimming = fvf.rfs(dimming, dimming_2, mappings="[27024 27043] [27053 27054] 27123")
-dim1 = adjust.Tweak(dbn, sat=1.05, cont=1.05, bright=0)
-dim2 = adjust.Tweak(dbn, sat=1.1, cont=1.1, bright=0)
-dim3 = adjust.Tweak(dbn, sat=1.15, cont=1.15, bright=0)
-dim4 = adjust.Tweak(dbn, sat=1.2, cont=1.2, bright=0)
-dim5 = adjust.Tweak(dbn, sat=1.25, cont=1.25, bright=0)
-dim6 = adjust.Tweak(dbn, sat=1.3, cont=1.3, bright=0)
-dim7 = adjust.Tweak(dbn, sat=1.38, cont=1.38, bright=0)
+dim1 = adjust.Tweak(dbn, sat=1.25, cont=1.25, bright=0)
+dim2 = adjust.Tweak(dbn, sat=1.65, cont=1.65, bright=0)
+dim3 = adjust.Tweak(dbn, sat=2.45, cont=2.45, bright=0)
+dim4 = adjust.Tweak(dbn, sat=2, cont=2, bright=0)
+dim5 = adjust.Tweak(dbn, sat=3.5, cont=3.5, bright=0)
+dim6 = adjust.Tweak(dbn, sat=1.15, cont=1.15, bright=0)
+dim7 = adjust.Tweak(dbn, sat=1.3, cont=1.3, bright=0)
 dim8 = adjust.Tweak(dbn, sat=1.45, cont=1.45, bright=0)
-dim9 = adjust.Tweak(dbn, sat=1.55, cont=1.55, bright=0)
-dim10 = adjust.Tweak(dbn, sat=1.6, cont=1.6, bright=0)
-dimming = fvf.rfs(dimming, dim1, mappings="20695")
-dimming = fvf.rfs(dimming, dim2, mappings="20696 27264")
-dimming = fvf.rfs(dimming, dim3, mappings="20697 [27180 27194]")
-dimming = fvf.rfs(dimming, dim4, mappings="20698 27045 27265")
-dimming = fvf.rfs(dimming, dim5, mappings="20699")
-dimming = fvf.rfs(dimming, dim6, mappings="20700 23388 [24252 24256] [27088 27109] 27195 27196 27199 [27201 27207] 27266")
-dimming = fvf.rfs(dimming, dim7, mappings="20701")
-dimming = fvf.rfs(dimming, dim8, mappings="20702 27267")
-dimming = fvf.rfs(dimming, dim9, mappings="20703 27044 27197 27198 27200 27268 27269")
-
-dim = dimming[27195]+dimming[27199]
+dim9 = adjust.Tweak(dbn, sat=1.2, cont=1.2, bright=0)
+dim10 = adjust.Tweak(dbn, sat=1.1, cont=1.1, bright=0)
+dim11 = adjust.Tweak(dbn, sat=1.05, cont=1.05, bright=0)
+dimming = fvf.rfs(dbn, dim1, mappings="10716 14100 14182")
+dimming = fvf.rfs(dimming, dim2, mappings="10717")
+dimming = fvf.rfs(dimming, dim3, mappings="[10718 10770]")
+dimming = fvf.rfs(dimming, dim4, mappings="13993 13994")
+dimming = fvf.rfs(dimming, dim5, mappings="13995 13996")
+dimming = fvf.rfs(dimming, dim6, mappings="14099 14184")
+dimming = fvf.rfs(dimming, dim7, mappings="14101 14181")
+dimming = fvf.rfs(dimming, dim8, mappings="[14102 14180]")
+dimming = fvf.rfs(dimming, dim9, mappings="14183")
+dimming = fvf.rfs(dimming, dim10, mappings="14185")
+dimming = fvf.rfs(dimming, dim11, mappings="14186")
 
 grain_1 = kgf.adaptive_grain(dimming, 0.4, luma_scaling=3)
 grain_2 = kgf.adaptive_grain(dimming, 3, luma_scaling=3, static=False)
 grain_3 = kgf.adaptive_grain(dimming, 1, luma_scaling=3)
 grain = fvf.rfs(grain_1, grain_2, mappings="0")
-grain = fvf.rfs(grain, grain_3, mappings="[27053 27054]")
+grain = fvf.rfs(grain, grain_3, mappings="")
 
 final = kgf.insert_clip(grain, op_grain, opstart)
-final = kgf.insert_clip(final, ed_grain, edstart)
-
-#temp = lvf.src(r"Tate03 (premux) (1).mkv")
-
 
 out = final
 final = fvf.Depth(out, 10)
-fix = final[:3381]
-#comp = lvf.stack_compare(temp, fix, height=480)
-fix.set_output()
+final.set_output()

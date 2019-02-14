@@ -10,7 +10,7 @@ core.max_cache_size = 8192
 opstart = 2997
 edstart = 30928
 
-src = lvf.src(r"The Rising of the Shield Hero E02 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
+src = lvf.src(r"02/The Rising of the Shield Hero E02 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
 src = fvf.Depth(src, 16)
 
 scaled = core.std.CropRel(src, 2, 2, 0, 0)
@@ -25,7 +25,7 @@ op_aa = fvf.rfs(op, op_aa, mappings="[1242 1247] [1684 1686]")
 op_dimming = adjust.Tweak(op_aa, sat=2, cont=2, bright=1.2)
 op_dimming = fvf.rfs(op_aa, op_dimming, mappings="[1299 1332] [1361 1369]")
 
-op_credit_mask = core.resize.Spline36(core.imwri.Read(r"ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
+op_credit_mask = core.resize.Spline36(core.imwri.Read(r"02/ShieldbroOP_mask.png"), format=vs.GRAY16, matrix_s='709')
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.Deflate, 5)
 op_credit_mask = kgf.iterate(op_credit_mask, core.std.BoxBlur, 2)
 op_credit = core.std.MaskedMerge(op_dimming, op_aa, op_credit_mask)
@@ -78,6 +78,4 @@ final = kgf.insert_clip(final, ed_grain, edstart)
 
 out = final
 final = fvf.Depth(out, 10)
-OP = final[opstart:opstart+2157]
-ED = final[edstart:edstart+2157]
 final.set_output()
