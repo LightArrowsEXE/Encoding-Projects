@@ -15,12 +15,19 @@ src_us = core.std.AssumeFPS(src_us, fpsnum=24000, fpsden=1001)
 src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
 src_us = fvf.Depth(src_us, 16)
 
+blank = core.std.BlankClip(src_us) # fix intro telecining. Dropping fields loses too much detail
+fade = kgf.crossfade(blank[0:15], src_us[17]*15, 14)
+src_us = kgf.insert_clip(src_us, fade[0:14], 0)
 src_us = kgf.insert_clip(src_us, src_us[1795], 1794)
+# FixFades did not work for the frameblending on for example F549. Nothing I can do about that.
 
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
-src_us = fvf.rfs(src_us, w2x, mappings="[0 14] [507 511] [525 530] [560 565] [617 622] [1535 1542] [1850 1860] [1897 1908]")
+src_us = fvf.rfs(src_us, w2x, mappings="[507 511] [560 565] [617 622] [1535 1542] [1850 1860] [1897 1908]")
+
+qtgmc = haf.QTGMC(src_us, InputType=1, Preset="Medium")
+src_us = fvf.rfs(src_us, qtgmc, mappings="540 541")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
@@ -42,4 +49,4 @@ grain = kgf.adaptive_grain(deband, 0.1)
 
 out = grain
 final = fvf.Depth(out, 10)
-final.set_output()
+src_us.set_output()

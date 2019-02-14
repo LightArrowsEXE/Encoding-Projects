@@ -23,7 +23,9 @@ src_us = kgf.insert_clip(src_us, src_us[1735], 1734)
 src_us = kgf.insert_clip(src_us, src_us[1795], 1796)
 
 nn3 = core.nnedi3.nnedi3(src_us, field=0) # Fixing some leftover combing in transitions
-src_us = fvf.rfs(src_us, nn3, mappings="[248 252] [1056 1062] [1108 1117] [1248 1260] [1984 1997]")
+w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
+w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=2, scale=2, gpu=2), 712, 480), 16)
+src_us = fvf.rfs(src_us, w2x, mappings="[0 12] [248 252] [753 762] [1056 1062] [1108 1117] [1248 1261] [1663 1669] [1982 1997]")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
@@ -32,7 +34,7 @@ scaled = core.resize.Spline36(scaled, 960, 720, matrix_s='709')
 
 denoised_a = lvf.denoise(scaled, h=0.8)
 denoised_b = lvf.denoise(scaled, h=1.6, sigma=5)
-denoised = fvf.rfs(denoised_a, denoised_b, mappings="[1262 1312] [1889 1933]")
+denoised = fvf.rfs(denoised_a, denoised_b, mappings="[1522 1542] [1262 1312] [1889 1933]")
 
 sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode=2)
 
