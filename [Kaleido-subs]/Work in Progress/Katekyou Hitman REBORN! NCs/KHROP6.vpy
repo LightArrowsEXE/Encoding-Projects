@@ -16,13 +16,14 @@ src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
 src_us = fvf.Depth(src_us, 16)
 
 src_us = kgf.insert_clip(src_us, src_us[75], 76)
-fade = kgf.crossfade(src_us[75:80], core.std.BlankClip(src_us[0:9]), 4)
+blank = core.std.BlankClip(src_us)
+fade = kgf.crossfade(src_us[75:80], blank[0:9], 4)
 src_us = kgf.insert_clip(src_us, fade, 76)
 src_us = kgf.insert_clip(src_us, src_us[83], 82)
+src_us = kgf.insert_clip(src_us, src_us[87], 86)
 src_us = kgf.insert_clip(src_us, src_us[1539:1579], 1536)
 src_us = kgf.insert_clip(src_us, src_us[1578]*2, 1576)
 src_us = kgf.insert_clip(src_us, src_us[1579], 1578)
-
 
 mask = kgf.retinex_edgemask(src_us).std.Binarize()
 blur = kgf.iterate(src_us, core.std.BoxBlur, 3)
@@ -37,7 +38,7 @@ src_us = fvf.rfs(src_us, w2x, mappings=" [420 422] [1016 1029] [1624 1643] [1931
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
 scaled = nnedi3_rpow2(dehalo)
-scaled = core.resize.Spline36(scaled, 1280, 720, matrix_s='709')
+scaled = core.resize.Spline36(scaled, 1280, 720, matrix_in_s='709', format=vs.YUV420P16)
 
 denoised = lvf.denoise(scaled, h=0.8)
 
@@ -55,4 +56,4 @@ grain = fvf.rfs(grain, grain_c, mappings="[1091 1208]")
 
 out = grain
 final = fvf.Depth(out, 10)
-src_us.set_output()
+final.set_output()
