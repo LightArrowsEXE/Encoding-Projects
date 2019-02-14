@@ -7,15 +7,15 @@ import kagefunc as kgf
 core = vs.core
 core.max_cache_size = 8192
 
-opstart = 4555
-edstart = 31763
+opstart = 1200
+edstart = 31770
 
-src = lvf.src(r"05/The Rising of the Shield Hero E05 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
-src = src[:31763]+src[31769:] # There were some black frames there for some reason?
+src = lvf.src(r"06/The Rising of the Shield Hero E06 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv")
 src = fvf.Depth(src, 16)
 
 
 # # # # OP filtering # # # #
+
 op = src[opstart:opstart+2157]
 
 op_aa = taa.TAAmbk(op, aatype='Eedi3', opencl=True, cycle=1)
@@ -44,6 +44,7 @@ op_grain = fvf.rfs(op_grain_1, op_grain_2, mappings="[0 79]")
 op_grain = fvf.rfs(op_grain, op_grain_3, mappings="[80 146] [286 428] [941 984] [1299 1427] [1500 1856] [2036 2131] [1225 1255] [1299 1332]")
 # # # # OP filtering # # # #
 # # # # ED filtering (lol what filtering) # # # #
+
 ed = src[edstart:edstart+2157]
 
 ed_grain = kgf.adaptive_grain(ed, 0.3)
@@ -53,23 +54,25 @@ ed_grain = kgf.adaptive_grain(ed, 0.3)
 
 aa_1 = taa.TAAmbk(src, aatype='Eedi3', opencl=True)
 aa_2 = taa.TAAmbk(src, aatype='Eedi3', opencl=True, cycle=3)
-aa_3 = taa.TAAmbk(src, aatype=4, cycle=1)
-aa = fvf.rfs(aa_1, aa_2, mappings="[15729 15832]")
-aa = fvf.rfs(aa, aa_3, mappings="")
+aa = fvf.rfs(aa_1, aa_2, mappings="")
 
 dbn = core.f3kdb.Deband(aa, range=21, y=56, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
-dbn = fvf.rfs(dbn, aa, mappings="[1183 1329] [2999 3591] [10510 10652] [20449 20544] [21143 21246] [29551 29903]")
+dbn = fvf.rfs(dbn, aa, mappings="[7020 7090] [12341 12379] [12569 12604]")
 
-dim1 = adjust.Tweak(dbn, sat=3, cont=3, bright=0)
-dim2 = adjust.Tweak(dbn, sat=1.8, cont=1.8, bright=0)
-dimming = fvf.rfs(dbn, dim1, mappings="[19785 19796]")
-dimming = fvf.rfs(dimming, dim2, mappings="[23677 23711]")
+# fuck dimming tbh
+dim1 = adjust.Tweak(dbn, sat=1.1, cont=1.1, bright=0)
+dim2 = adjust.Tweak(dbn, sat=1.15, cont=1.15, bright=0)
+dim3 = adjust.Tweak(dbn, sat=1.3, cont=1.3, bright=0)
+dim4 = adjust.Tweak(dbn, sat=1.4, cont=1.4, bright=0)
+dim5 = adjust.Tweak(dbn, sat=1.5, cont=1.5, bright=0)
+dimming = fvf.rfs(dbn, dim1, mappings="15403 [15441 15446] ")
+dimming = kgf.insert_clip(dimming, dimming[15403], 15404)
+dimming = fvf.rfs(dimming, dim2, mappings="28383 28384")
+dimming = fvf.rfs(dimming, dim3, mappings="28382 [28423 28449]")
+dimming = fvf.rfs(dimming, dim4, mappings="[15405 15440] [15447 15459] [28377 28381]")
+dimming = fvf.rfs(dimming, dim5, mappings="[28294 28335] ")
 
-grain_1 = kgf.adaptive_grain(dimming, 0.4, luma_scaling=3)
-grain_2 = kgf.adaptive_grain(dimming, 3, luma_scaling=3, static=False)
-grain_3 = kgf.adaptive_grain(dimming, 1, luma_scaling=3)
-grain = fvf.rfs(grain_1, grain_2, mappings="")
-grain = fvf.rfs(grain, grain_3, mappings="")
+grain = kgf.adaptive_grain(dimming, 0.4, luma_scaling=3)
 
 
 final = kgf.insert_clip(grain, op_grain, opstart)
