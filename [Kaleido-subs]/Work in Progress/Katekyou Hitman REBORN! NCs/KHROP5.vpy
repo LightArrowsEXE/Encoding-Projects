@@ -24,15 +24,24 @@ src_us = kgf.insert_clip(src_us, src_us[873], 875)
 nn3 = core.nnedi3.nnedi3(src_us, field=0)
 w2x = fvf.Depth(nn3, 32) # If throwing away fields destroys too much detail, just reinvent new detail! ヽ( ﾟヮ・)ノ
 w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
-src_us = fvf.rfs(src_us, w2x, mappings="[89 114] [245 252] [468 471] [825 833] [1291 1309]")
+src_us = fvf.rfs(src_us, w2x, mappings="[89 114] [245 252] [468 471] [592 598] [825 833] [992 996] [1291 1309] [1579 1583] [1682 1689]")
 src_us = core.std.AssumeFPS(src_us, fpsnum=24000, fpsden=1001)
+
+nn3 = core.nnedi3.nnedi3(src_us, field=0)
+w2x = fvf.Depth(nn3, 32) # This time, it's just the smoke that needs to be murdered. ヽ( ﾟヮ・)ノ
+w2x = fvf.Depth(core.resize.Spline36(core.w2xc.Waifu2x(w2x, noise=1, scale=2, gpu=2), 712, 480), 16)
+mask = kgf.adaptive_grain(src_us, luma_scaling=16, show_mask=True)
+masked = core.std.MaskedMerge(src_us, w2x, mask)
+src_us = fvf.rfs(src_us, w2x, mappings="[1049 1054]")
 
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
 scaled = nnedi3_rpow2(dehalo)
 scaled = core.resize.Spline36(scaled, 1280, 720, matrix_s='709')
 
-denoised = lvf.denoise(scaled, h=1.6)
+denoised_a = lvf.denoise(scaled, h=1.6)
+denoised_b = lvf.denoise(scaled, h=3, sigma=7)
+denoised = fvf.rfs(denoised_a, denoised_b, mappings="[1579 1689]")
 denoised = fvf.rfs(denoised, scaled, mappings="[1547 1576]")
 
 sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode=2)
@@ -48,14 +57,18 @@ deband_a = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc
 deband_b = core.f3kdb.Deband(aa, range=5, y=96, cb=88, cr=88, grainy=0, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(deband_b, range=21, y=56, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
 deband_c = core.f3kdb.Deband(aa, range=21, y=72, cb=64, cr=64, grainy=0, grainc=0, output_depth=16)
+deband_d = core.f3kdb.Deband(aa, range=21, y=72, cb=64, cr=64, grainy=12, grainc=0, output_depth=16)
 deband = fvf.rfs(deband_a, deband_b, mappings="[468 471] [678 712] [1856 1922]")
 deband = fvf.rfs(deband, deband_c, mappings="[210 425] [556 585] [713 824] [1221 1290] [1380 1514]")
+deband = fvf.rfs(deband, deband_d, mappings="[1577 1693]")
 
 grain_a = kgf.adaptive_grain(deband, 0.1)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = kgf.adaptive_grain(deband, 2)
-grain = fvf.rfs(grain_a, grain_b, mappings="[250 279] [556 585] [1203 1220] [1380 1514] [1856 1922]")
-grain = fvf.rfs(grain, grain_c, mappings="[210 249] [426 471] [678 824] [1577 1693]")
+grain_d = kgf.adaptive_grain(deband, 1.5, luma_scaling=6)
+grain = fvf.rfs(grain_a, grain_b, mappings="[250 279]  [1203 1220] [1380 1514] [1577 1693] [1856 1922]")
+grain = fvf.rfs(grain, grain_c, mappings="[210 249] [426 471] [678 824]")
+grain = fvf.rfs(grain, grain_d, mappings="[556 585]")
 
 out = grain
 final = fvf.Depth(out, 10)

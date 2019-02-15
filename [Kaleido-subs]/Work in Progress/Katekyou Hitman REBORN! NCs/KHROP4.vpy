@@ -29,7 +29,9 @@ scaled = core.resize.Spline36(scaled, 960, 720, matrix_s='709')
 
 denoised_a = lvf.denoise(scaled, h=0.8)
 denoised_b = lvf.denoise(scaled, h=1.6, sigma=5)
-denoised = fvf.rfs(denoised_a, denoised_b, mappings="[148 804] [817 1066] [1385 1709]")
+denoised_c = lvf.denoise(scaled, h=2.4, sigma=8)
+denoised = fvf.rfs(denoised_a, denoised_b, mappings="[148 804] [817 1066] [1385 1498] [1530 1709]")
+denoised = fvf.rfs(denoised, denoised_c, mappings="[1498 1526]")
 
 sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode=2)
 
