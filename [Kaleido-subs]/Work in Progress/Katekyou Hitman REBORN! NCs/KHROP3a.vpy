@@ -40,8 +40,8 @@ aa = taa.TAAmbk(sharp, aatype='Eedi3')
 
 deband = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
 
-grain_a = kgf.adaptive_grain(deband, 1)
-grain_b = kgf.adaptive_grain(deband, 3, static=False)
+grain_a = kgf.adaptive_grain(deband, 1) # might just be me, but I really like the dynamic grain on that one cut :notlikemiya:
+grain_b = kgf.adaptive_grain(deband, 10, static=False)
 grain = fvf.rfs(grain_a, grain_b, mappings="[955 1025]")
 
 out = grain

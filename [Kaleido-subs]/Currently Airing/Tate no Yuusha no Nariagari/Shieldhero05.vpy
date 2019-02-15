@@ -77,4 +77,4 @@ final = kgf.insert_clip(final, ed_grain, edstart)
 
 out = final
 final = fvf.Depth(out, 10)
-src.set_output()
+final.set_output()

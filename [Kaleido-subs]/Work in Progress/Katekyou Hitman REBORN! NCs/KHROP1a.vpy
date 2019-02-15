@@ -43,4 +43,4 @@ grain = kgf.adaptive_grain(deband, 0.1)
 
 out = grain
 final = fvf.Depth(out, 10)
-src_jp.set_output()
+final.set_output()
