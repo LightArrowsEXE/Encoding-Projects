@@ -29,7 +29,9 @@ sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode
 
 aa = taa.TAAmbk(sharp, aatype='Eedi3')
 
-deband = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
+deband_a = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(aa, range=21, y=64, cb=56, cr=56, grainy=24, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings="[122 158]")
 
 grain_a = kgf.adaptive_grain(deband, 0.1)
 grain_b = kgf.adaptive_grain(deband, 0.8)

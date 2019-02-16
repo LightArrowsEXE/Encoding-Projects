@@ -32,7 +32,7 @@ src_us = fvf.rfs(src_us, qtgmc, mappings="540 541")
 dehalo = haf.FineDehalo(src_us, rx=2, thmi=250, thma=255, thlimi=64, thlima=100)
 
 scaled = nnedi3_rpow2(dehalo)
-scaled = core.resize.Spline36(scaled, 1280, 720, matrix_s='709')
+scaled = core.resize.Spline36(scaled, 1280, 720, matrix_in_s='709')
 
 denoised = lvf.denoise(scaled, h=1.6)
 
@@ -49,4 +49,4 @@ grain = kgf.adaptive_grain(deband, 0.1)
 
 out = grain
 final = fvf.Depth(out, 10)
-src_us.set_output()
+final.set_output()
