@@ -9,8 +9,8 @@ core.max_cache_size = 8192
 opstart = 1318
 edstart = 32367
 
-src_a = lvf.src(r"..\02\Kaguya-sama Love is War E02 [1080p][AAC][JapDub][GerSub][Web-DL].mp4")
-src_b = lvf.src(r"..\02\[HorribleSubs] Kaguya-sama wa Kokurasetai - 02 [1080p].mkv")
+src_a = lvf.src(r"02/Kaguya-sama Love is War E02 [1080p][AAC][JapDub][GerSub][Web-DL].mp4")
+src_b = lvf.src(r"02/[HorribleSubs] Kaguya-sama wa Kokurasetai - 02 [1080p].mkv")
 hardsubmask = kgf.hardsubmask(src_a, src_b)
 src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
