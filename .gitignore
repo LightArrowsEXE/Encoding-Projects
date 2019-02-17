@@ -21,6 +21,7 @@
 *.webm
 *.log
 *.m4a
+*.tif
 
 # VapourSynth files
 *.bookmarks

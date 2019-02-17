@@ -9,7 +9,7 @@ import adjust
 core = vs.core
 
 src_jp = lvf.src(r"[BDMV][Katekyou Hitman REBORN!]\[家庭教師ヒットマンREBORN！][2006][TV][BDMV][Blu-ray BOX 2][JP][20170517]\REBORN2_DISC9\BDMV\STREAM\00003.m2ts")
-src_jp = src_jp[:2698] # for cutting audio
+src_jp = src_jp[15:2698] # for cutting audio
 
 src_us = lvf.src(r"REBORN CS BD\REBORN SEASONS 1-4 BD\REBORN SEASONS 1-4 D2\BDMV\STREAM\00062.m2ts")
 src_us = core.std.CropRel(src_us, 4, 4, 0, 0)

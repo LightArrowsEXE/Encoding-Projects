@@ -12,7 +12,7 @@ src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
 
-vid = ac.split(src, [(0,2697)])
+vid = ac.split(src, [(14,2697)])
 
 ac.ready_qp_and_chapters(vid)
 

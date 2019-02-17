@@ -9,7 +9,7 @@ import adjust
 core = vs.core
 
 src_jp = lvf.src(r"[BDMV][Katekyou Hitman REBORN!]\[家庭教師ヒットマンREBORN！][2006][TV][BDMV][Blu-ray BOX 1][JP][20170419]\REBORN_DISC9\BDMV\STREAM\00008.m2ts")
-src_jp = src_jp[:2698] # for cutting audio
+src_jp = src_jp[15:2698] # for cutting audio
 
 src_us = lvf.src(r"REBORN CS BD\REBORN SEASONS 1-4 BD\REBORN SEASONS 1-4 D2\BDMV\STREAM\00058.m2ts")
 src_us = core.std.CropRel(src_us, 4, 4, 0, 0)
@@ -27,8 +27,15 @@ sharp = haf.LSFmod(denoised, strength=140, soft=10, edgemode=1, Smethod=2, Lmode
 
 aa = taa.TAAmbk(sharp, aatype='Eedi3')
 
-deband = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
+deband_a = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(aa, range=21, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings="[576 1123]")
 
-out = deband
+grain_a = kgf.adaptive_grain(deband, 0.5)
+grain_b = kgf.adaptive_grain(deband, 0.3)
+grain = fvf.rfs(deband, grain_a, mappings="[0 1150]")
+grain = fvf.rfs(grain, grain_b, mappings="[1199 1668]")
+
+out = grain
 final = fvf.Depth(out, 10)
 final.set_output()

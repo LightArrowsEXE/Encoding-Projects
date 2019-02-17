@@ -28,4 +28,4 @@ deband = core.f3kdb.Deband(aa, range=16, y=48, cb=40, cr=40, grainy=12, grainc=0
 
 out = deband
 final = fvf.Depth(out, 10)
-src_jp.set_output()
+final.set_output()
