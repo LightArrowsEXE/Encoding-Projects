@@ -10,10 +10,10 @@ core = vs.core
 opstart = 744
 edstart = 31482
 
-src = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL1/BDMV/STREAM/00005.m2ts")
-NCOP = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00007.m2ts")
-NCED = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00018.m2ts")
-endcard = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！]/VOL6/BDMV/STREAM/00102.m2ts")
+src = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC1/BDMV/STREAM/00005.m2ts")
+NCOP = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00007.m2ts")
+NCED = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00018.m2ts")
+endcard = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00102.m2ts")
 
 src = src[36466:70778]
 src = core.std.CropRel(src, 20, 20, 8, 6)
@@ -57,7 +57,7 @@ op_Yb = high_dehalo(Y)
 op_Y = fvf.rfs(op_Ya, op_Yb, mappings="[134 140] [146 242] [268 275] [408 541] [777 810] [1334 1541]")
 op_Y = fvf.rfs(op_Y, Y, mappings="[543 611]")
 
-op_Ydenoise = lvf.denoise(op_Y, h=30, sigma=40)
+op_Ydenoise = lvf.qden(op_Y, h=30, sigma=40)
 op_Ydenoise = fvf.rfs(op_Y, op_Ydenoise, mappings="[1556 1596]")
 
 op_Ysharp = haf.LSFmod(op_Ydenoise, strength=80, soft=10, edgemode=1, Smethod=2, Lmode=2)
@@ -87,7 +87,7 @@ ED = scaled[edstart:edstart+2158]
 ed_hmask = kgf.hardsubmask_fades(ED, NCED)
 ed_hmasked = core.std.MaskedMerge(NCED, ED, ed_hmask)
 
-ed_denoise = lvf.denoise(ed_hmasked, h=1.6, sigma=5)
+ed_denoise = lvf.qden(ed_hmasked, h=1.6, sigma=5)
 ed_csharp = haf.LSFmod(ed_denoise, strength=80, soft=10, edgemode=1, Smethod=2, Lmode=2)
 ed_aa = taa.TAAmbk(ed_csharp, aatype='Eedi3')
 
