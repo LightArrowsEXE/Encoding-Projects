@@ -1,3 +1,6 @@
+# Show-specific
+*EPISODES/
+
 # Video, Audio & Picture files
 *.264
 *.aac
@@ -64,9 +67,11 @@
 *.rar
 *.parts
 *sakuga.vpy
+*sakuga*.vpy
 *.zip
 *comp.vpy
 *.torrent
 *fix.vpy
 *wraw.vpy
 *.html
+
