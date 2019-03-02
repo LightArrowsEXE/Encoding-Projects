@@ -6,12 +6,12 @@ import fvsfunc as fvf
 import havsfunc as haf
 core = vs.core
 
-opstart = 1416
-opend = 3573
-edstart = 30692
+opstart = 1368
+opend = 3525
+edstart = 30693
 edend = 32849
 
-src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.02/BDMV/STREAM/00001.m2ts")
+src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.03/BDMV/STREAM/00001.m2ts")
 src = src[24:32873]
 src = fvf.Depth(src, 16)
 
@@ -80,10 +80,7 @@ denoised = haf.ContraSharpening(denoised, src)
 
 aa = taa.TAAmbk(denoised, aatype='Eedi3', opencl=True)
 
-deband_a = core.f3kdb.Deband(aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(aa, range=6, y=160, cr=154, cb=154, grainy=0, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(deband_b, range=21, y=64, cr=56, cb=56, grainy=18, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, "[1171 1253]")
+deband = core.f3kdb.Deband(aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
 
 mask = kgf.retinex_edgemask(src, sigma=1)
 masked = core.std.MaskedMerge(deband, aa, mask)

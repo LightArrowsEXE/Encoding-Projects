@@ -6,29 +6,23 @@ import fvsfunc as fvf
 import havsfunc as haf
 core = vs.core
 
-opstart = 1416
-opend = 3573
-edstart = 30692
-edend = 32849
+opstart = 3549
+opend = 5706
 
-src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.02/BDMV/STREAM/00001.m2ts")
-src = src[24:32873]
+src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00001.m2ts")
+src = src[24:32871]
 src = fvf.Depth(src, 16)
 
 src_op = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00009.m2ts")
 src_op = src_op[24:2184]
 src_op = fvf.Depth(src_op, 16)
 
-src_ed = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00010.m2ts")
-src_ed = src_ed[24:2184]
-src_ed = fvf.Depth(src_ed, 16)
-
 blank = core.std.BlankClip(src)
 blank = blank[0]
 
 # # # # # # # # OP filtering # # # # # # # #
 
-op_denoised = lvf.denoise(src_op, h=0.4)
+op_denoised = lvf.qden(src_op, h=0.4)
 op_denoised = haf.ContraSharpening(op_denoised, src_op)
 
 op_aa_a = taa.TAAmbk(op_denoised, aatype='Eedi3', opencl=True)
@@ -60,30 +54,15 @@ op_out = blank*opstart+op_grain
 op_out = op_out[opstart:opend]
 
 # # # # # # # # OP filtering # # # # # # # #
-# # # # # # # # ED filtering # # # # # # # #
-
-ed_denoised = lvf.qden(src_ed, h=0.4)
-ed_denoised = haf.ContraSharpening(ed_denoised, src_ed)
-
-ed_aa = taa.TAAmbk(ed_denoised, aatype='Eedi3', opencl=True)
-ed_deband = core.f3kdb.Deband(ed_aa, range=16, y=48, cr=40, cb=40, grainy=0, grainc=0, output_depth=16)
-
-ed_grain = kgf.adaptive_grain(ed_deband, 0.5)
-
-ed_out = blank*edstart+ed_grain
-ed_out = ed_out[edstart:edend]
-
-# # # # # # # # ED filtering # # # # # # # #
 
 denoised = lvf.qden(src, h=0.4)
 denoised = haf.ContraSharpening(denoised, src)
 
-aa = taa.TAAmbk(denoised, aatype='Eedi3', opencl=True)
+aa_a = taa.TAAmbk(denoised, aatype='Eedi3', opencl=True)
+aa_b = lvf.NnEedi3(denoised)
+aa = fvf.rfs(aa_a, aa_b, "[5706 5801]")
 
-deband_a = core.f3kdb.Deband(aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(aa, range=6, y=160, cr=154, cb=154, grainy=0, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(deband_b, range=21, y=64, cr=56, cb=56, grainy=18, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, "[1171 1253]")
+deband = core.f3kdb.Deband(aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
 
 mask = kgf.retinex_edgemask(src, sigma=1)
 masked = core.std.MaskedMerge(deband, aa, mask)
@@ -92,7 +71,6 @@ grain = kgf.adaptive_grain(masked, 0.1)
 
 out = grain
 out = kgf.insert_clip(out, op_out, opstart)
-out = kgf.insert_clip(out, ed_out, edstart)
 
 final = fvf.Depth(out, 10)
 final.set_output()

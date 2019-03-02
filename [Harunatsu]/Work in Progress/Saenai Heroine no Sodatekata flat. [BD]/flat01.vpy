@@ -12,7 +12,7 @@ edstart = 30283
 edend = 32443
 
 src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00002.m2ts")
-src = src[:32847] #32847
+src = src[:32847]
 src = fvf.Depth(src, 16)
 
 src_op = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00009.m2ts")
@@ -28,11 +28,11 @@ blank = blank[0]
 
 # # # # # # # # OP filtering # # # # # # # #
 
-op_denoised = lvf.denoise(src_op, h=0.4)
+op_denoised = lvf.qden(src_op, h=0.4)
 op_denoised = haf.ContraSharpening(op_denoised, src_op)
 
 op_aa_a = taa.TAAmbk(op_denoised, aatype='Eedi3', opencl=True)
-op_aa_b = lvf.fix_eedi3(op_denoised)
+op_aa_b = lvf.NnEedi3(op_denoised)
 op_aa = fvf.rfs(op_aa_a, op_aa_b, mappings="[1276 1305]")
 
 op_deband_low = core.f3kdb.Deband(op_aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
@@ -95,7 +95,7 @@ fix = kgf.insert_clip(fix, bookmask4, 10519)
 fix = kgf.insert_clip(fix, bookmask4, 10520)
 fix = kgf.insert_clip(fix, bookmask5[10521:10569], 10521)
 
-denoised = lvf.denoise(fix, h=0.4)
+denoised = lvf.qden(fix, h=0.4)
 denoised = haf.ContraSharpening(denoised, fix)
 
 aa_a = taa.TAAmbk(denoised, aatype='Eedi3', opencl=True)
@@ -104,16 +104,14 @@ aa = fvf.rfs(aa_a, aa_b, mappings="[5611 5736]")
 
 deband = core.f3kdb.Deband(aa, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
 
-mask = kgf.retinex_edgemask(fix, sigma=1)#.resize.Spline36(format=vs.GRAY16)
+mask = kgf.retinex_edgemask(fix, sigma=1)
 masked = core.std.MaskedMerge(deband, aa, mask)
 
-grain = kgf.adaptive_grain(masked, 1)
+grain = kgf.adaptive_grain(masked, 0.1)
 
 out = grain
 out = kgf.insert_clip(out, op_out, opstart)
 out = kgf.insert_clip(out, ed_out, edstart)
 
 final = fvf.Depth(out, 10)
-oped_comp = lvf.comp(src, out, [opstart+1090, opend-1, opend, edstart+1600, edend, edend+1]) # Comparing OPs to keep an eye on version changes and ED to ensure it's actually synced properly
-comp = lvf.comp(src, out, [3957, edend+1])
-oped_comp.set_output()
+final.set_output()

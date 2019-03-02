@@ -40,4 +40,4 @@ op_grain = kgf.adaptive_grain(op_merge, 0.5)
 
 out = op_grain
 final = fvf.Depth(out, 10)
-src_op.set_output()
+final.set_output()

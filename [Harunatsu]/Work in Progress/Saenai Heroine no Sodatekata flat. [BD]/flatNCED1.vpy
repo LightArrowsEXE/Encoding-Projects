@@ -19,5 +19,4 @@ ed_grain = kgf.adaptive_grain(ed_deband, 0.5)
 
 out = ed_grain
 final = fvf.Depth(out, 10)
-comp = lvf.comp(src_ed, out, [778, 1107, 1449, 1914])
 final.set_output()
