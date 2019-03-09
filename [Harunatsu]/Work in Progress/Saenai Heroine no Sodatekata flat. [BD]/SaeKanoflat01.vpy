@@ -76,11 +76,11 @@ ed_out = ed_out[edstart:edend]
 # # # # # # # # ED filtering # # # # # # # #
 
 # fix for an animation error. Never again, please.
-bookmask1 = core.resize.Spline36(core.imwri.Read(r"flat01-book1.png"), format=vs.YUV420P16, matrix_s='709')
-bookmask2 = core.resize.Spline36(core.imwri.Read(r"flat01-book2.png"), format=vs.YUV420P16, matrix_s='709')
-bookmask3 = core.resize.Spline36(core.imwri.Read(r"flat01-book3.png"), format=vs.YUV420P16, matrix_s='709')
-bookmask4 = core.resize.Spline36(core.imwri.Read(r"flat01-book4.png"), format=vs.YUV420P16, matrix_s='709')
-bookmask5 = core.resize.Spline36(core.imwri.Read(r"flat01-book5.png"), format=vs.YUV420P16, matrix_s='709')*10600
+bookmask1 = core.resize.Spline36(lvf.src(r"flat01-book1.png", fpsnum=24000, fpsden=1001), format=vs.YUV420P16, matrix_s='709')
+bookmask2 = core.resize.Spline36(lvf.src(r"flat01-book2.png", fpsnum=24000, fpsden=1001), format=vs.YUV420P16, matrix_s='709')
+bookmask3 = core.resize.Spline36(lvf.src(r"flat01-book3.png", fpsnum=24000, fpsden=1001), format=vs.YUV420P16, matrix_s='709')
+bookmask4 = core.resize.Spline36(lvf.src(r"flat01-book4.png", fpsnum=24000, fpsden=1001), format=vs.YUV420P16, matrix_s='709')
+bookmask5 = core.resize.Spline36(lvf.src(r"flat01-book5.png", fpsnum=24000, fpsden=1001), format=vs.YUV420P16, matrix_s='709')*10600
 fix = kgf.insert_clip(src, bookmask1, 10509) 
 fix = kgf.insert_clip(fix, bookmask1, 10510)
 fix = kgf.insert_clip(fix, bookmask1, 10511)
