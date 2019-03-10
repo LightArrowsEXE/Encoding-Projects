@@ -17,7 +17,7 @@ edstart = 13182
 
 src = lvf.src(r"07/manaria07_video_15_decrypted.mp4")
 blank = core.std.BlankClip(src) # Part B starts too abruptly, so there's some space for a breather after ED.
-#src = src[:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
+src = src[:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
 src = fvf.Depth(src, 16)
 
 scaled = core.resize.Spline36(src, 1440, 810)
