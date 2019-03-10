@@ -7,7 +7,7 @@ import vsTAAmbk as taa
 core = vs.core
 core.max_cache_size = 12288
 
-src = lvf.src(r"F:\Encode\[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]\BDROM\BDMV\STREAM\00000.m2ts")
+src = lvf.src(r"../[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]/BDROM/BDMV/STREAM/00000.m2ts")
 src = src[24:47090]
 src = fvf.Depth(src, 16)
 
