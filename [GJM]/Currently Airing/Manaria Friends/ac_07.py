@@ -12,7 +12,7 @@ epend = 19802
 
 
 core = vs.core
-ts_in = r"07/manaria07_audio_13_decrypted.mp4"
+ts_in = r"07/manaria07_video_15_decrypted.mp4"
 src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
