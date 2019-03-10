@@ -5,7 +5,7 @@ import audiocutter
 from subprocess import call
 
 core = vs.core
-ts_in = r"../[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]/BDROM/BDMV/STREAM/00005.m2ts"
+ts_in = r"../[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]/BDROM/BDMV/STREAM/00003.m2ts"
 src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
@@ -16,4 +16,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio(r'EoR_PV4_cut.flac', audio_source=r'../[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]/BDROM/BDMV/STREAM/00005.flac')
+    ac.cut_audio(r'CMs/EoR_CM2_cut.flac', audio_source=r'../[BDMV][Fate／Grand Order -MOONLIGHT／LOSTROOM-]/BDROM/BDMV/STREAM/00003.flac')

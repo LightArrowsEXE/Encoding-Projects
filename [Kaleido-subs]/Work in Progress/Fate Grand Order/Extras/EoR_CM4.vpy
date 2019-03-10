@@ -23,7 +23,7 @@ denoise = lvf.qden(scaled, h=0.8)
 deband = core.f3kdb.Deband(denoise, range=16, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
 sharpen = haf.ContraSharpening(deband, src, radius=None, rep=13)
 
-aa = taa.TAAmbk(scaled, aatype='Eedi3', opencl=True)
+aa = taa.TAAmbk(scaled, aatype='Eedi3SangNom', opencl=True)
 
 mask = kgf.retinex_edgemask(aa, 1)
 maskedmerge = core.std.MaskedMerge(sharpen, aa, mask)
