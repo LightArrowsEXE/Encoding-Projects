@@ -30,5 +30,4 @@ maskedmerge = core.std.MaskedMerge(sharpen, aa, mask)
 
 out = maskedmerge
 final = fvf.Depth(out, 10)
-comp = lvf.comp(src, out, [35, 62, 107, 117, 137, 151, 162, 214, 248, 258, 279])
-comp.set_output()
+final.set_output()
