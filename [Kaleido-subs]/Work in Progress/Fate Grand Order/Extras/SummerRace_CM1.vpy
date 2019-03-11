@@ -17,7 +17,7 @@ denoise = lvf.qden(src, h=0.4)
 deband = core.f3kdb.Deband(denoise, range=17, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
 contraSharpen = haf.ContraSharpening(deband, src, radius=None, rep=13)
 
-sharpen = haf.LSFmod(src, strength=180, soft=10, edgemode=1, Smethod=2, Lmode=2)
+sharpen = haf.LSFmod(src, strength=120, soft=10, edgemode=1, Smethod=2, Lmode=2)
 aa = taa.TAAmbk(sharpen, aatype='Eedi3', opencl=True)
 
 mask = kgf.retinex_edgemask(aa, 1)

@@ -58,6 +58,7 @@
 *.lst
 *.cue
 *.sup
+*.db
 
 # Misc
 *.exe
@@ -73,5 +74,6 @@
 *.torrent
 *fix.vpy
 *wraw.vpy
+*patch.vpy
 *.html
 
