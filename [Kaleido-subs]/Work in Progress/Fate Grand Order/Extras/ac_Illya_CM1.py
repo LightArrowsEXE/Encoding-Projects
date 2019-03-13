@@ -16,4 +16,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio(r'CMs/Illya_CM_cut.flac', audio_source=r'../Fate Grand Order -First Order-/BDROM/BDMV/STREAM/00013.flac')
+    ac.cut_audio(r'CMs/Illya_CM1_cut.flac', audio_source=r'../Fate Grand Order -First Order-/BDROM/BDMV/STREAM/00013.flac')
