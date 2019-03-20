@@ -25,6 +25,7 @@
 *.log
 *.m4a
 *.tif
+*.ts
 
 # VapourSynth files
 *.bookmarks
@@ -78,4 +79,5 @@
 *wraw.vpy
 *patch.vpy
 *.html
+*.lgd
 
