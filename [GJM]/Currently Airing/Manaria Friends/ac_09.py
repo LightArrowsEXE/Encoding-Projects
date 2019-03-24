@@ -23,7 +23,7 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('09/09_cut.mka', audio_source='09/manaria09_video_15_decrypted.mkv')
+    ac.cut_audio('09/09_cut.mka', audio_source='09/manaria09_audio_13_decrypted.mka')
     
 os.remove("tmp-001.mka")
 os.remove("tmp-002.mka")
