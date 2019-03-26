@@ -14,7 +14,7 @@ epend = 20952
 
 src = lvf.src(r"10/Mysteria Friends E10 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv")
 blank = core.std.BlankClip(src) # Part B starts too abruptly, so there's some space for a breather after ED.
-src = src[:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
+src = src[:endcard]+blank[:48]+src[part_b:]+src[endcard:part_b]
 src = fvf.Depth(src, 16)
 
 scaled = core.resize.Spline36(src, 1440, 810)
