@@ -15,7 +15,7 @@ Y, U, V = kgf.split(src)
 
 scaled = kgf.inverse_scale(src, height=720, kernel='bicubic', a1=0, a2=1)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P16)
-scaled_m = kgf.inverse_scale(src, height=720, kernel='bicubic', mask_detail=True, show_mask=True).resize.Spline36(1920, 1080, format=vs.GRAY16)
+scaled_m = kgf.inverse_scale(src, height=720, kernel='bicubic', a1=0, a2=1, mask_detail=True, show_mask=True).resize.Spline36(1920, 1080, format=vs.GRAY16)
 scaled = core.std.MaskedMerge(scaled, src, scaled_m)
 scaled = kgf.join([scaled, U, V])
 
@@ -30,4 +30,4 @@ maskedmerge = core.std.MaskedMerge(contraSharpen, aa, mask)
 
 out = maskedmerge
 final = fvf.Depth(out, 10)
-final.set_output()
+src.set_output()
