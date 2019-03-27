@@ -11,12 +11,12 @@ epend = 20952
 
 
 core = vs.core
-ts_in = r"09/manaria09_video_15_decrypted.mkv"
+ts_in = r"10/Mysteria Friends E10 [1080p][E-AC3][JapDub][GerSub][Web-DL].mkv"
 src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
 
-vid = ac.split(src, [(0,endcard-1),(part_b,epend),(endcard,part_b)])
+vid = ac.split(src, [(0,endcard+48),(part_b,epend),(endcard,part_b)])
 
 ac.ready_qp_and_chapters(vid)
 
