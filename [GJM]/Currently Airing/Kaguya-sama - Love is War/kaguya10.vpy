@@ -20,7 +20,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
-src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart} {opstart+2160}] [2841 2924] [4739 4751] [6379 6390] [11841 11971] [12149 12255] [22234 22245] [22278 22289] [22901 23006] [25587 25603] [25621 25649]")
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart} {opstart+2160}] [2841 2924] [4739 4751] [6379 6390] [11841 11971] [12149 12255] [22234 22245] [22278 22289] [22901 23006] [24830 24845] [25587 25603] [25621 25649]")
 
 scomp2 = lvf.stack_compare(src, src_a, height=480) # checking for leftover hardsubbed signs
 
