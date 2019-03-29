@@ -7,7 +7,7 @@ import shutil
 import os
 
 core = vs.core
-ts_in = r'[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00002.m2ts'
+ts_in = r'[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00001.m2ts'
 src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
@@ -18,4 +18,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('flat01_audiocut.m4a', audio_source='[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00002_Track01.m4a')
+    ac.cut_audio('encodes/flat01_audiocut.flac', audio_source='[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00002.flac')
