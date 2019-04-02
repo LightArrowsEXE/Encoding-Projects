@@ -27,6 +27,7 @@
 *.tif
 *.ts
 *.mks
+*.bmp
 
 # VapourSynth files
 *.bookmarks
@@ -82,4 +83,5 @@
 *.html
 *.lgd
 *.xcf
+
 
