@@ -17,6 +17,10 @@ scomp = lvf.scomp(src_a, src_b, height=480)
 
 hardsubmask = kgf.hardsubmask(src_a, src_b)
 src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
+
+# Splice in OP because dehardsubbing stinx
+src_a_OP = src_a[opstart:opstart+2156]
+src = kgf.insert_clip(src, src_a_OP, opstart)
 src = fvf.Depth(src, 16)
 Y, U, V = kgf.split(src)
 
