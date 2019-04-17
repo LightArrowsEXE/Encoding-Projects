@@ -18,6 +18,10 @@ scomp = lvf.scomp(src_a, src_b, height=480)
 hardsubmask = kgf.hardsubmask(src_a, src_b)
 src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
+src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
+src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+2156} {opstart+2500}]")
+
 # Splice in OP because dehardsubbing stinx
 src_a_OP = src_a[opstart:opstart+2156]
 src = kgf.insert_clip(src, src_a_OP, opstart)
