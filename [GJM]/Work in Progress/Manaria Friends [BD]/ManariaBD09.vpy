@@ -11,7 +11,7 @@ core.max_cache_size = 8192
 preview = 16688
 endcard = 16808
 part_b = 16928
-epend = 16688
+epend = 21122
 
 # Note: after cutting
 edstart = 15572
@@ -41,4 +41,4 @@ grain = kgf.adaptive_grain(maskedmerge, 0.1)
 
 out = grain
 final = fvf.Depth(out, 10)
-final.set_output()
+src.set_output()
