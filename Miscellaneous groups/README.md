@@ -1,0 +1,1 @@
+Additional scripts for groups I'm not formally in or don't really consider myself a part of (even if they do). As with the groups in the previous directory, you are free to use these as reference for your own group. If one of the groups wants their release removed from this repository, please contact me.
