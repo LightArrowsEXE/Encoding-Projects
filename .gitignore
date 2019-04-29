@@ -83,5 +83,6 @@
 *.html
 *.lgd
 *.xcf
-
+*.MDS
+*.nfo
 
