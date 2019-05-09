@@ -3,6 +3,7 @@ import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
 import havsfunc as haf
+import vsTAAmbk as taa
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 core.max_cache_size = 8192
@@ -18,7 +19,10 @@ scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', a1=0, a2=1/2)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P16)
 scaled = kgf.join([scaled, U, V])
 
-denoise = lvf.qden(scaled, h=0.2, sigma=3)
+aa = taa.TAAmbk(scaled, aatype='Eedi3', opencl=True)
+aa = fvf.rfs(aa, scaled, mappings="[29934 29972]")
+
+denoise = lvf.qden(aa, h=0.2, sigma=3)
 deband = core.f3kdb.Deband(denoise, range=18, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=10)
