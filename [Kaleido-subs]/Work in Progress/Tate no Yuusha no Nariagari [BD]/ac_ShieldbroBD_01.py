@@ -19,4 +19,4 @@ ac.ready_qp_and_chapters(vid)
 vid.set_output(0)
 
 if __name__ == "__main__":
-    ac.cut_audio(r'BOX I/ShieldbroBD_01_cut.m4a', audio_source=r'BDMV/[BDMV][190424][Tate no Yuusha no Nariagari][Vol.1]/TATE_1_1/BDMV/STREAM/00009.m4a')
+    ac.cut_audio(r'ShieldbroBD_01_cut.m4a', audio_source=r'BDMV/[BDMV][190424][Tate no Yuusha no Nariagari][Vol.1]/TATE_1_1/BDMV/STREAM/00009.m4a')
