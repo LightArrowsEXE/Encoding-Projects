@@ -13,7 +13,8 @@ src = src[24:2182]
 src = fvf.Depth(src, 16)
 
 
-aa = taa.TAAmbk(src, aatype='Nnedi3SangNom', sharp=120, repair=2)
+sharpen = haf.LSFmod(src, strength=60, soft=10, edgemode=1, Smethod=2, Lmode=2)
+aa = taa.TAAmbk(sharpen, aatype='Eedi3', opencl=True)
 deband = core.f3kdb.Deband(aa, range=17, y=40, cb=32, cr=32, grainy=0, grainc=0, output_depth=16)
 grain = kgf.adaptive_grain(deband, 0.3)
 
