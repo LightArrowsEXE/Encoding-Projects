@@ -85,5 +85,14 @@
 *.xcf
 *.MDS
 *.nfo
-
 *.cbz
+
+
+# Utility Scripts
+auto-CRC.py
+hardsub.py
+encode_audio.py
+extract_audio.py
+clean_dir.py
+clean-enc-dir.py
+QC.py
