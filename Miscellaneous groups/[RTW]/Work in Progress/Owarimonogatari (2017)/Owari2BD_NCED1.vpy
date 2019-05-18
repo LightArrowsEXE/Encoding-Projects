@@ -17,7 +17,7 @@ src = fvf.Depth(src, 16)
 
 
 Y, U, V = kgf.split(src)
-scaled = kgf.inverse_scale(src, width=None, height=720, kernel='bicubic', a1=0, a2=1/2, mask_detail=True)
+scaled = kgf.inverse_scale(src, width=None, height=720, kernel='bicubic', b=0, c=1/2, mask_detail=True)
 scaled = fvf.Depth(scaled, 16)
 
 denoise = lvf.quick_denoise(scaled, h=1, sigma=5)

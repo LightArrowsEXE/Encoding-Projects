@@ -17,7 +17,7 @@ src = fvf.Depth(src, 16)
 
 
 Y, U, V = kgf.split(src)
-scaled = kgf.inverse_scale(src, width=None, height=720, kernel='bicubic', a1=0, a2=1/2, mask_detail=True)
+scaled = kgf.inverse_scale(src, width=None, height=720, kernel='bicubic', b=0, c=1/2, mask_detail=True)
 scaled = fvf.Depth(scaled, 16)
 
 denoise = lvf.quick_denoise(scaled, h=1, sigma=5)
@@ -27,15 +27,10 @@ aa = fvf.rfs(denoise, aa, mappings=f"[{opstart+713} {opstart+880}] [{opstart+905
 scaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
 scaled = kgf.join([scaled, U, V])
 
-deband_a = core.f3kdb.Deband(scaled, range=18, y=48, cb=40, cr=40, grainy=24, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(scaled, range=21, y=64, cb=56, cr=56, grainy=24, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"")
-
-grain_a = kgf.adaptive_grain(deband, 0.5)
-grain_b = kgf.adaptive_grain(deband, 2)
-grain = fvf.rfs(grain_a, grain_b, mappings=f"")
+deband = core.f3kdb.Deband(scaled, range=18, y=48, cb=40, cr=40, grainy=24, grainc=0, output_depth=16)
+grain = kgf.adaptive_grain(deband, 0.5)
 
 
 out = grain
 final = fvf.Depth(out, 10)
-src.set_output()
+final.set_output()
