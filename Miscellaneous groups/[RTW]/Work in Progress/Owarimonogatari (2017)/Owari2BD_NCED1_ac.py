@@ -17,4 +17,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio(r'OwariBD_2_NCED1_cut.m4a', audio_source=r'BDMV/[BDMV][アニメ][171025] 「終物語」 第六巻／まよいヘル/BD_VIDEO/BDMV/STREAM/00010.m4a')
+    ac.cut_audio(r'Owari2BD_NCED1_cut.m4a', audio_source=r'BDMV/[BDMV][アニメ][171025] 「終物語」 第六巻／まよいヘル/BD_VIDEO/BDMV/STREAM/00010.m4a')
