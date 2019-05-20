@@ -12,7 +12,7 @@ src = core.edgefixer.ContinuityFixer(src, [4,2,2], [4,2,2], [4,2,2], [4,2,2])
 src = fvf.Depth(src, 16)
 Y, U, V = kgf.split(src)
 
-scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', a1=0, a2=1/2)
+scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', b=0, c=1/2)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P16)
 scaled = kgf.join([scaled, U, V])
 
