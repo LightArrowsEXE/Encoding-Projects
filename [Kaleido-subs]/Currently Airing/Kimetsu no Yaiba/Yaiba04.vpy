@@ -28,7 +28,7 @@ src = kgf.insert_clip(src, src_a_OP, opstart)
 src = fvf.Depth(src, 16)
 Y, U, V = kgf.split(src)
 
-scaled = kgf.inverse_scale(src, height=855, kernel='bicubic', a1=1/5, a2=4/10, mask_detail=True, masking_areas=[[opstart,opstart+1000],[edstart,edstart+2156]])
+scaled = kgf.inverse_scale(src, height=855, kernel='bicubic', b=0.2, c=0.4, mask_detail=True)
 scaled = fvf.Depth(scaled, 16)
 Y2, U2, V2 = kgf.split(scaled)
 aa = taa.TAAmbk(Y2, aatype='Nnedi3')
