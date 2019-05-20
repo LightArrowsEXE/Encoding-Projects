@@ -11,7 +11,7 @@ src = src[24:2181]
 src = fvf.Depth(src, 16)
 Y, U, V = kgf.split(src)
 
-scaled = kgf.inverse_scale(src, height=855, kernel='bicubic', a1=0.2, a2=0.4)
+scaled = kgf.inverse_scale(src, height=855, kernel='bicubic', b=0.2, c=0.4)
 scaled = fvf.Depth(scaled, 16)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080)
 scaled = kgf.join([scaled, U, V])
