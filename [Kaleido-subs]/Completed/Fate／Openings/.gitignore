@@ -1,0 +1,7 @@
+# Allow mask
+!/CCC masks/*.png
+!/CCC masks/BBcollar/*.png
+!/CCC masks/Rineye/*.png
+!/CCC masks/Rinface/*.png
+!/CCC masks/Sakurashoulder/*.png
+!/CCC masks/Skirtmask/*.png
