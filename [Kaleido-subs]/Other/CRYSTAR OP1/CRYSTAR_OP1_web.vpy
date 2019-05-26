@@ -9,7 +9,7 @@ core = vs.core
 core.max_cache_size = 8192
 
 src = lvf.src(r"movie_max.mp4").std.AssumeFPS(fpsnum=24000, fpsden=1001)
-src = src[:1792]+src[1793:2280]
+src = src[:1792]+src[1793:2280] # remove random black frame
 scaled_c = core.resize.Spline36(src, 1280, 720, format=vs.YUV444P16)
 src = fvf.AutoDeblock(src)
 
@@ -31,6 +31,5 @@ grain = fvf.rfs(grain_a, grain_b, mappings="[155 373]")
 
 out = grain
 final = fvf.Depth(out, 10)
-comp = lvf.comp(scaled_c, out, [153, 351, 438, 559, 708, 828, 881, 973, 1093, 1337, 1461, 1475, 1483, 1513, 1566, 1657, 1679, 1695, 1710, 1750, 1815, 1819, 1844, 1849, 1877, 1977, 2009, 2010, 2025, 2026, 2041, 2042, 2057, 2058])
 final.set_output()
 
