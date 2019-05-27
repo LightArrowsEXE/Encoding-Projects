@@ -36,9 +36,14 @@ scaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
 scaled = kgf.join([scaled, U, V])
 
 
-denoise = lvf.quick_denoise(scaled, h=0.4, sigma=4)
-deband = core.f3kdb.Deband(denoise, range=18, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16)
-grain = kgf.adaptive_grain(deband, 0.3)
+denoise_a = lvf.quick_denoise(scaled, h=0.4, sigma=4)
+deband_a = core.f3kdb.Deband(denoise_a, range=18, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16)
+grain_a = kgf.adaptive_grain(deband_a, 0.3)
+denoise_b = lvf.quick_denoise(scaled, h=0.8, sigma=5)
+deband_b = core.f3kdb.Deband(denoise_b, range=24, y=72, cb=64, cr=64, grainy=36, grainc=0, output_depth=16)
+grain_b = kgf.adaptive_grain(deband_b, 0.8)
+grain = fvf.rfs(grain_a, grain_b, mappings="[11856 11950] [12209 12304] [13536 13605]")
+
 
 
 # # # # OP FILTERING # # # #
