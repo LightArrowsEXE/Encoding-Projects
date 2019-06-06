@@ -64,6 +64,7 @@
 *.cue
 *.sup
 *.db
+*.m2v
 
 # Misc
 *.exe
