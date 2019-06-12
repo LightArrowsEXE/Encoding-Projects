@@ -16,8 +16,10 @@ Y, U, V = kgf.split(shift)
 scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', b=0, c=1/2)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P8)
 scaled = kgf.join([scaled, U, V])
-scaled = core.std.CropRel(scaled, 0, 0, 132, 134).resize.Spline36(1920, 816)
-scaled = core.edgefixer.ContinuityFixer(scaled, [4,2,2], [4,2,2], [4,2,2], [6,3,3])
+
+scaled = core.std.CropRel(scaled, 0, 0, 132, 134)#.resize.Spline36(1920, 816)
+scaled = core.edgefixer.ContinuityFixer(scaled, [4,2,2], [4,2,2], [4,2,2], [4,2,2])
+scaled = core.std.AddBorders(scaled, 0, 0, 132, 134)
 scaled = fvf.Depth(scaled, 16)
 
 denoise = lvf.qden(scaled, h=0.2, sigma=3)
