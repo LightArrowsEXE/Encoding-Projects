@@ -13,7 +13,7 @@ src = src[:2349]
 shift = haf.FixChromaBleedingMod(src, cx=0.5, cy=0, thr=100, strength=1, blur=True)
 Y, U, V = kgf.split(shift)
 
-scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', b=0, c=1/2)
+scaled = kgf.inverse_scale(Y, height=874, kernel='bicubic', b=0, c=1/2)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P8)
 scaled = kgf.join([scaled, U, V])
 
