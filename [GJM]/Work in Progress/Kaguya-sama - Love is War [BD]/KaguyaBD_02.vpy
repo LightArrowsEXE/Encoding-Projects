@@ -2,6 +2,7 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
+import havsfunc as haf
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 core.max_cache_size = 8192
@@ -13,7 +14,7 @@ src = fvf.Depth(src, 16)
 shift = haf.FixChromaBleedingMod(src, cx=0.5, cy=0, thr=100, strength=1, blur=True)
 Y, U, V = kgf.split(shift)
 
-scaled = kgf.inverse_scale(src, height=874, kernel='bicubic', b=0, c=1/2, mask_detail=True)
+scaled = kgf.inverse_scale(Y, height=874, kernel='bicubic', b=0, c=1/2, mask_detail=True)
 scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P16)
 scaled = kgf.join([scaled, U, V])
 
