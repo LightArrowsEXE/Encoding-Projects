@@ -28,6 +28,7 @@
 *.ts
 *.mks
 *.bmp
+*.webp
 
 # VapourSynth files
 *.bookmarks
