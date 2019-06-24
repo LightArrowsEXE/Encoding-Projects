@@ -1,0 +1,2 @@
+# Ignore scripts of encoded videos to keep main directory cleaner
+/scripts (encoded)/*
