@@ -3,9 +3,10 @@ import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
 import havsfunc as haf
+import mvsfunc as mvf
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
-core.max_cache_size = 8192
+
 
 src = lvf.src(r"BDMV/かぐや様は告らせたい Vol.2/BD/BDMV/STREAM/00009.m2ts")
 src = src[:2349]
@@ -22,7 +23,7 @@ scaled = core.edgefixer.ContinuityFixer(scaled, [4,2,2], [4,2,2], [4,2,2], [4,2,
 scaled = core.std.AddBorders(scaled, 0, 0, 132, 134)
 scaled = fvf.Depth(scaled, 16)
 
-denoise = lvf.qden(scaled, h=0.2, sigma=3)
+denoise = mvf.BM3D(scaled, sigma=[3,0.5])
 deband = core.f3kdb.Deband(denoise, range=18, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=10)

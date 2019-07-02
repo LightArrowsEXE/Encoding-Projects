@@ -2,11 +2,12 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
+import mvsfunc as mvf
 import havsfunc as haf
 import vsTAAmbk as taa
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
-core.max_cache_size = 8192
+
 
 src = lvf.src(r"BDMV/かぐや様は告らせたい Vol.2/BD/BDMV/STREAM/00001.m2ts")
 src = src[:34524]
@@ -22,7 +23,7 @@ scaled = kgf.join([scaled, U, V])
 aa = taa.TAAmbk(scaled, aatype='Eedi3', opencl=True)
 aa = fvf.rfs(aa, scaled, mappings="[29934 29972]")
 
-denoise = lvf.qden(aa, h=0.2, sigma=3)
+denoise = mvf.BM3D(scaled, sigma=[3,0.5])
 deband = core.f3kdb.Deband(denoise, range=18, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=10)

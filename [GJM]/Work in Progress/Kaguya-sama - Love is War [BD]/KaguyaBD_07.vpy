@@ -7,6 +7,7 @@ import mvsfunc as mvf
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 
+
 src = lvf.src(r"BDMV/[BDMV][190626][Kaguya-sama - Love Is War][Vol.4]/BDMV/STREAM/00001.m2ts")
 src = src[:34525]
 src = core.edgefixer.ContinuityFixer(src, [4,2,2], [4,2,2], [4,2,2], [4,2,2])
