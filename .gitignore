@@ -93,6 +93,7 @@
 *sakuga*.vpy
 *sakuga.vpy
 *wraw.vpy
+settings
 
 
 # Utility Scripts
@@ -103,3 +104,4 @@ encode_audio.py
 extract_audio.py
 hardsub.py
 QC.py
+rename.py
