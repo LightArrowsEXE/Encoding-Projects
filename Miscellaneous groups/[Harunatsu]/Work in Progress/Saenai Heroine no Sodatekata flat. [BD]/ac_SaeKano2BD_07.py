@@ -18,4 +18,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('ac_SaeKano2BD_07.m4a', audio_source='[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.04/BDMV/STREAM/00002.flac')
+    ac.cut_audio('ac_SaeKano2BD_07.m4a', audio_source='[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.04/BDMV/STREAM/00002.m4a')
