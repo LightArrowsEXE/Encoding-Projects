@@ -27,7 +27,10 @@ aa = taa.TAAmbk(darken, aatype='Eedi3')
 upscaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
 upscaled = kgf.join([upscaled, U, V])
 
-deband = core.f3kdb.Deband(upscaled, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
+deband_a = core.f3kdb.Deband(upscaled, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(upscaled, range=7, y=64, cr=56, cb=56, grainy=0, grainc=0, output_depth=16) 
+deband_b = core.f3kdb.Deband(deband_b, range=18, y=40, cr=32, cb=32, grainy=24, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings="[772 813] [844 881]")
 
 sharp = haf.ContraSharpening(deband, upscaled)
 

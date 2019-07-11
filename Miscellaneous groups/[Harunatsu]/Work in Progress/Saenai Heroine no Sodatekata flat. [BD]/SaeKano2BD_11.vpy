@@ -36,10 +36,13 @@ deband_c = core.f3kdb.Deband(upscaled, range=19, y=64, cr=56, cb=56, grainy=24, 
 deband_d = core.f3kdb.Deband(upscaled, range=7, y=200, cr=192, cb=192, grainy=0, grainc=0, output_depth=16) 
 # Don't ever do this unless you *HAVE* to, please - https://slowpics.org/comparison/21b25059-693c-4e2c-8510-e5f141c1faa6
 deband_d = core.f3kdb.Deband(deband_d, range=21, y=72, cr=64, cb=64, grainy=24, grainc=0, output_depth=16)
+deband_e = core.f3kdb.Deband(upscaled, range=7, y=64, cr=56, cb=56, grainy=0, grainc=0, output_depth=16) 
+deband_e = core.f3kdb.Deband(deband_e, range=18, y=40, cr=32, cb=32, grainy=24, grainc=0, output_depth=16)
 deband = fvf.rfs(deband_a, upscaled, mappings=f"[{opstart} {opstart+313}] [{opstart+1976} {opstart+2159}]")
 deband = fvf.rfs(deband, deband_b, mappings=f"[{opstart+1245} {opstart+1251}] [{opstart+1672} {opstart+1801}]")
 deband = fvf.rfs(deband, deband_c, mappings=f"[{opstart+1078} {opstart+1128}]")
 deband = fvf.rfs(deband, deband_d, mappings=f"[{opstart+1227} {opstart+1244}]")
+deband = fvf.rfs(deband, deband_e, mappings=f"[24964 25005] [25036 25073]")
 
 sharp = haf.ContraSharpening(deband, upscaled)
 
