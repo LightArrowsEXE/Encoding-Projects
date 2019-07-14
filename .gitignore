@@ -105,3 +105,4 @@ extract_audio.py
 hardsub.py
 QC.py
 rename.py
+generate_keyframes.py
