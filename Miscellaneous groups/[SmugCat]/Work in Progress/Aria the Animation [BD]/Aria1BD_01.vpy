@@ -12,7 +12,6 @@ src = src[30:43831]
 src = core.std.CropRel(src, left=248, right=246, top=10, bottom=10)
 src = core.edgefixer.ContinuityFixer(src, left=0, top=0, right=[3,0,1], bottom=[1,0,1])
 src = fvf.Depth(src, 16)
-Y, U, V = kgf.split(src)
 
 
 scaled = core.resize.Spline36(src, 640, 480, format=vs.YUV444P16)

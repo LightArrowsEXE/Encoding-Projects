@@ -12,7 +12,6 @@ src = src[30:43831]
 src = core.std.CropRel(src, left=248, right=246, top=10, bottom=10)
 src = core.edgefixer.ContinuityFixer(src, left=0, top=0, right=[3,0,1], bottom=[1,0,1])
 src = fvf.Depth(src, 16)
-Y, U, V = kgf.split(src)
 
 
 scaled = core.resize.Spline36(src, 640, 480, format=vs.YUV444P16)
@@ -20,7 +19,6 @@ scaled = core.resize.Spline36(src, 640, 480, format=vs.YUV444P16)
 dehalo = haf.HQDeringmod(scaled, nrmode=2, darkthr=0, sharp=0, mthr=56)
 darken = haf.FastLineDarkenMOD(dehalo, strength=28, protection=3, luma_cap=191, threshold=2, thinning=0)
 aa = taa.TAAmbk(dehalo, aatype='Eedi3')
-
 
 dark_mask = kgf.adaptive_grain(scaled, show_mask=True, luma_scaling=12).std.Binarize()
 blur = core.std.BoxBlur(scaled) # blur away the noise for more accurate edgemask
