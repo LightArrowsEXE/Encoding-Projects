@@ -107,3 +107,5 @@ QC.py
 rename.py
 generate_keyframes.py
 remux.py
+*.jar
+*.bdjo
