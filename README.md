@@ -21,6 +21,7 @@ don't hesitate to send one in!
 
 Tags are added to clarify
 what the scripts are intended for.
+
 | Tag | Description | Source |
 |------|------------|--------|
 | None | Scripts for a WEB/TV/etc. Release | WEB, TV, Unknown |
