@@ -18,4 +18,4 @@ ac.ready_qp_and_chapters(vid)
 
 vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('ac_Aria1BD_02.m4a', audio_source='BDMV/ARIA SEASON ONE BD/ARIAS1BD1/BDMV/STREAM/00002.m4a')
+    ac.cut_audio('ac_Aria1BD_01.m4a', audio_source='BDMV/ARIA SEASON ONE BD/ARIAS1BD1/BDMV/STREAM/00002.m4a')
