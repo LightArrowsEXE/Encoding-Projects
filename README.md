@@ -27,6 +27,7 @@ what the scripts are intended for.
 | BD   | Scripts for a Blu-ray Release | BDMV |
 | DVD  | Scripts for a DVD Release | DVDISO |
 | Various | Scripts using more than two varying kinds of sources | Varies |
+
 If a directory is untagged,
 please apply common sense
 when looking over the scripts.
