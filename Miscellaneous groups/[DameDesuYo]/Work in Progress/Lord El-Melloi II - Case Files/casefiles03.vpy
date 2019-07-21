@@ -20,7 +20,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade) # Amazon a shit
-src = fvf.rfs(src, src_fade, mappings=f"[{opstart+285} {opstart+517}] [25108 25179]")
+src = fvf.rfs(src, src_fade, mappings=f"[{opstart+285} {opstart+517}] [27276 27308] [25108 25179] [28316 28448]")
 # Change this as much as need be every episode. Note that the original hardsubmask doesn't catch the CM break sign.
 
 src = core.edgefixer.ContinuityFixer(src, left=1, top=1, right=1, bottom=1)
