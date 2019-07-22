@@ -32,7 +32,7 @@ descaled = fvf.Depth(descaled, 16)
 
 aa_a = taa.TAAmbk(descaled, aatype='Nnedi3')
 aa_b = taa.TAAmbk(descaled, aatype='Eedi3')
-aa = fvf.rfs(aa_a, aa_b, mappings=f"[{opstart+292} {opstart+402}] [{opstart+1017} {opstart+1079}] [{opstart+1701} {opstart+1782}] [{opstart+1895} {opstart+1953}]")
+aa = fvf.rfs(aa_a, aa_b, mappings=f"[{opstart+292} {opstart+402}] [{opstart+1017} {opstart+1079}] [{opstart+1701} {opstart+1782}] [{opstart+1895} {opstart+1953}] [15053 15124] [15343 15444] [24976 25023] [25230 25363] [25773 25820] [25911 26062] [26241 26308] [26453 26539] [26825 26907] [28009 28344] [28767 28868] [29266 29451] [30543 30929]")
 
 scaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
 scaled = kgf.join([scaled, U, V])
