@@ -114,3 +114,6 @@ remux.py
 # Exceptions
 !settings
 !*_keyframes.txt
+
+# Exceptions to the exceptions
+*mkv_keyframes.txt
