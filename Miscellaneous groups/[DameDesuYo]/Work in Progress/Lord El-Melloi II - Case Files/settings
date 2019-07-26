@@ -1,0 +1,1 @@
+--preset veryslow --crf 15 --keyint 480 --min-keyint 23 --ref 16 --bframes 16 --aq-mode 3 --aq-strength 0.60 --qcomp 0.70 --no-dct-decimate --no-fast-pskip --psy-rd 0.72:0.0 --output-depth 10 --output-csp i444
