@@ -94,7 +94,6 @@
 *sakuga*.vpy
 *sakuga.vpy
 *wraw.vpy
-settings
 
 
 # Utility Scripts
@@ -110,3 +109,8 @@ generate_keyframes.py
 remux.py
 *.jar
 *.bdjo
+
+
+# Exceptions
+!settings
+!*_keyframes.txt
