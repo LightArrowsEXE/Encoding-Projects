@@ -2,11 +2,12 @@
 
 import vapoursynth as vs
 import audiocutter
+import lvsfunc as lvf
 from subprocess import call
 
 core = vs.core
 ts_in = r"BDMV/かぐや様は告らせたい Vol.5/BD/BDMV/STREAM/00001.m2ts"
-src = core.lsmas.LWLibavSource(ts_in)
+src = lvf.src(ts_in)
 
 ac = audiocutter.AudioCutter()
 
