@@ -27,7 +27,7 @@ src = fvf.Depth(src, 16)
 
 
 Y, U, V = kgf.split(src)
-descaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=0.2, c=0.4, mask_detail=True, denoise=True, bm3d_sigma=3, use_gpu=False)
+descaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=0.2, c=0.4, mask_detail=True)
 descaled = fvf.Depth(descaled, 16)
 
 aa_a = taa.TAAmbk(descaled, aatype='Nnedi3')
