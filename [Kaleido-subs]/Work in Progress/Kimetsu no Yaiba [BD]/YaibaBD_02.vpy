@@ -6,7 +6,7 @@ import vsTAAmbk as taa
 from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 
-opstart, edstart = 3524-1368, 33086-2159
+opstart, edstart = 3524-2159, 33086-2159
 
 
 src = lvf.src(r"BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00005.m2ts")
