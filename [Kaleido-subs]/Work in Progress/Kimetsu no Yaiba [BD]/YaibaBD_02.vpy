@@ -15,7 +15,9 @@ src = fvf.Depth(src, 16)
 
 
 Y, U, V = kgf.split(src)
-scaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=1/5, c=2/5, mask_detail=True, denoise=True, bm3d_sigma=3.5, use_gpu=False)
+scaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=1/5, c=2/5, mask_detail=True, 
+            descale_mask_zones=f"[{opstart} {opstart+2159}] [{edstart} {edstart+2159}]", 
+            denoise=True, bm3d_sigma=3.5, use_gpu=False)
 scaled = fvf.Depth(scaled, 16)
 
 aa_a = taa.TAAmbk(scaled, aatype='Nnedi3')
@@ -27,12 +29,12 @@ scaled = kgf.join([scaled, U, V])
 
 deband_a = core.f3kdb.Deband(scaled, range=17, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(scaled, range=20, y=48, cb=40, cr=40, grainy=36, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+2004} {opstart+2046}] [{edstart+1494} {edstart+1600}]")
+deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+2004} {opstart+2046}] [{edstart+1494} {edstart+1600}] [10932 10981] [14361 14434] [14719 14914] [27531 27700]")
 
 grain_a = kgf.adaptive_grain(deband, 0.5, luma_scaling=6)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = core.grain.Add(deband, 10, constant=False)
-grain = fvf.rfs(grain_a, grain_b, mappings=f"[{opstart+1128} {opstart+1296}]")
+grain = fvf.rfs(grain_a, grain_b, mappings=f"[{opstart+1128} {opstart+1296}] [27531 27700]")
 grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+1313} {opstart+1368}]")
 
 
