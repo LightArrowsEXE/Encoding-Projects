@@ -43,7 +43,7 @@ scaled = kgf.join([scaled, U, V])
 denoise = mvf.BM3D(scaled, sigma=[3,2])
 deband_a = core.f3kdb.Deband(denoise, range=18, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(denoise, range=21, y=48, cb=40, cr=40, grainy=12, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+1128} {opstart+1287}] [10037 10516] [10601 10672] [10733 10948] [11053 11100] [15815 15982] [30822 30833]")
+deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+1128} {opstart+1287}] [10037 10516] [10601 10672] [10733 10948] [11053 11100] [15815 15982]")
 
 grain_a = kgf.adaptive_grain(deband, 0.3)
 grain_b = kgf.adaptive_grain(deband, 1)
