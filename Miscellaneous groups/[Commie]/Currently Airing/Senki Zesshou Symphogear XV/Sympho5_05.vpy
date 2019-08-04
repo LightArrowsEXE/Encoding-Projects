@@ -1,16 +1,12 @@
 import vapoursynth as vs
 import adjust
 import fvsfunc as fvf
-import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
-import mvsfunc as mvf
-import vsTAAmbk as taa
-from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 
 
-opstart, edstart = 3668-2399, 34046-2159
+opstart, edstart = 3668-2396, 34046-2159
 
 src = lvf.src(r'src/05/[Erai-raws] Senki Zesshou Symphogear XV - 05 [1080p][Multiple Subtitle].mkv')
 src = fvf.Depth(src, 16)
@@ -26,8 +22,8 @@ dim1 = adjust.Tweak(scaled, sat=1.35, cont=1.35)
 dim2 = adjust.Tweak(scaled, sat=1.12, cont=1.12)
 dim3 = adjust.Tweak(scaled, sat=1.20, cont=1.20)
 dim4 = adjust.Tweak(scaled, sat=1.40, cont=1.40)
-undim = fvf.rfs(scaled, dim1, mappings=f"[{opstart+1616} {opstart+1662}]]")
-undim = fvf.rfs(undim, dim2, mappings=f"[{opstart+1668} {opstart+1696}]")
+undim = fvf.rfs(scaled, dim1, mappings=f"[{opstart+1613} {opstart+1659}]]")
+undim = fvf.rfs(undim, dim2, mappings=f"[{opstart+1665} {opstart+1693}]")
 undim = fvf.rfs(undim, dim3, mappings="[69 96] [165 184] [23298 23322]")
 undim = fvf.rfs(undim, dim4, mappings="[9110 9269]")
 
