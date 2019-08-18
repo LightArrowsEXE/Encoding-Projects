@@ -7,7 +7,7 @@ from subprocess import call
 
 core = vs.core
 ts_in = r"BDMV/かぐや様は告らせたい Vol.5/BD/BDMV/STREAM/00002.m2ts"
-src = src = lvf.src(ts_in).sd.AssumeFPS(fpsnum=24000, fpsden=1001)
+src = src = lvf.src(ts_in).std.AssumeFPS(fpsnum=24000, fpsden=1001)
 
 ac = audiocutter.AudioCutter()
 
