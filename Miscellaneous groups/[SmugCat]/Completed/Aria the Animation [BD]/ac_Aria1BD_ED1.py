@@ -12,7 +12,7 @@ src = core.lsmas.LWLibavSource(ts_in)
 
 ac = audiocutter.AudioCutter()
 
-vid = ac.split(src, [(30,2851)])
+vid = ac.split(src, [(30,2851-90)]) # some weird audio cutting bug?
 
 ac.ready_qp_and_chapters(vid)
 
