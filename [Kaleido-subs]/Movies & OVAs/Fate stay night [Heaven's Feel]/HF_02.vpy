@@ -16,7 +16,7 @@ scaled_b = core.resize.Bicubic(src, 1520, 855, format=vs.YUV444P16)
 scaled_a = kgf.inverse_scale(src, height=855, kernel='bicubic', b=1/5, c=2/5, mask_detail=True, 
             descale_mask_zones="[6511 8603]") # Not re-upscaling. A true meme release must use a meme resolution.
 scaled_a = fvf.Depth(scaled_a, 16) # reeeeeee kageru
-scaled = fvf.rfs(scaled_a, scaled_b, mappings="[0 512] [80186 88631]")
+scaled = fvf.rfs(scaled_a, scaled_b, mappings="[0 512] [160127 166650] [166994 167037] [167085 167145] [167193 167247] [167292 167342] [167471 167710] [168191 168503]")
 
 mask = kgf.adaptive_grain(scaled_b, show_mask=True, luma_scaling=8)
 denoise_a = mvf.BM3D(scaled, sigma=[2,1])
@@ -43,4 +43,5 @@ grain = fvf.rfs(grain_a, grain_b, mappings="[81707 81754]")
 
 out = grain
 final = fvf.Depth(out, 10)
-final.set_output()
+comp = lvf.comp(src, out, [167085])
+src.set_output()
