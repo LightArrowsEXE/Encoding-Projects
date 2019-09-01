@@ -117,3 +117,4 @@ remux.py
 
 # Exceptions to the exceptions
 *mkv_keyframes.txt
+*.lnk
