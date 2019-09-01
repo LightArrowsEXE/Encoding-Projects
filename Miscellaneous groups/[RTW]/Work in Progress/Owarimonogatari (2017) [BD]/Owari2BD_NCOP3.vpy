@@ -21,7 +21,7 @@ Y, U, V = kgf.split(src)
 scaled = kgf.inverse_scale(src, width=None, height=720, kernel='bicubic', b=0, c=1/2, mask_detail=True)
 scaled = fvf.Depth(scaled, 16)
 
-denoise = lvf.quick_denoise(scaled, h=1, sigma=5)
+denoise = mvf.BM3D(scaled, sigma=[5,2])
 denoise = fvf.rfs(denoise, scaled, mappings=f"[{opstart+997} {opstart+1057}] [{opstart+1345} {opstart+1710}]")
 
 aa_a = taa.TAAmbk(denoise, aatype='Nnedi3')
@@ -46,5 +46,4 @@ grain = kgf.adaptive_grain(deband, 0.5)
 
 out = grain
 final = fvf.Depth(out, 10)
-comp = lvf.comp(src, out, [294, 539, 557, 575, 632, 685, 723, 753, 774, 784, 900, 1046, 1077, 1132, 1151, 1223, 1248, 1291, 1342, 1430, 1597, 1640, 1695, 1721, 1788, 1890, 1930, 1966, 1987, 1988, 2050, 2079, 2121])
 final.set_output()
