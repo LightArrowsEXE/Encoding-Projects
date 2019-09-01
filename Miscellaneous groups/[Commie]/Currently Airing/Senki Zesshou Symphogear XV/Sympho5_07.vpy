@@ -38,10 +38,8 @@ undim = fvf.rfs(undim, dim8, mappings="8865")
 undim = fvf.rfs(undim, dim9, mappings="8866")
 
 
-deblock = core.deblock.Deblock(undim, quant=15)
-
-denoise = fvf.Depth(core.w2xc.Waifu2x(fvf.Depth(deblock, 32), noise=3, scale=1), 16)
-denoise = fvf.rfs(deblock, denoise, mappings="8651")
+denoise = fvf.Depth(core.w2xc.Waifu2x(fvf.Depth(undim, 32), noise=3, scale=1), 16)
+denoise = fvf.rfs(undim, denoise, mappings="8651")
 
 deband_a = core.f3kdb.Deband(denoise, range=16, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(denoise, range=5, y=128, cb=120, cr=120, grainy=0, grainc=0, output_depth=16)
