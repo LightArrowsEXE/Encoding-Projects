@@ -28,9 +28,12 @@ w2x = core.resize.Point(mvf.ToYUV(core.w2xc.Waifu2x(mvf.ToRGB(descaled), noise=1
 w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 w2x = fvf.Depth(w2x, 16)
 
-aa_a = TAAmbk(w2x, aatype='Nnedi3')
-aa_b = TAAmbk(w2x, aatype='Eedi3')
-aa_c = TAAmbk(w2x, aatype='Nnedi3SangNom', cycle=2, repair=2)
+denoise = mvf.BM3D(w2x, sigma=[2,1])
+denoise = fvf.rfs(w2x, denoise, mappings="[3537 3584] [8208 8358]")
+
+aa_a = TAAmbk(denoise, aatype='Nnedi3')
+aa_b = TAAmbk(denoise, aatype='Eedi3')
+aa_c = TAAmbk(denoise, aatype='Nnedi3SangNom', cycle=2, repair=2)
 aa = fvf.rfs(aa_a, aa_b, mappings=f"[{opstart+284} {opstart+406}] [{opstart+1017} {opstart+1079}] [{opstart+1312} {opstart+1368}] {opstart+1593} {opstart+1594} [{opstart+1895} {opstart+2003}] [{edstart+890} {edstart+1032}]")
 aa = fvf.rfs(aa, aa_c, mappings=f"[{edstart+2160} {edstart+2175}]")
 
@@ -42,12 +45,12 @@ scaled = fvf.rfs(upscaled, m_upscaled, mappings=f"[{opstart} {opstart+2159}] [{e
 
 deband_a = core.f3kdb.Deband(scaled, range=16, y=32, cb=24, cr=24, grainy=24, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(scaled, range=18, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+2004} {opstart+2046}] [{edstart+1494} {edstart+1600}] [13298 13393]")
+deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+2004} {opstart+2046}] [{edstart+1494} {edstart+1600}] [3537 3584] [13298 13393]")
 
 grain_a = kgf.adaptive_grain(deband, 0.2, luma_scaling=6)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = core.grain.Add(deband, 10, constant=False)
-grain = fvf.rfs(grain_a, grain_b, mappings=f"[{opstart+1128} {opstart+1296}]")
+grain = fvf.rfs(grain_a, grain_b, mappings=f"[{opstart+1128} {opstart+1296}] [8208 8358]")
 grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+1313} {opstart+1368}]")
 
 
