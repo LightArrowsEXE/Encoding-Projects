@@ -2,6 +2,7 @@ import vapoursynth as vs
 import fvsfunc as fvf
 import kagefunc as kgf
 import lvsfunc as lvf
+import mvsfunc as mvf
 from vsTAAmbk import TAAmbk
 from nnedi3_rpow2 import nnedi3_rpow2
 from vsutil import get_w
@@ -17,20 +18,22 @@ src = fvf.Depth(src, 16)
 
 y, u, v = kgf.split(src)
 descaled = core.descale.Debicubic(fvf.Depth(y, 32), get_w(855), 855, b, c)
-descaled = fvf.Depth(descaled, 16)
 
-aa_a = TAAmbk(descaled, aatype='Nnedi3')
-aa_b = TAAmbk(descaled, aatype='Eedi3')
-aa = fvf.rfs(aa_a, aa_b, mappings=f"[{edstart+890} {edstart+1032}]")
+denoise = mvf.BM3D(descaled, sigma=1)
+denoise = fvf.Depth(denoise, 16)
+
+aa = TAAmbk(denoise, aatype='Eedi3')
+aa = fvf.rfs(denoise, aa, mappings=f"[{edstart+890} {edstart+1032}]")
 
 upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
 upscaled = kgf.join([upscaled, u, v])
 
-deband_a = core.f3kdb.Deband(upscaled, range=16, y=32, cb=24, cr=24, grainy=24, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(upscaled, range=18, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16)
+
+deband_a = core.f3kdb.Deband(upscaled, range=16, y=32, cb=40, cr=40, grainy=24, grainc=0, output_depth=16, sample_mode=1)
+deband_b = core.f3kdb.Deband(upscaled, range=18, y=40, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband = fvf.rfs(deband_a, deband_b, mappings=f"[{edstart+1494} {edstart+1600}]")
 
-grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=6)
+grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
 
 
 out = grain
