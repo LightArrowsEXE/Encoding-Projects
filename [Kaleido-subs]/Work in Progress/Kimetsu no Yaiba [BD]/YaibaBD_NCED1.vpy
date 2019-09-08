@@ -29,8 +29,8 @@ upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
 upscaled = kgf.join([upscaled, u, v])
 
 
-deband_a = core.f3kdb.Deband(upscaled, range=16, y=32, cb=40, cr=40, grainy=24, grainc=0, output_depth=16, sample_mode=1)
-deband_b = core.f3kdb.Deband(upscaled, range=18, y=40, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
+deband_a = core.f3kdb.Deband(upscaled, range=17, y=32, cb=32, cr=32, grainy=24, grainc=0, output_depth=16, sample_mode=1)
+deband_b = core.f3kdb.Deband(upscaled, range=19, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband = fvf.rfs(deband_a, deband_b, mappings=f"[{edstart+1494} {edstart+1600}]")
 
 grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)

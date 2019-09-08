@@ -32,7 +32,7 @@ credit_mask = kgf.iterate(credit_mask, core.std.Inflate, 2)
 w2x = core.resize.Point(mvf.ToYUV(core.w2xc.Waifu2x(mvf.ToRGB(descaled), noise=1, scale=1, gpu=0)), format=descaled.format)
 w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 
-denoise_a = mvf.BM3D(w2x, sigma=1)
+denoise_a = mvf.BM3D(w2x, sigma=1.25)
 denoise_b = mvf.BM3D(w2x, sigma=3)
 denoise = fvf.rfs(denoise_a, denoise_b, mappings=darker_shots + "[27539 27700]")
 denoise = fvf.Depth(denoise, 16)
@@ -52,11 +52,11 @@ scaled = fvf.rfs(upscaled, m_upscaled, mappings=f"""[{opstart} {opstart+2159}]
                                                     [{edstart} {edstart+2159}]""")
 
 
-deband_a = core.f3kdb.Deband(scaled, range=16, y=32, cb=40, cr=40, grainy=24, grainc=0, output_depth=16, sample_mode=1)
-deband_b = core.f3kdb.Deband(scaled, range=18, y=40, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
+deband_a = core.f3kdb.Deband(scaled, range=17, y=32, cb=32, cr=32, grainy=24, grainc=0, output_depth=16, sample_mode=1)
+deband_b = core.f3kdb.Deband(scaled, range=19, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband_c = core.f3kdb.Deband(scaled, range=21, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
-deband_d = core.f3kdb.Deband(scaled, range=5, y=48, cb=48, cr=48, grainy=0, grainc=0, output_depth=16, sample_mode=1)
-deband_d = core.f3kdb.Deband(deband_d, range=16, y=48, cb=48, cr=48, grainy=24, grainc=0, output_depth=16, sample_mode=1)
+deband_d = core.f3kdb.Deband(scaled, range=5, y=64, cb=80, cr=80, grainy=0, grainc=0, output_depth=16, sample_mode=1)
+deband_d = core.f3kdb.Deband(deband_d, range=21, y=64, cb=64, cr=64, grainy=48, grainc=24, output_depth=16, sample_mode=1, dynamic_grain=True)
 deband = fvf.rfs(deband_a, deband_b, mappings=f"""[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}] [{opstart+2004} {opstart+2046}] 
                                                [{edstart+1494} {edstart+1600}]
                                                [10932 10981] [14361 14434] [27531 27700]""")
@@ -66,7 +66,7 @@ deband = fvf.rfs(deband, deband_d, mappings="[27539 27700]")
 grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = core.grain.Add(deband, 10, constant=False)
-grain_d = kgf.adaptive_grain(deband, 2.5, static=False, luma_scaling=24)
+grain_d = core.grain.Add(deband, var=4, uvar=0, constant=False)
 grain = fvf.rfs(grain_a, grain_b, mappings=f"""[{opstart+1128} {opstart+1296}] 
                                                [10950 10981] [14617 14682] [27531 27700]""")
 grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1313} {opstart+1368}]")

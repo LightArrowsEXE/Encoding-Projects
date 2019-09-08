@@ -22,7 +22,7 @@ descaled = core.descale.Debicubic(fvf.Depth(y, 32), get_w(855), 855, b, c)
 w2x = core.resize.Point(mvf.ToYUV(core.w2xc.Waifu2x(mvf.ToRGB(descaled), noise=1, scale=1, gpu=0)), format=descaled.format)
 w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 
-denoise = mvf.BM3D(w2x, sigma=1)
+denoise = mvf.BM3D(w2x, sigma=1.25)
 denoise = fvf.Depth(denoise, 16)
 
 aa = TAAmbk(denoise, aatype='Eedi3')
@@ -31,8 +31,8 @@ aa = fvf.rfs(denoise, aa, mappings=f"[{opstart+284} {opstart+406}] [{opstart+101
 upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
 upscaled = kgf.join([upscaled, u, v])
 
-deband_a = core.f3kdb.Deband(upscaled, range=16, y=32, cb=40, cr=40, grainy=24, grainc=0, output_depth=16, sample_mode=1)
-deband_b = core.f3kdb.Deband(upscaled, range=18, y=40, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
+deband_a = core.f3kdb.Deband(upscaled, range=17, y=32, cb=32, cr=32, grainy=24, grainc=0, output_depth=16, sample_mode=1)
+deband_b = core.f3kdb.Deband(upscaled, range=19, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}] [{opstart+2004} {opstart+2046}]")
 
 grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
