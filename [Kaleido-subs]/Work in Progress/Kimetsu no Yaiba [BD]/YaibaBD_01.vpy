@@ -14,7 +14,7 @@ b, c = 1/5, 2/5
 
 darker_shots = """
                """
-               
+
 src = lvf.src(r"BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00004.m2ts")
 src = src[:34045]
 src = fvf.Depth(src, 16)
