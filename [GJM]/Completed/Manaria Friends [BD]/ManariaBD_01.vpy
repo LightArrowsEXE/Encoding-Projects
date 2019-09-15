@@ -2,10 +2,16 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
+import mvsfunc as mvf
 from nnedi3_rpow2 import nnedi3_rpow2
 from vsTAAmbk import TAAmbk
-from vsutil import get_w
+from vsutil import *
 core = vs.core
+
+
+b, c = 0, 1/2
+h, w = get_w(878), 878
+
 
 # Note: before cutting
 preview = 16688
@@ -22,12 +28,23 @@ blank = core.std.BlankClip(src) # Part B starts too abruptly, so there's some sp
 src = src[24:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
 
 
-scaled = kgf.inverse_scale(src, height=878, kernel='bicubic', b=0, c=1,
-        denoise=True, use_gpu=False, bm3d_sigma=[3,1.5],
-        mask_detail=True)
-scaled = fvf.Depth(scaled, 16)
+planes = kgf.split(src)
+descaled = core.descale.Debicubic(fvf.Depth(planes[0], 32), h, w, b, c)
+upscaled = core.resize.Bicubic(descaled, planes[0].width, planes[0].height, filter_param_a=b, filter_param_b=c)
+downscaled = core.resize.Spline36(fvf.Depth(src, 32), h, w, format=vs.YUV444PS)
 
-aa_a = TAAmbk(scaled, aatype='Eedi3')
+credit_mask = core.std.Expr([fvf.Depth(planes[0], 32), upscaled], 'x y - abs').std.Binarize(0.05)
+credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 6)
+credit_mask = kgf.iterate(credit_mask, core.std.Inflate, 2)
+credit_mask = core.resize.Spline36(credit_mask, h, w)
+
+scaled = fvf.Depth(core.std.MaskedMerge(descaled, kgf.get_y(downscaled), credit_mask), 16)
+u = fvf.Depth(core.resize.Bicubic(planes[1], h, w, src_left=0.25), 16)
+v = fvf.Depth(core.resize.Bicubic(planes[2], h, w, src_left=0.25), 16)
+scaled = kgf.join([scaled, u, v])
+
+
+aa_a = TAAmbk(scaled, aatype='Eedi3', repair=2)
 aa_b = TAAmbk(scaled, aatype='Nnedi3SangNom', cycle=3) # w h y y y y y y
 aa = fvf.rfs(aa_a, aa_b, mappings="[1053 1091]")
 
