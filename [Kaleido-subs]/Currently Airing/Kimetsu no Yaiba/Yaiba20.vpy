@@ -36,7 +36,6 @@ aa = fvf.rfs(aa_a, aa_b, mappings=f"[{opstart+292} {opstart+402}] [{opstart+1017
 
 scaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
 scaled = kgf.join([scaled, U, V])
-scaled = fvf.rfs(scaled, src, mappings="[30929 33084]") # Ep19 ED
 
 
 denoise = mvf.BM3D(scaled, sigma=[3,2])
