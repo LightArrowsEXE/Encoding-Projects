@@ -14,18 +14,17 @@ h, w = get_w(878), 878
 
 
 # Note: before cutting
-preview = 16688
-endcard = 16808
+endcard = 16688
 part_b = 16928
-epend = 20522
+epend = 21002
 
 # Note: after cutting
-edstart = 15586
+edstart = 13198
 
 
-src = lvf.src(r"BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00008.m2ts")
+src = lvf.src(r"BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00011.m2ts")
 blank = core.std.BlankClip(src) # Part B starts too abruptly, so there's some space for a breather after ED.
-src = src[24:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
+src = src[24:endcard]+blank[:48]+src[part_b:]+src[endcard:part_b]
 
 
 planes = kgf.split(src)
@@ -44,13 +43,18 @@ v = fvf.Depth(core.resize.Bicubic(planes[2], h, w, src_left=0.25), 16)
 scaled = kgf.join([scaled, u, v])
 
 
-aa = TAAmbk(scaled, aatype='Eedi3', repair=2)
+aa_a = TAAmbk(scaled, aatype='Eedi3', repair=2)
+aa_b = TAAmbk(scaled, aatype='Nnedi3SangNom', repair=2)
+aa = fvf.rfs(aa_a, aa_b, mappings="[1618 1744]")
 
 deband_a = core.f3kdb.Deband(aa, range=15, y=32, cb=24, cr=24, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(aa, range=31, y=511, cb=511, cr=511, grainy=0, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings="[6522 6605]")
+denoise = mvf.BM3D(aa, sigma=[2,1])
+deband_b = core.f3kdb.Deband(denoise, range=21, y=48, cb=48, cr=48, grainy=64, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings="[18503 18766]")
 
-grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=8)
+grain_a = kgf.adaptive_grain(deband, 0.2, luma_scaling=8)
+grain_b = kgf.adaptive_grain(deband, 0.5, luma_scaling=8)
+grain = fvf.rfs(grain_a, grain_b, mappings="[18503 18766]")
 
 
 out = grain

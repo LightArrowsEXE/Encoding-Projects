@@ -14,7 +14,7 @@ h, w = get_w(878), 878
 
 
 src = lvf.src(r"BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00012.m2ts")
-src = src[983+48:1964+48]
+src = src[1964+48:2947+48]
 
 
 planes = kgf.split(src)

@@ -2,30 +2,33 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
+import mvsfunc as mvf
 from nnedi3_rpow2 import nnedi3_rpow2
-import vsTAAmbk as taa
+from vsTAAmbk import TAAmbk
+from vsutil import *
 core = vs.core
-core.max_cache_size = 8192
+
+
+b, c = 0, 1/2
+h, w = get_w(878), 878
+
 
 src = lvf.src(r"BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00012.m2ts")
-src = src[48:-48]
-src = fvf.Depth(src, 16)
-Y, U, V = kgf.split(src)
+src = src[48:983+48]
 
-scaled = kgf.inverse_scale(src, height=878, kernel='bicubic')
-scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080)
-scaled = fvf.Depth(scaled, 16)
-scaled = kgf.join([scaled, U, V])
 
-denoise = lvf.qden(scaled, h=0.8, sigma=4)
-deband = core.f3kdb.Deband(denoise, range=17, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
+planes = kgf.split(src)
+descaled = fvf.Depth(core.descale.Debicubic(fvf.Depth(planes[0], 32), h, w, b, c), 16)
+u = fvf.Depth(core.resize.Bicubic(planes[1], h, w, src_left=0.25), 16)
+v = fvf.Depth(core.resize.Bicubic(planes[2], h, w, src_left=0.25), 16)
+scaled = kgf.join([descaled, u, v])
 
-aa = taa.TAAmbk(scaled, aatype='Eedi3', opencl=True)
 
-mask = kgf.retinex_edgemask(aa, 1)
-maskedmerge = core.std.MaskedMerge(deband, aa, mask)
+aa = TAAmbk(scaled, aatype='Eedi3', repair=2)
 
-grain = kgf.adaptive_grain(maskedmerge, 0.1)
+deband = core.f3kdb.Deband(aa, range=15, y=32, cb=24, cr=24, grainy=12, grainc=0, output_depth=16)
+grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=8)
+
 
 out = grain
 final = fvf.Depth(out, 10)

@@ -17,13 +17,13 @@ h, w = get_w(878), 878
 preview = 16688
 endcard = 16808
 part_b = 16928
-epend = 20522
+epend = 20234
 
 # Note: after cutting
 edstart = 15586
 
 
-src = lvf.src(r"BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00008.m2ts")
+src = lvf.src(r"BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00010.m2ts")
 blank = core.std.BlankClip(src) # Part B starts too abruptly, so there's some space for a breather after ED.
 src = src[24:preview]+blank[:48]+src[part_b:]+src[preview:part_b]
 
@@ -47,8 +47,9 @@ scaled = kgf.join([scaled, u, v])
 aa = TAAmbk(scaled, aatype='Eedi3', repair=2)
 
 deband_a = core.f3kdb.Deband(aa, range=15, y=32, cb=24, cr=24, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(aa, range=31, y=511, cb=511, cr=511, grainy=0, grainc=0, output_depth=16)
-deband = fvf.rfs(deband_a, deband_b, mappings="[6522 6605]")
+denoise = mvf.BM3D(aa, sigma=[4,2])
+deband_b = core.f3kdb.Deband(denoise, range=21, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings="[5096 5260]")
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=8)
 
