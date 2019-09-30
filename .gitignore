@@ -13,6 +13,7 @@
 *.jpg
 *.log
 *.m2ts
+*.m2v
 *.m4a
 *.mka
 *.mks
@@ -25,6 +26,7 @@
 *.ts
 *.undefined
 *.vorbis
+*.usm
 *.w64
 *.wav
 *.webm
