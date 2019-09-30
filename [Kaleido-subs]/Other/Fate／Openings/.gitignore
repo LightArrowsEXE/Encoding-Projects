@@ -5,3 +5,6 @@
 !/CCC masks/Rinface/*.png
 !/CCC masks/Sakurashoulder/*.png
 !/CCC masks/Skirtmask/*.png
+
+# Ignore settings file, as there are too many random OPs in here that all use different settings
+settings
