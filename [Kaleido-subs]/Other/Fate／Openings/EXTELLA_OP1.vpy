@@ -9,23 +9,6 @@ from functools import partial
 core = vs.core
 
 
-blends_a = range(2, 3030, 5)
-blends_b = range(3, 3030, 5)
-expr = ["z a 2 / - y x 2 / - +"]
-
-
-def deblend(n, clip):
-    # Thanks Myaa, motbob and kageru!
-    if n%5 in [0, 1, 4]:
-        return clip
-    else:
-        if n in blends_a:
-            c, cd, da, a = clip[n-1], clip[n], clip[n+1], clip[n+2]
-            return core.std.Expr([c, cd, da, a], expr)
-        else:
-            return clip
-
-
 src = lvf.src(r'src/VIDEO_OPENING_jp_40534656.mkv')
 src = fvf.AutoDeblock(src)
 
@@ -41,8 +24,7 @@ scaled_b = kgf.inverse_scale(src, height=810,
 scaled = fvf.rfs(scaled_a, scaled_b, mappings="[1310 1394]")
 scaled = fvf.Depth(scaled, 16)
 
-deblend = core.std.FrameEval(scaled, partial(deblend, clip=scaled))
-deblend = core.std.DeleteFrames(deblend, blends_b).std.AssumeFPS(fpsnum=24000, fpsden=1001)
+deblend = lvf.deblend(scaled)
 
 
 # OP is pretty blurry, even after being descaled. Doing some sharpening to combat this, but also have to make sure not to ring the shit out of it
