@@ -49,6 +49,7 @@
 
 
 # BDMV/DVD files
+*.bdjo
 *.bdmv
 *.bup
 *.cci
@@ -62,6 +63,7 @@
 *.inf
 *.ini
 *.iso
+*.jar
 *.lst
 *.m2v
 *.mpls
@@ -98,17 +100,17 @@
 
 # Utility Scripts
 auto-CRC.py
-clean_dir.py
+auto-audiocutter.py
 clean-enc-dir.py
+clean_dir.py
 encode_audio.py
 extract_audio.py
-hardsub.py
-QC.py
-rename.py
 generate_keyframes.py
+hardsub.py
 remux.py
-*.jar
-*.bdjo
+rename.py
+QC.py
+
 
 # Symlinks with [Vol.#] at the end
 *.1]
