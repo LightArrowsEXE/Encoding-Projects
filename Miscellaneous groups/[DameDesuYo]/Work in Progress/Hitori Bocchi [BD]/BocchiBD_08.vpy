@@ -7,7 +7,7 @@ from vsutil import get_w
 core = vs.core
 
 
-src = lvf.src(r"G:/src/[BDMV][190925][Hitoribocchi no Marumaru Seikatsu][Vol.3]/BDMV/STREAM/00007.m2ts")
+src = lvf.src(r"BDMV/[BDMV][190925][Hitoribocchi no Marumaru Seikatsu][Vol.3]/BDMV/STREAM/00007.m2ts")
 src = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1, 2)
 src = src[24:-24]
 src = fvf.Depth(src, 16)

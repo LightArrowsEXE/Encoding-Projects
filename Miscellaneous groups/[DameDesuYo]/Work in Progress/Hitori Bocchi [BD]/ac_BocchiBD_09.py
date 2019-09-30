@@ -7,7 +7,7 @@ from subprocess import call
 
 
 core = vs.core
-ts_in = r'BDMV/[BDMV][190724][Hitoribocchi no Marumaru Seikatsu][Vol.1]/BDMV/STREAM/00006.m2ts'
+ts_in = r'BDMV/[BDMV][190925][Hitoribocchi no Marumaru Seikatsu][Vol.3]/BDMV/STREAM/00008.m2ts'
 src = lvf.src(ts_in)
 
 if ts_in.endswith('d2v'):
@@ -22,4 +22,4 @@ ac.ready_qp_and_chapters(vid)
 vid.set_output(0)
 
 if __name__ == "__main__":
-    ac.cut_audio(r'BocchiBD_01_cut.m4a', audio_source=r'BDMV/[BDMV][190724][Hitoribocchi no Marumaru Seikatsu][Vol.1]/BDMV/STREAM/00006.m4a')
+    ac.cut_audio(r'BocchiBD_09_cut.m4a', audio_source=r'BDMV/[BDMV][190925][Hitoribocchi no Marumaru Seikatsu][Vol.3]/BDMV/STREAM/00008.m4a')
