@@ -9,7 +9,7 @@ from nnedi3_rpow2 import nnedi3_rpow2
 core = vs.core
 
 
-src = lvf.src('[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - Initium Iter - 00 [1080p][Multiple Subtitle].mkv')
+src = lvf.src('00/[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - Initium Iter - 00 [1080p][Multiple Subtitle].mkv')
 src = fvf.Depth(src, 32)
 
 
