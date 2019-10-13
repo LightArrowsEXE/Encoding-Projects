@@ -10,10 +10,10 @@ core = vs.core
 opstart = 2158
 edstart = 33254
 
-src = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC1/BDMV/STREAM/00005.m2ts")
-NCOP = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00007.m2ts")
-NCED = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00017.m2ts")
-endcard = lvf.src(r"[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00101.m2ts")
+src = lvf.src(r"BDMV/[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC1/BDMV/STREAM/00005.m2ts")
+NCOP = lvf.src(r"BDMV/[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00007.m2ts")
+NCED = lvf.src(r"BDMV/[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00017.m2ts")
+endcard = lvf.src(r"BDMV/[BDMV][Pani Poni Dash][ぱにぽにだっしゅ！][BD BOX]/DISC6/BDMV/STREAM/00101.m2ts")
 
 src = src[24:36466]
 src = core.std.CropRel(src, 20, 20, 8, 6)
