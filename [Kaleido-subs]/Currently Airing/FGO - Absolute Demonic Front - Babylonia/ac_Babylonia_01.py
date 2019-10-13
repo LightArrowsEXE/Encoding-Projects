@@ -15,7 +15,7 @@ if ts_in.endswith('d2v'):
 
 ac = audiocutter.AudioCutter()
 
-vid = ac.split(src, [(844,3519),(5198,19343),(20783,37971-31)])
+vid = ac.split(src, [(844,3519),(5199,19343),(20783,37971-31)])
 
 ac.ready_qp_and_chapters(vid)
 
