@@ -52,8 +52,9 @@ scaled = fvf.rfs(upscaled, scaled, mappings=f"[{edstart} {src.num_frames-1}")
 deband_a = core.f3kdb.Deband(scaled, range=17, y=32, cb=32, cr=32, grainy=24, grainc=0, output_depth=16, sample_mode=1)
 deband_b = core.f3kdb.Deband(scaled, range=19, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband_c = core.f3kdb.Deband(scaled, range=21, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}] [{opstart+2004} {opstart+2046}]")
-deband = fvf.rfs(deband, deband_c, mappings=darker_shots)
+deband = fvf.rfs(deband_a, deband_b, mappings=f"[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}]")
+deband = fvf.rfs(deband, deband_c, mappings=darker_shots +
+                                            f"[{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]")
 
 grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
 grain_b = kgf.adaptive_grain(deband, 1)

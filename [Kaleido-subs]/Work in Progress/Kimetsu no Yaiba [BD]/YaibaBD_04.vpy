@@ -62,9 +62,11 @@ deband_b = core.f3kdb.Deband(scaled, range=19, y=48, cb=48, cr=48, grainy=36, gr
 deband_c = core.f3kdb.Deband(scaled, range=21, y=48, cb=48, cr=48, grainy=36, grainc=0, output_depth=16, sample_mode=1)
 deband_d = core.f3kdb.Deband(scaled, range=5, y=48, cb=48, cr=48, grainy=0, grainc=0, output_depth=16, sample_mode=1)
 deband_d = core.f3kdb.Deband(deband_d, range=16, y=48, cb=48, cr=48, grainy=24, grainc=0, output_depth=16, sample_mode=1)
-deband = fvf.rfs(deband_a, deband_b, mappings=f"""[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}] [{opstart+2004} {opstart+2046}]
+deband = fvf.rfs(deband_a, deband_b, mappings=f"""[{opstart+742} {opstart+784}] [{opstart+1128} {opstart+1287}] [{opstart+1592} {opstart+1616}]
                                                   [{edstart+1494} {edstart+1600}]""")
-deband = fvf.rfs(deband, deband_c, mappings=darker_shots + "[22999 23162]")
+deband = fvf.rfs(deband, deband_c, mappings=darker_shots + 
+                                            f"[{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]" +
+                                            "[22999 23162]")
 deband = fvf.rfs(deband, deband_d, mappings="[25865 25892]")
 
 grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
