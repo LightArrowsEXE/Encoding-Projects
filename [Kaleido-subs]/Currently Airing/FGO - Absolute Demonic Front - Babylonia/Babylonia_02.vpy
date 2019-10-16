@@ -13,8 +13,8 @@ opstart, edstart = 1918, 31889
 
 
 ## Importing & Dehardsubbing
-src_a = lvf.src('02/old/Fate Grand Order Absolute Demonic Front Babylonia E02 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
-src_b = lvf.src('02/old/[HorribleSubs] Fate Grand Order - Absolute Demonic Front Babylonia - 02 [1080p].mkv')
+src_a = lvf.src('02/Fate Grand Order Absolute Demonic Front Babylonia E02 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
+src_b = lvf.src('02/[HorribleSubs] Fate Grand Order - Absolute Demonic Front Babylonia - 02 [1080p].mkv')
 src_b = src_b[289:]
 scomp = lvf.stack_compare(src_a, src_b, height=480)
 
