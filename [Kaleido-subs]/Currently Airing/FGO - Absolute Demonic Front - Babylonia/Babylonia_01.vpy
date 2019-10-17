@@ -2,8 +2,6 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
-import mvsfunc as mvf
-from vsutil import *
 from cooldegrain import *
 core = vs.core
 
