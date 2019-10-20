@@ -49,4 +49,3 @@ grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=6)
 out = grain
 final = fvf.Depth(out, 10)
 final.set_output()
-

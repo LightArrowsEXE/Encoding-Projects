@@ -45,6 +45,8 @@ aa = fvf.Depth(aa, 32)
 
 upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
 upscaled = kgf.join([upscaled, u, v])
+upscaled = core.std.MaskedMerge(upscaled, ef, credit_mask)
+upscaled = fvf.Depth(upscaled, 16)
 
 
 d_mask = fvf.Depth(kgf.adaptive_grain(ef, show_mask=True, luma_scaling=8), 16)

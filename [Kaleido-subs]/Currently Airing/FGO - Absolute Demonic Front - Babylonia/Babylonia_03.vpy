@@ -13,9 +13,7 @@ opstart, edstart = 576, 30974
 
 ## Importing & Dehardsubbing
 src_a = lvf.src('03/Fate Grand Order Absolute Demonic Front Babylonia E03 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
-src_a = fvf.Depth(src_a, 16)
 src_b = lvf.src('03/[HorribleSubs] Fate Grand Order - Absolute Demonic Front Babylonia - 03 [1080p].mkv')
-src_b = fvf.Depth(src_b, 16)
 src_b = src_b[289:2737]+src_b[2737]+src_b[2738:3023]+src_b[3023]+src_b[3028:]
 diff = core.std.MakeDiff(get_y(src_a), get_y(src_b)).resize.Point(format=src_a.format)
 scomp = lvf.stack_compare(src_a, src_b, diff, height=360)
@@ -23,7 +21,7 @@ scomp = lvf.stack_compare(src_a, src_b, diff, height=360)
 hardsubmask = kgf.hardsubmask(src_a, src_b)
 src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
-src_fade = kgf.hardsubmask_fades(src_a, src_b, highpass=1300)
+src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
 src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{edstart-96} {edstart-1}]")
 scomp2 = lvf.stack_compare(src_a, src, height=480)
@@ -52,5 +50,4 @@ grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=6)
 
 out = grain
 final = fvf.Depth(out, 10)
-final[:2769].set_output()
-
+final.set_output()
