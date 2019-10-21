@@ -19,7 +19,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
-src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+2156} {opstart+3000}] [{edstart} {edstart+2156}]")#[{edstart+2156} 33117]")
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+2156} {opstart+3000}] [{edstart} {edstart+2156}]")
 
 op = src_a[opstart:opstart+2156] # dehardsub kills the OP (thanks CR)
 src = kgf.insert_clip(src, op, opstart)
@@ -27,7 +27,7 @@ src = fvf.Depth(src, 16)
 
 
 Y, U, V = kgf.split(src)
-descaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=0.2, c=0.4, mask_detail=True, descale_mask_zones=f"[{opstart} {opstart+2156}]")
+descaled = kgf.inverse_scale(Y, height=855, kernel='bicubic', b=0.2, c=0.4, mask_detail=True, descale_mask_zones=f"[{opstart} {opstart+2156}] [{edstart} {edstart+2156}]")
 descaled = fvf.Depth(descaled, 16)
 
 aa_a = taa.TAAmbk(descaled, aatype='Nnedi3')
