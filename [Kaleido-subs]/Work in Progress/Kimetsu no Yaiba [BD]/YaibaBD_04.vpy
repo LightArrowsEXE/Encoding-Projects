@@ -87,4 +87,4 @@ grain = fvf.rfs(grain, grain_d, mappings=darker_shots)
 
 out = grain
 final = fvf.Depth(out, 10)
-src.set_output()
+final.set_output()
