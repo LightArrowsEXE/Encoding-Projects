@@ -18,7 +18,7 @@ planes[0] = kgf.inverse_scale(planes[0], height=812,
                            mask_detail=True, # Not 100% sure on this, but it works for now
                            descale_mask_zones=f"[{opstart} {opstart+2400}] [{edstart-84} {src.num_frames-1}]") 
 planes[0] = core.resize.Spline36(planes[0], get_w(810), 810)
-planes[1], planes[2] = [core.resize.Bicubic(p, planes[0].width, planes[0].height, format=planes[0].format) for p in planes[1:]]
+planes[1], planes[2] = [core.resize.Bicubic(p, planes[0].width, planes[0].height, format=planes[0].format, src_left=.25) for p in planes[1:]]
 scaled = join(planes)
 scaled = fvf.Depth(scaled, 16)
 
