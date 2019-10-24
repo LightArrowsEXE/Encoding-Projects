@@ -43,10 +43,11 @@ w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 
 # Fairly weak denoising. Stronger denoising on brighter areas of a frame.
 # Done while descaled because it's overall faster *and* more effective.
-d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=6)
+d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=8)
 denoise_a = CoolDegrain(w2x, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
 denoise_b = CoolDegrain(w2x, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
 denoise = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+denoise = fvf.rfs(denoise, denoise_a, mappings=f"""[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1310} {opstart+1398}]""")
 
 # Some AA to fix up instances of bad lineart.
 # Done while descaled for similar reasons as L37
@@ -65,9 +66,9 @@ scaled = fvf.rfs(upscaled, m_upscaled, mappings=f"[{opstart} {opstart+2159}] [{e
 
 # Much like the denoising, way stronger debanding is performed on brighter areas.
 # This way less perceivable detail is lost to the void. Darker areas will be grained stronger instead.
-deb_d_mask = fvf.Depth(kgf.adaptive_grain(src, show_mask=True, luma_scaling=6), 16)
+deb_d_mask = fvf.Depth(kgf.adaptive_grain(src, show_mask=True, luma_scaling=8), 16)
 deband_a = core.f3kdb.Deband(scaled, range=21, y=56, cb=48, cr=48, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(scaled, range=16, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(scaled, range=17, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
 deband = core.std.MaskedMerge(deband_a, deband_b, deb_d_mask)
 deband = fvf.rfs(deband, deband_a, mappings=darker_shots +
                                             f"""[{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]
@@ -75,7 +76,7 @@ deband = fvf.rfs(deband, deband_a, mappings=darker_shots +
                                                 [3537 3584]""")
 
 # Graining. Strong dynamic grain added to parts of the OP and darker slow-motion scenes.
-grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=6)
+grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=8)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = core.grain.Add(deband, var=6, uvar=0, constant=False)
 grain_d = core.grain.Add(deband, var=3, uvar=0, constant=False)
