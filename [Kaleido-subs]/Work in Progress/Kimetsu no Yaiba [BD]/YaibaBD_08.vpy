@@ -41,7 +41,11 @@ w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=8)
 denoise_a = CoolDegrain(w2x, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
 denoise_b = CoolDegrain(w2x, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+denoise_c = mvf.BM3D(w2x, sigma=2.5, depth=16)
+denoise_d = mvf.BM3D(w2x, sigma=1.5, depth=16)
+denoise_ab = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+denoise_cd = core.std.MaskedMerge(denoise_c, denoise_d, d_mask)
+denoise = fvf.rfs(denoise_ab, denoise_cd, mappings=f"[30037 {edstart-1}]")
 denoise = fvf.rfs(denoise, denoise_a, mappings=f"""[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1310} {opstart+1398}]
                                                    [9469 9540] [10083 10166] [11103 11228] [11346 11588] [11701 11951] [12210 12305] [13537 13860]""")
 

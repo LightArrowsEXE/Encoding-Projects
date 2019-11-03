@@ -31,7 +31,7 @@ darker_shots = """
 # One frame gets repeated for almost a full second and it looks bad, so replacing it with a blank clip.
 src = lvf.src(r"BDMV/[BDMV][191030][Kimetsu no Yaiba][Vol.4]/BDMV/STREAM/00005.m2ts")
 blank = core.std.BlankClip(src)
-src = src[:1278]+blank[:18]+src[:-24]
+src = src[:-24]
 src = fvf.Depth(src, 16)
 
 
@@ -53,7 +53,11 @@ w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
 d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=8)
 denoise_a = CoolDegrain(w2x, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
 denoise_b = CoolDegrain(w2x, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+denoise_c = mvf.BM3D(w2x, sigma=2.5, depth=16)
+denoise_d = mvf.BM3D(w2x, sigma=1.5, depth=16)
+denoise_ab = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+denoise_cd = core.std.MaskedMerge(denoise_c, denoise_d, d_mask)
+denoise = fvf.rfs(denoise_cd, denoise_ab, mappings=f"[{opstart} {opstart+2159}] [{edstart} {src.num_frames-1}]")
 denoise = fvf.rfs(denoise, denoise_a, mappings=f"""[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1310} {opstart+1398}]
                                                    [14521 14614]""")
 
