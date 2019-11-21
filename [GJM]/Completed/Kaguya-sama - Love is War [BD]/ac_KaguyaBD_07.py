@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
+import acsuite
+import lvsfunc as lvf
+ac = acsuite.AC()
 
-import vapoursynth as vs
-import audiocutter
-from subprocess import call
 
-core = vs.core
-ts_in = r"BDMV/[BDMV][190626][Kaguya-sama - Love Is War][Vol.4]/BDMV/STREAM/00001.m2ts"
-src = core.lsmas.LWLibavSource(ts_in)
+path = r'BDMV/かぐや様は告らせたい Vol.4/BD/BDMV/STREAM/00001.m2ts'
+src = lvf.src(path)
 
-ac = audiocutter.AudioCutter()
-
-vid = ac.split(src, [(0,34524)])
-
-ac.ready_qp_and_chapters(vid)
-
-vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio(r'KaguyaBD_07_cut.m4a', audio_source=r'BDMV/[BDMV][190626][Kaguya-sama - Love Is War][Vol.4]/BDMV/STREAM/00001.m4a')
+    ac.eztrim(src, [(0, -27)], path[:-4]+"wav", "KaguyaBD_07_cut.wav")

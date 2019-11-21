@@ -4,25 +4,38 @@ import kagefunc as kgf
 import fvsfunc as fvf
 import havsfunc as haf
 import mvsfunc as mvf
-from nnedi3_rpow2 import nnedi3_rpow2
+from vsutil import *
+from cooldegrain import *
 core = vs.core
 
 
-src = lvf.src(r"BDMV/[BDMV][190626][Kaguya-sama - Love Is War][Vol.4]/BDMV/STREAM/00001.m2ts")
-src = src[:34525]
-src = core.edgefixer.ContinuityFixer(src, [4,2,2], [4,2,2], [4,2,2], [4,2,2])
-src = fvf.Depth(src, 16)
-src = haf.FixChromaBleedingMod(src, cx=0.5, cy=0, thr=100, strength=1, blur=True)
-Y, U, V = kgf.split(src)
+src = lvf.src(r"BDMV/かぐや様は告らせたい Vol.4/BD/BDMV/STREAM/00001.m2ts")
+src = src[:-27]
+ef = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1)
+shift = haf.FixChromaBleedingMod(ef, cx=0.5, cy=0, thr=100, strength=1, blur=True)
+shift = fvf.Depth(shift, 32)
 
-scaled = kgf.inverse_scale(Y, height=874, kernel='bicubic', b=0, c=1/2, mask_detail=True)
-scaled = nnedi3_rpow2(scaled).resize.Spline36(1920, 1080, format=vs.YUV420P16)
-scaled = kgf.join([scaled, U, V])
 
-denoise = mvf.BM3D(scaled, sigma=[3,0.5])
-deband = core.f3kdb.Deband(denoise, range=18, y=32, cb=24, cr=24, grainy=0, grainc=0, output_depth=16)
+planes = split(shift)
+planes[0] = fvf.DescaleAA(planes[0], get_w(874), 874, kernel='bicubic', b=0, c=1/2)
+scaled = join(planes)
 
-grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=10)
+ref = mvf.BM3D(src, sigma=[4,0], depth=16, profile1="lc")
+ref = core.f3kdb.Deband(ref, output_depth=16, range=18, preset="high/luma/nograin")
+d_mask = kgf.adaptive_grain(ref, show_mask=True, luma_scaling=24)
+l_mask = kgf.retinex_edgemask(ref)
+den_mask = fvf.Depth(core.std.Expr([d_mask, l_mask], "x y +"), 16)
+
+denoise_a = mvf.BM3D(scaled, sigma=[.8, 1], depth=16)
+denoise_b = CoolDegrain(scaled, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
+denoise = core.std.MaskedMerge(denoise_a, denoise_b, den_mask)
+
+deband_a = core.f3kdb.Deband(denoise, range=16, output_depth=16, preset="medium/nograin")
+deband_b = core.f3kdb.Deband(denoise, range=14, output_depth=16, preset="medium")
+denoise = core.std.MaskedMerge(deband_a, deband_b, fvf.Depth(d_mask, 16))
+
+grain = kgf.adaptive_grain(denoise, 0.2, luma_scaling=6)
+
 
 out = grain
 final = fvf.Depth(out, 10)
