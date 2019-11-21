@@ -2,7 +2,6 @@ import vapoursynth as vs
 import lvsfunc as lvf
 import kagefunc as kgf
 import fvsfunc as fvf
-import havsfunc as haf
 from nnedi3_rpow2 import *
 from cooldegrain import *
 core = vs.core
