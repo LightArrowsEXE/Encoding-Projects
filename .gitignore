@@ -149,3 +149,11 @@ QC.py
 
 # Exceptions to the exceptions
 *.lnk
+
+
+# Ignored project directories.
+# These usually were uploaded at some point, but hidden either because of various reasons,
+# ranging from them being basically empty, discontinued, horrible breaking some things, etc.
+# If you want to see the files in actions, check the commit history of this file.
+
+[Kaleido-subs]/Work in Progress/Katekyou Hitman REBORN! [BD]/!KHR encoder notes
