@@ -61,4 +61,4 @@ grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+28} {opstart+288}] [{opstar
 
 out = grain
 final = fvf.Depth(out, 10)
-src.set_output()
+final.set_output()
