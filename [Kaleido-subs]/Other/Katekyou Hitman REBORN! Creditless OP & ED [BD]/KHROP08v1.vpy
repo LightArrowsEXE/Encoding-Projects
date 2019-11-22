@@ -44,4 +44,4 @@ grain = fvf.rfs(grain_a, grain_b, mappings="[0 166] [198 231] [263 451]")
 
 out = grain
 final = fvf.Depth(out, 10)
-src_us.set_output()
+final.set_output()
