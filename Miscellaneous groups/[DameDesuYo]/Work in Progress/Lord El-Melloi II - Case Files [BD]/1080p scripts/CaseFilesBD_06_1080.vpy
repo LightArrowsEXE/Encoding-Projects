@@ -40,7 +40,6 @@ deband_a = core.f3kdb.Deband(upscaled, range=21, y=56, cb=48, cr=48, grainy=64, 
 deband_b = core.f3kdb.Deband(upscaled, range=16, y=40, cb=32, cr=32, grainy=64, grainc=0, output_depth=16)
 deband = core.std.MaskedMerge(deband_a, deband_b, d_mask)
 
-deband = core.f3kdb.Deband(fvf.Depth(upscaled, 16), range=18, y=40, cb=32, cr=32, grainy=64, grainc=0, output_depth=16)
 grain_a = kgf.adaptive_grain(deband, 0.15, luma_scaling=6)
 grain_b = core.grain.Add(deband, var=3, uvar=0, constant=False)
 grain = fvf.rfs(grain_a, grain_b, mappings=f"[{opstart+285} {opstart+573}]")
