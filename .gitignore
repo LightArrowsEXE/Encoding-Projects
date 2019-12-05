@@ -102,6 +102,7 @@
 *temp.vpy
 *diff.vpy
 authorized_keys
+*.mtxcfg
 
 
 # Utility Scripts
