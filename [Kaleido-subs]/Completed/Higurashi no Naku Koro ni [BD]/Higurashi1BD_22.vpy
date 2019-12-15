@@ -36,7 +36,7 @@ crop = core.std.CropAbs(src, x=4, y=0, width=712, height=480)
 
 
 planes = split(crop)
-planes[0] = nnedi3_rpow2(planes[0]).resize.Bicubic(get_w(576, 16/9), 576)
+planes[0] = nnedi3_rpow2(planes[0]).resize.Bicubic(get_w(576, 20/11), 576)
 planes[1], planes[2] = [core.resize.Bicubic(p, planes[0].width/2, planes[0].height/2) for p in planes[1:]]
 upscaled = fvf.Depth(join(planes), 16)
 
