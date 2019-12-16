@@ -11,26 +11,9 @@ core = vs.core
 
 opstart = 2494
 
-def decomb(src):
-    # Decombing taken from Mid on the WEEB AUTISM server, and slightly modified (for readability, more so than functionality).
-    def pp(n, f, clip, pp):
-        return pp if f.props._Combed == 1 else clip
-    
-    src = core.vivtc.VFM(src, order=0, mode=1)
-    combmask = core.comb.CombMask(src, cthresh=1, mthresh=3)
-    combmask = core.std.Maximum(combmask, threshold=250).std.Maximum(threshold=250).std.Maximum(threshold=250).std.Maximum(threshold=250)
-    combmask = core.std.BoxBlur(combmask, hradius=2, vradius=2)
-    
-    qtgmc = haf.QTGMC(src, TFF=False, SourceMatch=3, Lossless=2, TR0=1, TR1=2, TR2=3, FPSDivisor=2)
-    qtgmc_merged = core.std.MaskedMerge(src, qtgmc, combmask, first_plane=True)
-    
-    src = core.std.FrameEval(src, functools.partial(pp, clip=src, pp=qtgmc_merged), src)
-    return core.vivtc.VDecimate(src).vinverse.Vinverse()
-
-
 
 src = lvf.src(r'BDMV/HIGURASHI_BD/00009.m2ts')
-src = decomb(src)[:-24]
+src = lvf.decomb(src, TFF=True)[:-24]
 src = fvf.Depth(src, 32)
 crop = core.std.CropAbs(src, x=4, y=0, width=712, height=480)
 
@@ -42,8 +25,8 @@ upscaled = fvf.Depth(join(planes), 16)
 
 # usually I avoid warping like the plague, but it looks "ok" here
 warp = core.warp.AWarpSharp2(upscaled, thresh=36, blur=1, type=1, depth=12)
-sharpen = haf.LSFmod(warp, strength=60, soft=10, edgemode=1, Smethod=2, Lmode=2)
-aa = lvf.upscaled_sraa(sharpen).rgvs.Repair(upscaled, 13) 
+sharpen = haf.LSFmod(warp, strength=60, soft=10, edgemode=1, Smethod=2, Lmode=2).rgvs.Repair(upscaled, 13)
+aa = lvf.upscaled_sraa(sharpen)
 darken = haf.FastLineDarkenMOD(aa, strength=18, protection=11, threshold=0)
 
 
