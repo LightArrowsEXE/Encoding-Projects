@@ -8,12 +8,12 @@ from vsutil import *
 core = vs.core
 
 
-opstart, edstart = 936, 31887
+opstart, edstart = 1462, 34047
 
 
 ## Importing & Dehardsubbing
-src_a = lvf.src('06/Fate Grand Order Absolute Demonic Front Babylonia E06 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
-src_b = lvf.src('06/[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - 06 [1080p].mkv')
+src_a = lvf.src('07/Fate Grand Order Absolute Demonic Front Babylonia E07 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
+src_b = lvf.src('07/[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - 07 [1080p].mkv')
 src_b = src_b[289:]
 scomp = lvf.stack_compare(src_a, src_b, height=360, make_diff=True)
 
