@@ -22,6 +22,7 @@ darker_shots = """
                [16458 16978]
                [25721 26790]
                """
+              #[22405 22482]
 
 
 src = lvf.src(r"BDMV/[BDMV][191225][Kimetsu no Yaiba][Vol.6]/BDMV/STREAM/00004.m2ts")
@@ -71,21 +72,26 @@ scaled = fvf.rfs(upscaled, m_upscaled, mappings=f"[{opstart} {opstart+2159}] [{e
 deb_d_mask = fvf.Depth(kgf.adaptive_grain(src, show_mask=True, luma_scaling=8), 16)
 deband_a = core.f3kdb.Deband(scaled, range=21, y=56, cb=48, cr=48, grainy=12, grainc=0, output_depth=16)
 deband_b = core.f3kdb.Deband(scaled, range=17, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
+deband_c = core.f3kdb.Deband(scaled, range=5, y=96, cb=88, cr=88, grainy=0, grainc=0, output_depth=16)
+deband_c = core.f3kdb.Deband(deband_c, range=21, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16)
 deband = core.std.MaskedMerge(deband_a, deband_b, deb_d_mask)
 deband = fvf.rfs(deband, deband_a, mappings=darker_shots +
                                             f"""[{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]
                                                 [{edstart+1494} {edstart+1600}]
                                                 """)
+deband = fvf.rfs(deband, deband_c, mappings="[22405 22482]")
 
 # Graining. Strong dynamic grain added to parts of the OP and darker slow-motion scenes.
 grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=8)
 grain_b = kgf.adaptive_grain(deband, 1)
 grain_c = core.grain.Add(deband, var=6, uvar=0, constant=False)
 grain_d = core.grain.Add(deband, var=3, uvar=0, constant=False)
+grain_e = core.grain.Add(deband, var=8, uvar=0, constant=False)
 grain = fvf.rfs(grain_a, grain_b, mappings=f"""[{opstart+1128} {opstart+1296}] [{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]
                                                """)
 grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1313} {opstart+1368}]")
 grain = fvf.rfs(grain, grain_d, mappings=darker_shots)
+grain = fvf.rfs(grain, grain_e, mappings="[22405 22482]")
 
 
 out = grain
