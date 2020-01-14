@@ -8,7 +8,7 @@ from vsutil import *
 core = vs.core
 
 
-opstart, edstart = 936, 31887
+opstart, edstart = 936, 31889
 
 
 ## Importing & Dehardsubbing
