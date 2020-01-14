@@ -8,9 +8,9 @@ from vsTAAmbk import *
 core = vs.core
 core.num_threads = 4
 
-opstart = 2805-2157 # final frame of the OP - 2157
+opstart = 2709-2157 # final frame of the OP - 2157
 
-src = lvf.src(r"BDMV/[BDMV] HONZUKI/HONZUKI_1/BDMV/STREAM/00007.m2ts")
+src = lvf.src(r"BDMV/[BDMV] HONZUKI/HONZUKI_2/BDMV/STREAM/00001.m2ts")
 src = src[24:-24]
 src = fvf.Depth(src, 32)
 

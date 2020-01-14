@@ -6,6 +6,7 @@ import mvsfunc as mvf
 from vsutil import *
 from vsTAAmbk import *
 core = vs.core
+core.num_threads = 4
 
 opstart = 5514-2157 # final frame of the OP - 2157
 
