@@ -19,7 +19,6 @@ descaled = kgf.inverse_scale(ef, height=720,
                            kernel='bicubic', b=0, c=1/2,
                            mask_detail=True)
 
-descaled = kgf.inverse_scale(ef, height=720, kernel='bicubic', b=0, c=1/2)
 
 d_mask = kgf.adaptive_grain(descaled, show_mask=True, luma_scaling=8)
 denoise_a = CoolDegrain(descaled, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)

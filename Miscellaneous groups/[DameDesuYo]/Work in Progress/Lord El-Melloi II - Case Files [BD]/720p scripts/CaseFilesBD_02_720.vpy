@@ -16,9 +16,11 @@ ef = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1)
 ef = fvf.Depth(ef, 32)
 
 
-descaled = kgf.inverse_scale(ef, height=720,
+descaled_a = kgf.inverse_scale(ef, height=720,
                            kernel='bicubic', b=0, c=1/2,
                            mask_detail=True)
+descaled_b = kgf.inverse_scale(ef, height=720, kernel='bicubic', b=0, c=1/2)
+descaled = fvf.rfs(descaled_a, descaled_b, mappings=f"[{opstart} {opstart+2160}] [{edstart-72} {src.num_frames-1}]")
 
 d_mask = kgf.adaptive_grain(descaled, show_mask=True, luma_scaling=8)
 denoise_a = CoolDegrain(descaled, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
