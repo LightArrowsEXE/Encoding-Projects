@@ -5,21 +5,34 @@ import fvsfunc as fvf
 import mvsfunc as mvf
 import havsfunc as haf
 from vsutil import *
-from cooldegrain import *
 from nnedi3_rpow2 import *
 core = vs.core
 
 
-src = lvf.src(r"01/227 - 01v2 (Funimation 1080p).mkv")
-src = src[289:]
+src_a = lvf.src(r"01/22 7  E01 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
+src_b = lvf.src(r"01/227 - 01v2 (Funimation 1080p).mkv")
+src_a = src_a[0]+src_a[:16570]+src_a[16569]*(45+53)+src_a[16570:]
+src_b = src_b[289:]
+scomp = lvf.scomp(src_a, src_b, height=360, make_diff=True)
+
+
+hardsubmask = kgf.hardsubmask(src_a, src_b)
+src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
+
+hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1200), 8)
+src_fade = core.std.MaskedMerge(src_a, src_b, hardsubmask_fade)
+src = fvf.rfs(src, src_fade, mappings=f"[5443 5532] [8098 8300] [9585 9656] [10314 10396] [11327 11439] [11767 11850] [32113 32271] [34272 34275] [34406 {src.num_frames-1}]")
+src = fvf.rfs(src, src_b, mappings=f"[16616 16688]")
+scomp2 = lvf.scomp(src, src_b, height=360, make_diff=True)
+
+
 ef = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1)
-shift = haf.FixChromaBleedingMod(ef, cx=-0.25, cy=-0.25, thr=100, strength=1, blur=True)
-shift = fvf.Depth(shift, 32)
+ef = fvf.Depth(ef, 32)
 
 
 h = 900
 b, c =  1/5, 2/5
-planes = split(shift)
+planes = split(ef)
 descaled = core.descale.Debicubic(planes[0], get_w(h), h, b, c)
 upscaled = core.resize.Bicubic(descaled, planes[0].width, planes[0].height, filter_param_a=b, filter_param_b=c)
 credit_mask = core.std.Expr([planes[0], upscaled], 'x y - abs').std.Binarize(0.05)

@@ -5,7 +5,6 @@ import fvsfunc as fvf
 import mvsfunc as mvf
 import havsfunc as haf
 from vsutil import *
-from cooldegrain import *
 from nnedi3_rpow2 import *
 core = vs.core
 
@@ -20,13 +19,11 @@ scomp = lvf.scomp(src_a, src_b, height=360, make_diff=True)
 hardsubmask = kgf.hardsubmask(src_a, src_b)
 src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
-#hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, expand_n=26, highpass=150), 8)
 hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1200), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, hardsubmask_fade)
 src = fvf.rfs(src, src_fade, mappings=f"[4029 4212] [6120 6214] [7536 7639] [19151 19222] [19399 19449] [27202 27245] [27446 27502] [32106 32169] ")
 src = fvf.rfs(src, src_b, mappings=f"[34403 {src.num_frames-1}]")
-scomp2 = lvf.scomp(src, src_a, height=360, make_diff=True)
-
+scomp2 = lvf.scomp(src, src_b, height=360, make_diff=True)
 
 
 ef = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1)
