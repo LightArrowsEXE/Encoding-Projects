@@ -19,7 +19,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 src_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1300), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, src_fade)
-src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+2156} {opstart+3000}] [{edstart} {edstart+2156}] [4952 6170] [7270 7689] [8441 8746] [{edstart+2156} 33117]")
+src = fvf.ReplaceFramesSimple(src, src_fade, mappings=f"[{opstart+2156} {opstart+3000}] [{edstart} {edstart+2156}] [4952 6170] [7270 7689] [8441 8746] [13873 13980] [{edstart+2156} 33117]")
 
 op = src_a[opstart:opstart+2156] # dehardsub kills the OP (thanks CR)
 src = kgf.insert_clip(src, op, opstart)
