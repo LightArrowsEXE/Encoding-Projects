@@ -1,0 +1,1 @@
+--fps 24000/1001 --colormatrix bt709 --colorprim bt709 --transfer bt709 --preset veryslow --crf 15 --keyint 360 --min-keyint 23 --ref 16 --bframes 16 --aq-mode 3 --aq-strength 0.85 --qcomp 0.70 --no-dct-decimate --no-fast-pskip --psy-rd 0.72:0.0 --output-depth 10
