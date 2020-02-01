@@ -8,4 +8,4 @@ path = r'BDMV/[BDMV] Fate Grand Order - Absolute Demonic Front Babylonia [Vol.1]
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    ac.eztrim(src, [(24, -24)], path[:-4]+"wav", "FGOBD_NCED1_cut.wav")
+    ac.eztrim(src, [(24, -28)], path[:-4]+"wav", "FGOBD_NCED1_cut.wav")
