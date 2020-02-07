@@ -14,6 +14,7 @@ opstart, edstart = 2853-2159, 33087-2159
 # There are some frames with stylized dark background and slow-motion effects.
 # They be will filtered slightly stronger than other scenes, and heavily grained because I like the look.
 darker_shots = """
+               [13485 13556]
                [22486 22575]
                [23034 23186]
                [28908 29540]
