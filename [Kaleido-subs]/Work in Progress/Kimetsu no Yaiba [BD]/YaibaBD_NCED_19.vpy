@@ -1,0 +1,57 @@
+import vapoursynth as vs
+import fvsfunc as fvf
+import kagefunc as kgf
+import lvsfunc as lvf
+import mvsfunc as mvf
+import havsfunc as haf
+from cooldegrain import *
+from knnfunc import *
+from nnedi3_rpow2 import *
+from vsutil import *
+core = vs.core
+
+
+src = lvf.src(r"BDMV/[BDMV][200220][Kimetsu no Yaiba][Vol.8]/BDMV/STREAM/00007.m2ts")
+src = src[24:-26]
+src = fvf.Depth(src, 16)
+
+
+b, c = 1/5, 2/5
+y, u, v = split(src)
+# Descaling & create credit mask
+descaled = core.descale.Debicubic(fvf.Depth(y, 32), get_w(855), 855, b, c)
+
+# Fairly weak denoising. Stronger denoising on brighter areas of a frame.
+# Done while descaled because it's overall faster *and* more effective.
+d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=8)
+denoise_a = CoolDegrain(descaled, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
+denoise_b = CoolDegrain(descaled, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
+denoise = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
+
+# Some AA to fix up instances of bad lineart.
+# Done while descaled for similar reasons as L37
+aa = denoise
+
+# Upscaling and applying credit mask to OP and ED
+upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
+upscaled = join([upscaled, u, v])
+scaled = fvf.rfs(upscaled, src, mappings=f"[293 {src.num_frames-1}]")
+
+
+# Much like the denoising, way stronger debanding is performed on brighter areas.
+# This way less perceivable detail is lost to the void. Darker areas will be grained stronger instead.
+deb_d_mask = fvf.Depth(kgf.adaptive_grain(src, show_mask=True, luma_scaling=8), 16)
+deband_a = core.f3kdb.Deband(scaled, range=21, y=56, cb=48, cr=48, grainy=12, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(scaled, range=17, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
+deband = core.std.MaskedMerge(deband_a, deband_b, deb_d_mask)
+deband = fvf.rfs(deband, deband_a, mappings=f"[0 134] [185 292]")
+
+# Graining. Strong dynamic grain added to parts of the OP and darker slow-motion scenes.
+grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=8)
+grain_b = kgf.adaptive_grain(deband, 1)
+grain = fvf.rfs(grain_a, grain_b, mappings=f"[0 292]")
+
+
+out = grain
+final = fvf.Depth(out, 10)
+final.set_output()
