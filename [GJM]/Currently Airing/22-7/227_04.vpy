@@ -12,8 +12,7 @@ core = vs.core
 src_a = lvf.src(r"04/22 7  E04 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
 src_b = lvf.src(r"04/[Erai-raws] 22-7 - 04 [1080p].mkv")
 blank = core.std.BlankClip(src_a)[0]
-#src_a = src_a[0]+src_a[:12700]+src_a[12700]*5+src_a[12700:34397]+src_a[34396]+src_a[34397:-72]#+blank
-src_b = src_b[290:]#+blank
+src_b = src_b[290:]
 scomp = lvf.scomp(src_a, src_b, height=360, make_diff=True)
 
 
@@ -22,7 +21,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1200), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, hardsubmask_fade)
-src = fvf.rfs(src, src_fade, mappings=f"[3284 3422] [30474 30538] [30929 31047] [32015 32701]")
+src = fvf.rfs(src, src_fade, mappings=f"[11 14] [3284 3422] [6936 6994] [30474 30538] [30929 31047] [32015 32701]")
 src = fvf.rfs(src, src_b, mappings=f"[{src_a.num_frames-121} {src_a.num_frames-1}]")
 scomp2 = lvf.scomp(src, src_b, height=360, make_diff=True)
 
