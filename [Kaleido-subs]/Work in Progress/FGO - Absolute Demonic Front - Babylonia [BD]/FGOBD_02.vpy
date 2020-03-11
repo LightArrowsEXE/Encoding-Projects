@@ -14,7 +14,7 @@ op_sf_a = f"[{opstart+378} {opstart+401}]"
 op_sf_b = f"[{opstart+1728} {opstart+1757}]"
 
 
-src = lvf.src(r"BDMV/[BDMV] Fate Grand Order - Absolute Demonic Front Babylonia [Vol.1] [JP]/Disc2/BDMV/STREAM/00000.m2ts")
+src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/Disc2/BDMV/STREAM/00000.m2ts")
 src = src[24:-24]
 src = fvf.Depth(src, 16)
 
