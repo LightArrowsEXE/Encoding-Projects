@@ -4,7 +4,7 @@ import lvsfunc as lvf
 ac = acs.AC()
 
 
-path = lvf.src(r'BDMV/[BDMV][200205][Lord El-Melloi II-sei no Jikenbo][Vol.06]/BDROM/BDMV/STREAM/00001.m2ts')
+path = r'BDMV/[BDMV][200205][Lord El-Melloi II-sei no Jikenbo][Vol.06]/BDROM/BDMV/STREAM/00001.m2ts'
 src = lvf.src(path)
 
 if __name__ == "__main__":
