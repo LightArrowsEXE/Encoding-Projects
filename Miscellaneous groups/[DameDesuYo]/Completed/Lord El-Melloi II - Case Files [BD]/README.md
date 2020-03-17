@@ -16,5 +16,5 @@ but finding decent replacements
 shouldn't be hard.
 <br><br>
 
-<div style="text-align:center">Artist: [孟達](https://www.pixiv.net/en/users/3872398)</div>
-<div style="text-align:center; height:600px;"><img src="img/CaseFiles_Gray.jpg" /></div>
+Artist: [孟達](https://www.pixiv.net/en/users/3872398)
+![](img/CaseFiles_Gray.jpg)
