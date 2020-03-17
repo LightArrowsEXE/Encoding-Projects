@@ -1,10 +1,11 @@
-import ocsuite as ocs
+#!/usr/bin/env python3
+import acsuite as acs
 import lvsfunc as lvf
-oc = ocs.OC()
+ac = acs.AC()
 
 
-path = r'BDMV/Vol 1/BDROM/BDMV/STREAM/00001.m2ts'
+path = lvf.src(r'BDMV/[BDMV] Lord El-Melloi II-sei no Jikenbo ~Rail Zeppelin Grace Note~ [Vol.01]/BDROM/BDMV/STREAM/00001.m2ts')
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    oc.eztrim(src, [(24, -24)], path[:-4]+"wav", "CaseFilesBD_01_cut.wav")
+    ac.eztrim(src, [(24, -24)], path[:-4]+"wav", "CaseFilesBD_01_cut.wav")

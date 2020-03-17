@@ -72,15 +72,15 @@ def grain_it(clip: vs.VideoNode,
     return fvf.rfs(grain_a, grain_b, mappings=mappings)
 
 
-opstart = 3525
+opstart = 3621
 
 
 op_grain = f"[{opstart+285} {opstart+573}]" if opstart else ""
 
 
-src = lvf.src(r'../BDMV/[BDMV][アニメ][191204] ロード・エルメロイII世の事件簿 -魔眼蒐集列車 Grace note- 4/BDROM',
+src = lvf.src(r'../BDMV/[BDMV][200205][Lord El-Melloi II-sei no Jikenbo][Vol.06]/BDROM',
               mpls=True, mpls_playlist=0)
-src = src[24:34072]
+src = src[34119:68166]
 ef = lvf.edgefixer(src, 0)
 ef = fvf.Depth(ef, 32)
 
