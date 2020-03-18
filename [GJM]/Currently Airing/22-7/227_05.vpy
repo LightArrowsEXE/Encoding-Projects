@@ -22,7 +22,7 @@ src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
 
 hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1200), 8)
 src_fade = core.std.MaskedMerge(src_a, src_b, hardsubmask_fade)
-src = fvf.rfs(src, src_fade, mappings=f"[19484 19486] [21190 21240] [33931 33934]")
+src = fvf.rfs(src, src_fade, mappings=f"[1265 1323] [3692 3772] [8209 8212] [19463 19466] [19484 19486] [21190 21240] [23596 23663] [33837 33840] [33931 33935]")
 src = fvf.rfs(src, src_b, mappings=f"[{src_a.num_frames-121} {src_a.num_frames-1}]")
 scomp2 = lvf.scomp(src, src_b, height=360, make_diff=True)
 
@@ -53,5 +53,4 @@ grain = kgf.adaptive_grain(deband, 0.1, luma_scaling=6)
 
 out = grain
 final = fvf.Depth(out, 10)
-#diff = lvf.tvbd_diff(src, src_b, 1)
 final.set_output()
