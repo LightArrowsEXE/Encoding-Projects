@@ -48,14 +48,14 @@ def _adap_denoise(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.Vid
     return core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
 
 
-opstart = 0
+opstart = None
 op_sf_a = f"[{opstart+378} {opstart+401}] [{opstart+1564} {opstart+1581}]" if opstart is not None else ""
 op_sf_b = f"[{opstart+1728} {opstart+1757}]" if opstart is not None else ""
 
 
-src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/DISC2/BDMV/STREAM/00007.m2ts")
-src = src[24:-24]
-src = fvf.Depth(src, 32)
+src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/DISC2/BDMV/STREAM/00008.m2ts")
+src = src[24:-28]
+src = fvf.Depth(src, 16)
 
 
 h = 873

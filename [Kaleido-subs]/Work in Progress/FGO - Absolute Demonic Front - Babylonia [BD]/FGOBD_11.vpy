@@ -48,12 +48,12 @@ def _adap_denoise(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.Vid
     return core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
 
 
-opstart = 0
+opstart = 1894
 op_sf_a = f"[{opstart+378} {opstart+401}] [{opstart+1564} {opstart+1581}]" if opstart is not None else ""
 op_sf_b = f"[{opstart+1728} {opstart+1757}]" if opstart is not None else ""
 
 
-src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/DISC2/BDMV/STREAM/00007.m2ts")
+src = lvf.src(r"BDMV/[BDMV][ANZX-15507][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.3][JP]/BDROM/DISC2/BDMV/STREAM/00001.m2ts")
 src = src[24:-24]
 src = fvf.Depth(src, 32)
 
@@ -79,7 +79,6 @@ deband = fvf.rfs(core.f3kdb.Deband(merge_credits, range=15, y=40, cb=32, cr=32, 
                  mappings=op_sf_a)
 deband = fvf.rfs(deband, core.f3kdb.Deband(merge_credits, range=12, y=56, cb=48, cr=48, grainy=36, grainc=0, output_depth=16),
                  mappings=op_sf_b)
-
 
 grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
 

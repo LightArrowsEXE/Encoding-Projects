@@ -48,13 +48,14 @@ def _adap_denoise(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.Vid
     return core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
 
 
-opstart = 0
+opstart = None
 op_sf_a = f"[{opstart+378} {opstart+401}] [{opstart+1564} {opstart+1581}]" if opstart is not None else ""
 op_sf_b = f"[{opstart+1728} {opstart+1757}]" if opstart is not None else ""
 
 
-src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/DISC2/BDMV/STREAM/00007.m2ts")
-src = src[24:-24]
+src_a = lvf.src(r"BDMV/[BDMV][ANZX-15507][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.3][JP]/BDROM/DISC1/BDMV/STREAM/00000.m2ts")
+src_b = lvf.src(r"other_src/[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - 08 [1080p][Multiple Subtitle].mkv")
+src = fvf.rfs(src_a[24:-24], src_b, mappings="[7551 7552] [8958 9048]") # There's a couple of scenes that look better on Wakanim than the BDs, so we're replacing those here
 src = fvf.Depth(src, 32)
 
 
@@ -81,7 +82,11 @@ deband = fvf.rfs(deband, core.f3kdb.Deband(merge_credits, range=12, y=56, cb=48,
                  mappings=op_sf_b)
 
 
-grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
+grain = fvf.rfs(kgf.adaptive_grain(deband, 0.3, luma_scaling=4),
+                kgf.adaptive_grain(deband, 0.8, luma_scaling=8, static=False),
+                mappings="[0 29126]") # Ep8 only
+grain = fvf.rfs(grain, kgf.adaptive_grain(deband, 4, luma_scaling=2, static=False),
+                mappings="[8958 9048]") # Ep8 only
 
 
 out = grain
