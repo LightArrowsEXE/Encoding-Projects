@@ -4,7 +4,7 @@ import lvsfunc as lvf
 ac = acs.AC()
 
 
-path = r'BDMV/[BDMV] Fate Grand Order - Absolute Demonic Front Babylonia [Vol.1] [JP]/Disc2/BDMV/STREAM/00007.m2ts'
+path = r'BDMV/[BDMV] Fate Grand Order - Absolute Demonic Front Babylonia [Vol.1] [JP]/DISC2/BDMV/STREAM/00007.m2ts'
 src = lvf.src(path)
 
 if __name__ == "__main__":
