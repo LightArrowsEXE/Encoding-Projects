@@ -12,7 +12,9 @@ from vsutil import *
 core = vs.core
 
 
-def _rescaler(clip: vs.VideoNode, h: int, b: float, c: float, credit_mask: vs.VideoNode = None) -> vs.VideoNode:
+def _rescaler(clip: vs.VideoNode, h: int, b: float, c: float,
+              credit_mask: vs.VideoNode = None,
+              aa_mappings: str = "") -> vs.VideoNode:
     planes = split(clip)
     descaled = core.descale.Debicubic(planes[0], get_w(h, clip.width/clip.height), h, b, c)
     upscaled = nnedi3_resample(descaled, clip.width, clip.height, kernel='gauss', invks=True,
@@ -27,11 +29,11 @@ def _rescaler(clip: vs.VideoNode, h: int, b: float, c: float, credit_mask: vs.Vi
     return merged
 
 
-def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode:
+def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float, brz: float = 0.05) -> vs.VideoNode:
     clip_y = get_y(clip)
     descaled = core.fmtc.resample(clip_y, get_w(h), h, kernel='bicubic', a1=b, a2=c, invks=True)
     upscaled = core.fmtc.resample(descaled, clip_y.width, clip_y.height, kernel='bicubic', a1=b, a2=c)
-    credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(0.05)
+    credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(brz)
     credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 6)
     return kgf.iterate(credit_mask, core.std.Inflate, 2)
 
@@ -54,10 +56,11 @@ def _adap_denoise(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.Vid
     return core.std.MaskedMerge(denoise_a, denoise_b, _create_dmask(clip, luma_scaling, depth))
 
 
-def _adap_deband(clip: vs.VideoNode, luma_scaling: float, mappings: str = None) -> vs.VideoNode:
+def _adap_deband(clip: vs.VideoNode, luma_scaling: float, mappings: str = "") -> vs.VideoNode:
     deband_bright = core.f3kdb.Deband(clip, range=20, y=32, cb=48, cr=48, grainy=24, grainc=0, output_depth=16)
     deband_darker = core.f3kdb.Deband(clip, range=18, y=40, cb=56, cr=56, grainy=24, grainc=0, output_depth=16)
-    return core.std.MaskedMerge(deband_bright, deband_darker, _create_dmask(clip, luma_scaling))
+    merged = core.std.MaskedMerge(deband_bright, deband_darker, _create_dmask(clip, luma_scaling))
+    return fvf.rfs(merged, deband_darker, mappings)
 
 
 def _w2x(clip: vs.VideoNode, mappings: str) -> vs.VideoNode:
@@ -89,20 +92,21 @@ def _interp(clip: vs.VideoNode, strength: float, mappings: str) -> vs.VideoNode:
 
 opstart = 1355 # Second cut in the OP
 
-OP_w2x =            f"{opstart+1483} {opstart+1484}"
-OP_interp =         f"[{opstart+185} {opstart+290}]"
-OP_aa =             f"[{opstart+910} {opstart+972}] [{opstart+1788} {opstart+1885}]"
+OP_w2x =            f"{opstart+1483} {opstart+1484}" if opstart is not None else ""
+OP_interp =         f"[{opstart+185} {opstart+290}] [{opstart+1555} {opstart+1593}]" if opstart is not None else ""
+OP_aa =             f"[{opstart+910} {opstart+972}] [{opstart+1788} {opstart+1885}]" if opstart is not None else ""
+OP_deband =         f"[{opstart+1021} {opstart+1186}]" if opstart is not None else ""
 
-OP_grain_weak =     f"[{opstart+1053} {opstart+1208}] [{opstart+1897} {opstart+1939}] [{opstart+1997} {opstart+2050}]"
-OP_grain_strong =   f"[{opstart-80} {opstart+181}] [{opstart+294} {opstart+301}] [{opstart+1209} {opstart+1291}]"
+OP_grain_weak =     f"[{opstart+1053} {opstart+1208}] [{opstart+1897} {opstart+1939}] [{opstart+1997} {opstart+2050}]" if opstart is not None else ""
+OP_grain_strong =   f"[{opstart-80} {opstart+181}] [{opstart+294} {opstart+301}] [{opstart+1209} {opstart+1291}]" if opstart is not None else ""
 
 
 # Darker, more cinematic close-up shots or with black backgrounds + white glow
 cinematics =    """
-                [5161 5287] [5312 5911]
-                [6314 6377]
-                [8197 8514]
+                [5161 5287] [5312 5911] [6314 6377] [8197 8514]
                 """
+
+heavy_bands =   ""
 
 
 src = lvf.src(r"BDMV/[BDMV][200325][Kimetsu no Yaiba][Vol.9]/BDMV/STREAM/00005.m2ts")
@@ -113,23 +117,30 @@ src = fvf.Depth(src, 32)
 
 h = 855
 b, c = 1/5, 2/5
-credit_mask = _create_credit_mask(src, h, b, c)
-scaled = _rescaler(src, h, b, c)
+credit_mask = _create_credit_mask(src, h, b, c, brz=0.10)
+scaled = _rescaler(src, h, b, c, aa_mappings=OP_aa + cinematics)
 
-denoise = _adap_denoise(scaled, luma_scaling=8, depth=16)
+denoise_a = _adap_denoise(scaled, luma_scaling=8, depth=16)
+denoise_b = mvf.BM3D(scaled, sigma=[2,3.5], depth=16, profile1='lc')
+denoise = fvf.rfs(denoise_a, denoise_b, mappings=heavy_bands)
+
 w2x = _w2x(denoise, mappings=OP_w2x)
 
-aa = fvf.rfs(w2x, TAAmbk(w2x, aatype='Eedi3'), mappings=OP_aa + cinematics)
+dehalo = _fix_lineart(w2x)
+interp = _interp(dehalo, strength=1.7, mappings=OP_interp)
 
-interp = _interp(aa, strength=1.7, mappings=OP_interp)
-dehalo = _fix_lineart(interp)
-merge = core.std.MaskedMerge(dehalo, fvf.Depth(src, 16), fvf.Depth(credit_mask, 16))
+merge = core.std.MaskedMerge(interp, fvf.Depth(src, 16), fvf.Depth(credit_mask, 16))
 
-deband = _adap_deband(merge, luma_scaling=4)
+deband_a = _adap_deband(merge, luma_scaling=4, mappings=OP_deband)
+deband_b = core.f3kdb.Deband(merge, range=5, y=72, cb=80, cr=80, grainy=0, grainc=0, output_depth=16)
+deband_b = core.f3kdb.Deband(deband_b, range=14, y=64, cb=72, cr=72, grainy=48, grainc=0, output_depth=16)
+deband = fvf.rfs(deband_a, deband_b, mappings=heavy_bands)
 
 grain_a = _grain(deband, OP_grain_weak, OP_grain_strong)
 grain_b = core.grain.Add(deband, var=3, uvar=0, constant=False)
-grain = fvf.rfs(grain_a, grain_b, cinematics)
+grain_c = kgf.adaptive_grain(deband, 0.7, luma_scaling=4)
+grain = fvf.rfs(grain_a, grain_b, mappings=cinematics)
+grain = fvf.rfs(grain, grain_c, mappings=heavy_bands)
 
 
 out = grain
