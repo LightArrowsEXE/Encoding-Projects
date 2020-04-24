@@ -5,6 +5,7 @@ import fvsfunc as fvf
 import havsfunc as haf
 import mvsfunc as mvf
 import debandshit as ds
+import atomchtools as at
 import awsmfunc as awsm
 from toolz import functoolz
 from nnedi3_resample import nnedi3_resample
@@ -14,6 +15,16 @@ from vsutil import *
 core = vs.core
 core.max_cache_size = 128000
 core.num_threads = 36
+
+
+def _descaler(clip: vs.VideoNode, h: int = 720, kernel: str = 'bicubic',
+                  b: float = 0, c: float = 0.5, taps: int = 4) -> vs.VideoNode:
+    desc = get_filter(b, c, taps, kernel)(clip, get_w(h), h)
+    upsc = nnedi3_resample(desc, clip.width, clip.height, kernel='gauss', invks=True,
+                           invkstaps=2, taps=1, a1=32, nns=4, qual=2, pscrn=4)
+    mask = fvf.Depth(at.DiffRescaleMask(fvf.Depth(clip, 8), h,
+                     kernel=kernel, b=b, c=c, taps=taps), 32)
+    return core.std.MaskedMerge(upsc, clip, mask)
 
 
 @functoolz.curry
@@ -62,15 +73,44 @@ def _denoiseNgrain(clip: vs.VideoNode, src: vs.VideoNode) -> vs.VideoNode:
     return kgf.adaptive_grain(deband, 0.2, luma_scaling=6)
 
 
-src = lvf.src(r"BDMV/[BDMV][191127] Fate／kaleid liner Prisma☆Illya Prisma☆Phantasm/PRISMAPHANTASM_SP/BDMV/STREAM/00005.m2ts")[24:-24]
-limit = core.std.Limiter(src, 16, [235,240])
-src = fvf.Depth(limit, 32)
+opstart = 2789
+
+op_range      = [(opstart,opstart+2157)]
+ed_range      = [(84721,87043),(89166,89422)]
+descale_old   = [(4947,5336),(22569,22958)]
+descale_810   = [(49179,53688)]
 
 
-filter_chain = functoolz.compose(_denoise, _unsharp(strength=0.25), _fix_lineart, _dark_aa, _denoiseNgrain(src=src))
-main_filter = filter_chain(src)
+src_a = lvf.src(r"BDMV/[BDMV][191127] Fate／kaleid liner Prisma☆Illya Prisma☆Phantasm/PRISMAPHANTASM_SP/BDMV/STREAM/00001.m2ts")[48:-24]
+src_b = lvf.src(r"BDMV/[BDMV][191127] Fate／kaleid liner Prisma☆Illya Prisma☆Phantasm/PRISMAPHANTASM_SP/BDMV/STREAM/00004.m2ts")[24:-24]
+src = src_a+src_b
+ef = awsm.bbmod(src, 1, 1, 1, 1, thresh=35, blur=999, y=True, u=False, v=False, scale_thresh=True)
+limit = core.std.Limiter(ef, 16, [235,240])
+ef = fvf.Depth(limit, 32)
 
 
-out = main_filter
+h = [720, 810]
+planes = split(ef) # Ranges and descale kernels courtesy of Varde's detective work (mostly)
+l_mask = fvf.Depth(kgf.retinex_edgemask(fvf.Depth(planes[0], 16)), 32)
+descaled = lvf.rfs(_descaler(planes[0], h[0], kernel='bilinear'),
+                   _descaler(planes[0], h[0], kernel='bicubic', b=0, c=.5),
+                   ranges = descale_old)
+descaled = lvf.rfs(descaled,
+                   _descaler(planes[0], h[1], kernel='spline36'),
+                   ranges = descale_810)
+descaled = lvf.rfs(descaled, planes[0], op_range)
+planes[0] = core.std.MaskedMerge(planes[0], descaled, l_mask)
+scaled = join(planes)
+
+
+filter_chain = functoolz.compose(_denoise, _unsharp(strength=0.25), _fix_lineart, _dark_aa, _denoiseNgrain(src=ef))
+main_filter = filter_chain(scaled) # Currying is actually pretty neat, ngl
+
+merge = lvf.rfs(main_filter,
+                fvf.Depth(src, get_depth(main_filter)),
+                ed_range)
+
+
+out = merge
 final = fvf.Depth(out, 10)
 final.set_output()

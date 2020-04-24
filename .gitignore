@@ -115,6 +115,7 @@ auto-audiocutter.py
 clean-enc-dir.py
 clean_dir.py
 encode_audio.py
+encode_audiov2.py
 extract_audio.py
 generate_keyframes.py
 hardsub.py
