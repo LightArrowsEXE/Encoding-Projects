@@ -10,6 +10,6 @@ path = r'BDMV/[BDMV][191127] Fate／kaleid liner Prisma☆Illya Prisma☆Phantas
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    ac.eztrim(src, [([48, -24])], path[:-4]+"wav", "IllyaOVABD_01_cut.wav")
+    ac.eztrim(src, [([48, -24])], path, "IllyaOVABD_01_cut.wav")
 
 src.set_output()

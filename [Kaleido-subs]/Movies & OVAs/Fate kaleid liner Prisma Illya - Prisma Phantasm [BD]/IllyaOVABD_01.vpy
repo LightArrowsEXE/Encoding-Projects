@@ -59,6 +59,7 @@ def _dark_aa(clip: vs.VideoNode) -> vs.VideoNode:
     darken = haf.FastLineDarkenMOD(clip, strength=24, protection=6, luma_cap=235)
     return fvf.Depth(TAAmbk(darken, aatype='Eedi3', repair=12, opencl=True), get_depth(clip_c))
 
+
 @functoolz.curry
 def _denoiseNgrain(clip: vs.VideoNode, src: vs.VideoNode) -> vs.VideoNode:
     m_denoised = core.knlm.KNLMeansCL(clip, h=1)
