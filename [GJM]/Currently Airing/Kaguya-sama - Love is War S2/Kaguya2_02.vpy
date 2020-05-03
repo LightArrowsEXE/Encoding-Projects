@@ -100,9 +100,7 @@ merge = core.std.MaskedMerge(dering, fvf.Depth(src, 16), fvf.Depth(credit_mask, 
 deband = core.f3kdb.Deband(merge, range=15, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16, keep_tv_range=True)
 grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
 
-a = lvf.src(r"02/Kaguya2_02v2 (Premux) (1).mkv")
-b = lvf.src(r"02/Kaguya2_02v2 (Premux) (2).mkv")
 
 out = grain
 final = fvf.Depth(out, 10)
-final[a.num_frames:-b.num_frames].set_output()
+final.set_output()
