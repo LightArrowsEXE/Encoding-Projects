@@ -1,43 +1,90 @@
-import vapoursynth as vs
-import lvsfunc as lvf
-import kagefunc as kgf
 import fvsfunc as fvf
-import mvsfunc as mvf
 import havsfunc as haf
-import descale as ds
-import bombzenfunc as bzf
-from vsutil import *
-from nnedi3_resample import *
-from cooldegrain import *
-from functools import partial
+import kagefunc as kgf
+import mvsfunc as mvf
+from descale import Debicubic
+from nnedi3_resample import nnedi3_resample
+from toolz import functoolz
+from vsutil import get_w, get_y, iterate, join, split
+
+import lvsfunc as lvf
+import vapoursynth as vs
+
 core = vs.core
 
 
-def _rescaler(clip: vs.VideoNode, h: int, b: float, c: float,
-              credit_mask: vs.VideoNode = None, 
-              src_left: float = 0, src_top: float = 0) -> vs.VideoNode:
+@functoolz.curry
+def denoise(clip: vs.VideoNode) -> vs.VideoNode:
+    detail_mask = _generate_detail_mask(clip)
+    denoise = mvf.BM3D(clip, sigma=[1.2,0], profile1='lc')
+    denoise = core.std.MaskedMerge(denoise, clip, detail_mask)
+    return mvf.BM3D(clip, sigma=[0,1.6], profile1='lc')
+
+
+@functoolz.curry
+def fix_lineart(clip: vs.VideoNode) -> vs.VideoNode:
+    dehalo = lvf.util.quick_resample(clip, haf.FineDehalo, rx=2.4, darkstr=0, brightstr=1, contra=1)
+    return lvf.util.quick_resample(dehalo, haf.EdgeCleaner, strength=4, rmode=13, smode=1, hot=True)
+
+
+@functoolz.curry
+def merge_credits(clip: vs.VideoNode, og_clip: vs.VideoNode,
+                  h: int, b: float, c: float) -> vs.VideoNode:
+    credit_mask = _create_credit_mask(og_clip, h, b, c, brz=0.1)
+    return core.std.MaskedMerge(clip, og_clip, credit_mask)
+
+@functoolz.curry
+def deband(clip: vs.VideoNode, og_clip: vs.VideoNode) -> vs.VideoNode:
+    detail_mask = _generate_detail_mask(og_clip)
+    deband = core.placebo.Deband(clip, planes=1, iterations=1, threshold=2, radius=12, grain=8)
+    deband = core.std.MaskedMerge(deband, og_clip, detail_mask)
+    deband = core.placebo.Deband(deband, planes=2|4, iterations=2, threshold=3, radius=20, grain=0)
+    return kgf.adaptive_grain(deband, 0.35, luma_scaling=4)
+
+
+def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode) -> vs.VideoNode:
+    hardsubmask = kgf.hardsubmask(clip_a, clip_b)
+    clip = core.std.MaskedMerge(clip_a, clip_b, hardsubmask)
+
+    hardsubmask_fade = lvf.util.quick_resample(clip_a, kgf.hardsubmask_fades, ref=clip_b, highpass=1200)
+    clip_fade = core.std.MaskedMerge(clip_a, clip_b, hardsubmask_fade)
+    clip = lvf.rfs(clip, clip_fade, ranges=op_signs + hs_signs)
+    if replace_scenes:
+        clip = lvf.rfs(clip, clip_b, ranges=replace_scenes)
+    return clip
+
+
+def rescale_blur(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode:
     planes = split(clip)
-    descaled = core.descale.Debicubic(planes[0], get_w(h, clip.width/clip.height), h, b, c)
-    upscaled = nnedi3_resample(descaled, clip.width, clip.height, kernel='gauss', invks=True,
-                                invkstaps=2, taps=1, a1=32, nns=4, qual=2, pscrn=4)
-    l_mask = fvf.Depth(kgf.retinex_edgemask(fvf.Depth(upscaled, 16)), get_depth(clip))
-    if credit_mask is not None:
-        l_mask = core.std.Expr([l_mask, credit_mask], "x y -").std.Deflate()
-    planes[0] = core.std.MaskedMerge(planes[0], upscaled, l_mask)
-    planes[1], planes[2] = [core.resize.Spline36(p, src_left=src_left, src_top=src_top) for p in planes[1:]]
-    merged = join(planes)
-    if credit_mask is not None:
-        return core.std.MaskedMerge(merged, clip, credit_mask)
-    return merged
+    descaled = Debicubic(planes[0], get_w(h), h, b=b, c=c)
+
+    pre_den = core.knlm.KNLMeansCL(descaled, d=2, a=3, h=1.2, device_type='gpu')
+    l_mask = core.std.Prewitt(pre_den, scale=5)
+    l_mask = iterate(l_mask, core.std.Deflate, 6).std.Binarize(0.08)
+
+    blur = lvf.util.quick_resample(descaled, core.bilateral.Bilateral, sigmaS=4.5, sigmaR=0.01)
+    blur = core.std.MaskedMerge(descaled, blur, l_mask)
+    blur = lvf.rfs(descaled, blur, ranges=op_range)
+
+    interp = lvf.util.quick_resample(blur, haf.QTGMC, InputType=1, TR2=3)
+    interp = lvf.rfs(blur, interp, ranges=op_interp)
+
+    planes[0] = nnedi3_resample(interp, planes[0].width, planes[0].height, kernel='gauss',
+                                invks=True, invkstaps=2, taps=1, a1=32, nns=4, qual=2, pscrn=4)
+    return join(planes)
 
 
 def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float, brz: float = 0.05) -> vs.VideoNode:
     clip_y = get_y(clip)
-    descaled = core.fmtc.resample(clip_y, get_w(h), h, kernel='bicubic', a1=b, a2=c, invks=True)
-    upscaled = core.fmtc.resample(descaled, clip_y.width, clip_y.height, kernel='bicubic', a1=b, a2=c)
+    descaled = Debicubic(clip_y, get_w(h), h, b=b, c=c)
+    upscaled = upscaled = core.resize.Bicubic(descaled, clip_y.width, clip_y.height, filter_param_a=b, filter_param_b=c)
     credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(brz)
-    credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 4)
-    return kgf.iterate(credit_mask, core.std.Inflate, 2)
+    credit_mask = iterate(credit_mask, core.std.Maximum, 4)
+    return iterate(credit_mask, core.std.Inflate, 2)
+
+
+def _generate_detail_mask(clip: vs.VideoNode) -> vs.VideoNode:
+    return lvf.denoise.detail_mask(clip, pre_denoise=3.6, brz_a=0.025, brz_b=0.005)
 
 
 opstart          = 0
@@ -48,55 +95,38 @@ hs_signs         = [(2261,2366),(5063,5124),(6693,6781),(6945,6962),
                     (17421,17636),(22700,22805),(23710,23799),(24601,24634),
                     (25864,25929),(26526,26568),(31625,31779),(32295,32367)]
 replace_scenes   = []
-op_range         = [(opstart,opstart+2157)]
-
-src_a = lvf.src(r"03/Kaguya_S2_03_EN_HD.mp4")
-src_b = lvf.src(r"03/[HorribleSubs] Kaguya-sama wa Kokurasetai S2 - 03 [1080p].mkv")
-src_a = src_a[:14672]+src_a[14672]*2+src_a[14673]*24+src_a[14673:]
-src_b = src_b[289:]
-scomp = lvf.scomp(src_a, src_b)
+op_range         = [(opstart,opstart+2157)] if opstart is not None else []
+op_interp        = [(opstart+594,opstart+628)] if opstart is not None else []
 
 
-hardsubmask = kgf.hardsubmask(src_a, src_b)
-src = core.std.MaskedMerge(src_a, src_b, hardsubmask)
+src_wk = lvf.misc.source(r"03/Kaguya_S2_03_EN_HD.mp4")
+src_fu = lvf.misc.source(r"03/[HorribleSubs] Kaguya-sama wa Kokurasetai S2 - 03 [1080p].mkv")[289:]
+src_wk = src_wk[:14672]+src_wk[14672]*2+src_wk[14673]*24+src_wk[14673:]
+scomp = lvf.comparison.stack_compare(src_wk, src_fu, make_diff=True)
 
-hardsubmask_fade = fvf.Depth(kgf.hardsubmask_fades(src_a, src_b, highpass=1200), 8)
-src_fade = core.std.MaskedMerge(src_a, src_b, hardsubmask_fade)
-src = lvf.rfs(src, src_fade, ranges=op_signs + hs_signs)
-if replace_scenes:
-    src = lvf.rfs(src, src_b, ranges=replace_scenes)
-scomp2 = lvf.scomp(src, src_b, height=360, make_diff=True)
+src = dehardsub(src_wk, src_fu)
+scomp2 = lvf.comparison.stack_compare(src, src_fu, make_diff=True)
 
-src = core.std.Limiter(src, 16, [235,240])
-src = fvf.Depth(src, 32)
+
+#diff = lvf.tvbd_diff(src, src_fu)
+shift = haf.FixChromaBleedingMod(src, cx=-.65, cy=-.25, thr=100, strength=1, blur=True)
+shift = fvf.Depth(shift, 32)
 
 
 h = 874
-b, c =  0, 0.5
-planes = split(src)
-descaled = ds.Debicubic(planes[0], get_w(h), h, b=b, c=c)
-
-l_mask = fvf.Depth(kgf.retinex_edgemask(fvf.Depth(descaled, 16)), 32).std.Maximum().std.Inflate()
-blur = fvf.Depth(core.bilateral.Bilateral(fvf.Depth(descaled, 16)), 32)
-blur = core.std.MaskedMerge(descaled, blur, l_mask)
-blur = lvf.rfs(descaled, blur, ranges=op_range)
-
-planes[0] = nnedi3_resample(blur, planes[0].width, planes[0].height, kernel='gauss', invks=True,
-                            invkstaps=2, taps=1, a1=32, nns=4, qual=2, pscrn=4)
-scaled = join(planes)
+b, c =  0, 1/2
+scaled = rescale_blur(shift, h=h, b=b, c=c)
 
 
-denoise = CoolDegrain(scaled, tr=1, thsad=48, thsadc=72, bits=16, blksize=8, overlap=4)
-dehalo = haf.FineDehalo(denoise, rx=2, darkstr=0, brightstr=1, contra=1)
-dering = haf.EdgeCleaner(dehalo, strength=6, rmode=13, smode=1, hot=True)
-
-credit_mask = _create_credit_mask(src, h, b, c, brz=0.1)
-merge = core.std.MaskedMerge(dering, fvf.Depth(src, 16), fvf.Depth(credit_mask, 16))
-
-deband = core.f3kdb.Deband(merge, range=15, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16, keep_tv_range=True)
-grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
+filter_chain = functoolz.compose(
+    denoise,
+    fix_lineart,
+    merge_credits(og_clip = shift, h=h, b=b, c=c),
+    deband(og_clip = scaled)
+)
+main_filter = filter_chain(shift)
 
 
-out = grain
+out = main_filter
 final = fvf.Depth(out, 10)
 final.set_output()

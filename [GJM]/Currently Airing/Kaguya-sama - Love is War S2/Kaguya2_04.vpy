@@ -2,6 +2,7 @@ import fvsfunc as fvf
 import havsfunc as haf
 import kagefunc as kgf
 import mvsfunc as mvf
+from descale import Debicubic
 from nnedi3_resample import nnedi3_resample
 from toolz import functoolz
 from vsutil import get_w, get_y, iterate, join, split
@@ -54,8 +55,6 @@ def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode) -> vs.VideoNode:
 
 
 def rescale_blur(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode:
-    from descale import Debicubic
-
     planes = split(clip)
     descaled = Debicubic(planes[0], get_w(h), h, b=b, c=c)
 
@@ -77,11 +76,11 @@ def rescale_blur(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode
 
 def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float, brz: float = 0.05) -> vs.VideoNode:
     clip_y = get_y(clip)
-    descaled = core.fmtc.resample(clip_y, get_w(h), h, kernel='bicubic', a1=b, a2=c, invks=True)
-    upscaled = core.fmtc.resample(descaled, clip_y.width, clip_y.height, kernel='bicubic', a1=b, a2=c)
+    descaled = Debicubic(clip_y, get_w(h), h, b=b, c=c)
+    upscaled = upscaled = core.resize.Bicubic(descaled, clip_y.width, clip_y.height, filter_param_a=b, filter_param_b=c)
     credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(brz)
-    credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 4)
-    return kgf.iterate(credit_mask, core.std.Inflate, 2)
+    credit_mask = iterate(credit_mask, core.std.Maximum, 4)
+    return iterate(credit_mask, core.std.Inflate, 2)
 
 
 def _generate_detail_mask(clip: vs.VideoNode) -> vs.VideoNode:
@@ -103,13 +102,13 @@ op_range         = [(opstart,opstart+2157)] if opstart is not None else []
 op_interp        = [(opstart+594,opstart+628)] if opstart is not None else []
 
 
-src_wk = lvf.src(r"04/Kaguya_S2_04_EN_HD.mp4")
-src_fu = lvf.src(r"04/[HorribleSubs] Kaguya-sama wa Kokurasetai S2 - 04 [1080p].mkv")[289:]
+src_wk = lvf.misc.source(r"04/Kaguya_S2_04_EN_HD.mp4")
+src_fu = lvf.misc.source(r"04/[HorribleSubs] Kaguya-sama wa Kokurasetai S2 - 04 [1080p].mkv")[289:]
 src_wk = src_wk[:66]+src_wk[68:]
-scomp = lvf.scomp(src_wk, src_fu, make_diff=True)
+scomp = lvf.comparison.stack_compare(src_wk, src_fu, make_diff=True)
 
 src = dehardsub(src_wk, src_fu)
-scomp2 = lvf.scomp(src, src_fu, make_diff=True)
+scomp2 = lvf.comparison.stack_compare(src, src_fu, make_diff=True)
 
 
 #diff = lvf.tvbd_diff(src, src_fu)
@@ -123,11 +122,11 @@ scaled = rescale_blur(shift, h=h, b=b, c=c)
 
 
 filter_chain = functoolz.compose(
-                            denoise,
-                            fix_lineart,
-                            merge_credits(og_clip = shift, h=h, b=b, c=c),
-                            deband(og_clip = scaled)
-                            )
+    denoise,
+    fix_lineart,
+    merge_credits(og_clip = shift, h=h, b=b, c=c),
+    deband(og_clip = scaled)
+)
 main_filter = filter_chain(shift)
 
 
