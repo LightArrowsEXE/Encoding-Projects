@@ -8,4 +8,4 @@ path = r'02/[HorribleSubs] Kaguya-sama wa Kokurasetai S2 - 02 [1080p].mkv'
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    ac.eztrim(src, [(289, 0)], path, "Kaguya2_02_cut.aac")
+    ac.eztrim(src, [(289, 0)], path[:-4]+"_Track02.aac", "Kaguya2_02_cut.aac")

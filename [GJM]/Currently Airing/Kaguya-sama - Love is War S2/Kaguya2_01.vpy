@@ -77,7 +77,7 @@ def rescale_blur(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode
 def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float, brz: float = 0.05) -> vs.VideoNode:
     clip_y = get_y(clip)
     descaled = Debicubic(clip_y, get_w(h), h, b=b, c=c)
-    upscaled = upscaled = core.resize.Bicubic(descaled, clip_y.width, clip_y.height, filter_param_a=b, filter_param_b=c)
+    upscaled =  core.resize.Bicubic(descaled, clip_y.width, clip_y.height, filter_param_a=b, filter_param_b=c)
     credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(brz)
     credit_mask = iterate(credit_mask, core.std.Maximum, 4)
     return iterate(credit_mask, core.std.Inflate, 2)
