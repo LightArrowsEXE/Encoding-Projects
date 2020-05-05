@@ -8,7 +8,4 @@ path = r'09/Fate Grand Order Absolute Demonic Front Babylonia E09 [1080p][AAC][J
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    ac.eztrim(src, [(0, 0)], path[:-4]+"wav", "Babylonia_09_cut.aac")
-
-# Note for future episodes:
-#   Switching from TV audio to Wakanim audio. Should match without trims.
+    ac.eztrim(src, [(289, 0)], path[:-4]+"wav", "Babylonia_09_cut.aac")

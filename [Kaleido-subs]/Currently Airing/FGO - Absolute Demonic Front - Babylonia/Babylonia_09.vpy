@@ -17,7 +17,7 @@ op_sf_b = f"[{opstart+1728} {opstart+1757}]"
 ## Importing & Dehardsubbing
 src_a = lvf.src('09/Fate Grand Order Absolute Demonic Front Babylonia E09 [1080p][AAC][JapDub][GerSub][Web-DL].mkv')
 src_b = lvf.src('09/[Erai-raws] Fate Grand Order - Zettai Majuu Sensen Babylonia - 09 [1080p][Multiple Subtitle].mkv')
-#src_b = src_b[289:]
+src_b = src_b[289:]
 scomp = lvf.stack_compare(src_a, src_b, height=360, make_diff=True)
 
 hardsubmask = kgf.hardsubmask(src_a, src_b)
