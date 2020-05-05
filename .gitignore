@@ -167,3 +167,6 @@ QC.py
 
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
 \!temp_archiving
+
+# A suffix for directories I want to temporarily remove being automatically pushed
+*_hidden
