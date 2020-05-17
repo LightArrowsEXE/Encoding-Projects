@@ -37,7 +37,7 @@ scaled = core.resize.Bicubic(scaled, get_w(810), 810)
 denoise = CoolDegrain(scaled, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
 
 planes = split(denoise)
-planes[0] = lvf.nneedi3_clamp(planes[0])
+planes[0] = lvf.aa.nneedi3_clamp(planes[0])
 aa = join(planes) # One day I'll make clamp do this internally
 
 downscaled = core.resize.Spline36(src, get_w(810), 810, aa.format)
