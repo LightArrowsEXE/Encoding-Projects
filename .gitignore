@@ -80,49 +80,50 @@
 
 
 # Misc
-*.xz
 *.7z
 *.avs
 *.bat
 *.cbz
+*.diff
 *.exe
 *.html
 *.json
 *.lgd
 *.MDS
+*.mtxcfg
 *.nfo
 *.parts
 *.rar
 *.torrent
 *.txt
 *.xcf
+*.xz
 *.zip
 *comp.vpy
+*diff.vpy
 *fix.vpy
 *patch.vpy
-*sakuga*.vpy
 *sakuga.vpy
-*wraw.vpy
-*test.vpy
+*sakuga*.vpy
 *temp.vpy
-*diff.vpy
+*test.vpy
+*wraw.vpy
 authorized_keys
-*.mtxcfg
 
 
 # Utility Scripts
-auto-CRC.py
 auto-audiocutter.py
-clean-enc-dir.py
+auto-CRC.py
 clean_dir.py
+clean-enc-dir.py
 encode_audio.py
 encode_audiov2.py
 extract_audio.py
 generate_keyframes.py
 hardsub.py
+QC.py
 remux.py
 rename.py
-QC.py
 
 
 # Symlinks with [Vol.#] at the end
