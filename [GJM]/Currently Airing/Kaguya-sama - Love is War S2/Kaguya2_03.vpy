@@ -1,3 +1,5 @@
+from functools import partial
+
 import fvsfunc as fvf
 import havsfunc as haf
 import kagefunc as kgf
@@ -23,8 +25,8 @@ def denoise(clip: vs.VideoNode) -> vs.VideoNode:
 
 @functoolz.curry
 def fix_lineart(clip: vs.VideoNode) -> vs.VideoNode:
-    dehalo = lvf.util.quick_resample(clip, haf.FineDehalo, rx=2.4, darkstr=0, brightstr=1, contra=1)
-    return lvf.util.quick_resample(dehalo, haf.EdgeCleaner, strength=4, rmode=13, smode=1, hot=True)
+    dehalo = lvf.util.quick_resample(clip, partial(haf.FineDehalo, rx=2.4, darkstr=0, brightstr=1, contra=1))
+    return lvf.util.quick_resample(dehalo, partial(haf.EdgeCleaner, strength=4, rmode=13, smode=1, hot=True))
 
 
 @functoolz.curry
@@ -32,6 +34,7 @@ def merge_credits(clip: vs.VideoNode, og_clip: vs.VideoNode,
                   h: int, b: float, c: float) -> vs.VideoNode:
     credit_mask = _create_credit_mask(og_clip, h, b, c, brz=0.1)
     return core.std.MaskedMerge(clip, og_clip, credit_mask)
+
 
 @functoolz.curry
 def deband(clip: vs.VideoNode, og_clip: vs.VideoNode) -> vs.VideoNode:
@@ -46,7 +49,7 @@ def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode) -> vs.VideoNode:
     hardsubmask = kgf.hardsubmask(clip_a, clip_b)
     clip = core.std.MaskedMerge(clip_a, clip_b, hardsubmask)
 
-    hardsubmask_fade = lvf.util.quick_resample(clip_a, kgf.hardsubmask_fades, ref=clip_b, highpass=1200)
+    hardsubmask_fade = lvf.util.quick_resample(clip_a, partial(kgf.hardsubmask_fades, ref=clip_b, highpass=1200))
     clip_fade = core.std.MaskedMerge(clip_a, clip_b, hardsubmask_fade)
     clip = lvf.rfs(clip, clip_fade, ranges=op_signs + hs_signs)
     if replace_scenes:
@@ -62,11 +65,11 @@ def rescale_blur(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode
     l_mask = core.std.Prewitt(pre_den, scale=5)
     l_mask = iterate(l_mask, core.std.Deflate, 6).std.Binarize(0.08)
 
-    blur = lvf.util.quick_resample(descaled, core.bilateral.Bilateral, sigmaS=4.5, sigmaR=0.01)
+    blur = lvf.util.quick_resample(descaled, partial(core.bilateral.Bilateral, sigmaS=4.5, sigmaR=0.01))
     blur = core.std.MaskedMerge(descaled, blur, l_mask)
     blur = lvf.rfs(descaled, blur, ranges=op_range)
 
-    interp = lvf.util.quick_resample(blur, haf.QTGMC, InputType=1, TR2=3)
+    interp = lvf.util.quick_resample(blur, partial(haf.QTGMC, InputType=1, TR2=3))
     interp = lvf.rfs(blur, interp, ranges=op_interp)
 
     planes[0] = nnedi3_resample(interp, planes[0].width, planes[0].height, kernel='gauss',
@@ -108,7 +111,7 @@ src = dehardsub(src_wk, src_fu)
 scomp2 = lvf.comparison.stack_compare(src, src_fu, make_diff=True)
 
 
-#diff = lvf.tvbd_diff(src, src_fu)
+#diff = lvf.comparison.tvbd_diff(src, src_fu)
 shift = haf.FixChromaBleedingMod(src, cx=-.65, cy=-.25, thr=100, strength=1, blur=True)
 shift = fvf.Depth(shift, 32)
 

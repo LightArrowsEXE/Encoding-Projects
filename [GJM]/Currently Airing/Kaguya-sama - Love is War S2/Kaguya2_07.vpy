@@ -1,3 +1,5 @@
+from functools import partial
+
 import fvsfunc as fvf
 import havsfunc as haf
 import kagefunc as kgf
@@ -7,7 +9,6 @@ from nnedi3_resample import nnedi3_resample
 from toolz import functoolz
 from vsutil import get_w, get_y, iterate, join, split
 
-from functools import partial
 import lvsfunc as lvf
 import vapoursynth as vs
 

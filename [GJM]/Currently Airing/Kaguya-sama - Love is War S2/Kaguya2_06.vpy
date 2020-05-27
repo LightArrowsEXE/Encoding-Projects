@@ -1,3 +1,5 @@
+from functools import partial
+
 import fvsfunc as fvf
 import havsfunc as haf
 import kagefunc as kgf
@@ -7,7 +9,6 @@ from nnedi3_resample import nnedi3_resample
 from toolz import functoolz
 from vsutil import get_w, get_y, iterate, join, split
 
-from functools import partial
 import lvsfunc as lvf
 import vapoursynth as vs
 
@@ -33,6 +34,7 @@ def merge_credits(clip: vs.VideoNode, og_clip: vs.VideoNode,
                   h: int, b: float, c: float) -> vs.VideoNode:
     credit_mask = _create_credit_mask(og_clip, h, b, c, brz=0.1)
     return core.std.MaskedMerge(clip, og_clip, credit_mask)
+
 
 @functoolz.curry
 def deband(clip: vs.VideoNode, og_clip: vs.VideoNode) -> vs.VideoNode:
@@ -115,7 +117,7 @@ src = dehardsub(src_wk, src_fu)
 scomp2 = lvf.comparison.stack_compare(src, src_fu, make_diff=True)
 
 
-diff = lvf.comparison.tvbd_diff(src, src_fu)
+#diff = lvf.comparison.tvbd_diff(src, src_fu)
 shift = haf.FixChromaBleedingMod(src, cx=-.65, cy=-.25, thr=100, strength=1, blur=True)
 shift = fvf.Depth(shift, 32)
 
