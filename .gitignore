@@ -84,8 +84,11 @@
 *.avs
 *.bat
 *.cbz
+*.crt
+*.csv
 *.diff
 *.exe
+*.glsl
 *.html
 *.json
 *.lgd
@@ -93,6 +96,7 @@
 *.mtxcfg
 *.nfo
 *.parts
+*.properties
 *.rar
 *.torrent
 *.txt
