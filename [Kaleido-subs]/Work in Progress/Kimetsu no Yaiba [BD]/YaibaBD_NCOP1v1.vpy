@@ -49,13 +49,13 @@ def antialias(clip: vs.VideoNode, ranges = []) -> vs.VideoNode:
 
 
 # Second cut in the OP and blood drop cut in ED
-opstart = 923
-edstart = 31684
+opstart = 107
+edstart = None
 
 # Filtering on specific parts of the OPs
 OP_aa  = [(opstart+910, opstart+972), (opstart+1788, opstart+1885)] if opstart is not None else []
 
-# Replace certain scenes in an episodes with an unscaled and un-AA'd clip
+# Replace certain scenes in an episodes with an unscaled clip
 replace = []
 
 # AA on scenes with heavy aliasing
@@ -63,45 +63,30 @@ aa = []
 
 # Arguments for debanding
 deband_args   = dict(iterations = 2, radius = 12)
-upscaled_args = dict(width = 1520, height = 855, kernel = lvf.kernels.Bicubic(1/5, 2/5))
+upscaled_args = dict(width = 1520, height = 855, kernel = lvf.kernels.Bicubic(0, 1/2))
 
 
-src = lvf.src(r"BDMV/[BDMV][190828][Kimetsu no Yaiba][Vol.2]/BDMV/STREAM/00004.m2ts")[:-26]
+src = lvf.src(r"BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00007.m2ts")[:-24]
 src = depth(src, 32)
-
-if opstart is not None:
-    src_NCOP = lvf.src(r'BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00007.m2ts')[:-24]
-    src_NCOP = depth(src_NCOP, 32)
-
-if edstart is not None:
-    src_NCED = lvf.src(r'BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00008.m2ts')[:-24]
-    src_NCED = depth(src_NCED, 32)
 
 
 descaled = lvf.scale.descale(get_y(src), mask = None, upscaler = None, **upscaled_args)
 
-# Decently strong dehaloing to fix the leftover halo
-dehalo = lvf.util.quick_resample(descaled, fix_lineart)
+# Amending parts of the lineart that seems slightly halo'd
+dehalo = fix_lineart(depth(descaled, 16))
 
 # Strong AA on specific frames
-aa = antialias(dehalo, ranges = OP_aa + aa)
+aa = depth(antialias(dehalo, ranges = OP_aa + aa), 32)
 
-# Upscaling using FSRCNNX and nnedi3_rpow2, then we merge the chroma from ``src``
+# Upscaling using FSRCNNX and muxes in ``src`` chroma
 scaled = reupscale(aa, src)
 scaled = lvf.rfs(scaled, src, ranges = replace)
 
 
-# Masking credits using NCs
-op_mask = DCM(src, src[opstart-107:opstart+2050], src_NCOP, opstart-107, opstart+src_NCOP.num_frames-107) if opstart is not None else core.std.BlankClip(scaled)
-ed_mask = DCM(src, src[edstart-755:edstart+1402], src_NCED, edstart-755, edstart+src_NCED.num_frames-755) if edstart is not None else core.std.BlankClip(scaled)
-credit_mask = core.std.Expr([get_y(op_mask), get_y(ed_mask)], expr = 'x y +')
-merge = core.std.MaskedMerge(scaled, src, credit_mask)
-
-
-detail_mask = lvf.denoise.detail_mask(merge, rad=2, radc=3, brz_a=0.025, brz_b=0.025)
-deband = core.placebo.Deband(merge,  planes = 1,   threshold = 4,   grain = 6, **deband_args)
+detail_mask = lvf.denoise.detail_mask(scaled, rad=2, radc=3, brz_a=0.025, brz_b=0.025)
+deband = core.placebo.Deband(scaled,  planes = 1,   threshold = 4,   grain = 6, **deband_args)
 deband = core.placebo.Deband(deband, planes = 2|4, threshold = 5.5, grain = 0, **deband_args)
-deband = core.std.MaskedMerge(deband, merge, detail_mask)
+deband = core.std.MaskedMerge(deband, scaled, detail_mask)
 
 grain = kgf.adaptive_grain(deband, 0.25)
 
