@@ -125,6 +125,7 @@ encode_audiov2.py
 extract_audio.py
 generate_keyframes.py
 hardsub.py
+indexer.py
 QC.py
 remux.py
 rename.py
