@@ -1,96 +1,111 @@
-import vapoursynth as vs
-import fvsfunc as fvf
+from functools import partial
+from os import path
+
+import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import mvsfunc as mvf
-from cooldegrain import *
-from knnfunc import *
-from nnedi3_rpow2 import *
-from vsutil import get_w, get_y, split, join
-core = vs.core
+from finedehalo import fine_dehalo
+from vardefunc import diff_creditless_mask as DCM
+from vsutil import depth, get_y, join, plane
 
-opstart, edstart = 2685-2159, 33087-2159
+import vapoursynth as vs
 
-# There are some frames with stylized dark background and slow-motion effects.
-# They be will filtered slightly stronger than other scenes, and heavily grained because I like the look.
-darker_shots = """
-               [30037 30061]
-               """
+core                = vs.core
+core.max_cache_size = 1024 * 3
+core.num_threads    = 12
 
 
-src = lvf.src(r"BDMV/[BDMV][191030][Kimetsu no Yaiba][Vol.4]/BDMV/STREAM/00004.m2ts")
-src = src[:-24]
-src = fvf.Depth(src, 16)
+shader = 'FSRCNNX_x2_56-16-4-1.glsl'
+if path.exists(shader) is False:
+    shader = r'C:/Users/light/AppData/Roaming/mpv/shaders/FSRCNNX_x2_16-0-4-1.glsl'
 
 
-b, c = 1/5, 2/5
-y, u, v = split(src)
-# Descaling & create credit mask
-descaled = core.descale.Debicubic(fvf.Depth(y, 32), get_w(855), 855, b, c)
-upscaled = core.resize.Bicubic(descaled, y.width, y.height, filter_param_a=b, filter_param_b=c)
-credit_mask = core.std.Expr([fvf.Depth(y, 32), upscaled], 'x y - abs').std.Binarize(0.05)
-credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 6)
-credit_mask = kgf.iterate(credit_mask, core.std.Inflate, 2)
+def reupscale(clip: vs.VideoNode, ref: vs.VideoNode,
+                      width: int = 1920, height: int = 1080) -> vs.VideoNode:
+    """
+        Reupscale using FSRCNNX and nnedi3_rpow2 to fix it a bit.
+        Code mostly stolen from Varde, but ssshhh. Don't tell him. :)
+    """
+    args = dict(nsize=4, nns=4, qual=2, pscrn=1)
+    nn3 = clip.std.Transpose().nnedi3.nnedi3(0, True, **args) \
+           .std.Transpose().nnedi3.nnedi3(0, True, **args)
+    nn3 = core.resize.Spline36(nn3, src_top=.5, src_left=.5)
 
-# waifu2x to fix up two frames in the OP with very bad noise
-w2x = mvf.ToYUV(core.w2xc.Waifu2x(mvf.ToRGB(descaled), noise=1, scale=1, gpu=0)).resize.Point(format=descaled.format)
-w2x = fvf.rfs(descaled, w2x, mappings=f"{opstart+1593} {opstart+1594}")
-
-# Fairly weak denoising. Stronger denoising on brighter areas of a frame.
-# Done while descaled because it's overall faster *and* more effective.
-d_mask = kgf.adaptive_grain(fvf.Depth(descaled, 16), show_mask=True, luma_scaling=8)
-denoise_a = CoolDegrain(w2x, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise_b = CoolDegrain(w2x, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise_c = mvf.BM3D(w2x, sigma=2.5, depth=16)
-denoise_d = mvf.BM3D(w2x, sigma=1.5, depth=16)
-denoise_ab = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
-denoise_cd = core.std.MaskedMerge(denoise_c, denoise_d, d_mask)
-denoise = fvf.rfs(denoise_ab, denoise_cd, mappings=f"[30037 {edstart-1}]")
-denoise = fvf.rfs(denoise, denoise_a, mappings=f"""[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1310} {opstart+1398}]
-                                                   [9469 9540] [10083 10166] [11103 11228] [11346 11588] [11701 11951] [12210 12305] [13537 13860]""")
-
-# Some AA to fix up instances of bad lineart.
-# Done while descaled for similar reasons as L37
-aa_a = lvf.upscaled_sraa(denoise)
-aa_b = knnAA(denoise)
-aa = fvf.rfs(denoise, aa_a, mappings=f"""[{opstart+1017} {opstart+1079}] [{opstart+1312} {opstart+1368}] {opstart+1593} {opstart+1594} [{opstart+1895} {opstart+2003}]
-                                         [{edstart+890} {edstart+1032}]""")
-aa = fvf.rfs(aa, aa_b, mappings=darker_shots)
-
-# Upscaling and applying credit mask to OP and ED
-upscaled = nnedi3_rpow2(aa).resize.Bicubic(src.width, src.height)
-upscaled = join([upscaled, u, v])
-m_upscaled = core.std.MaskedMerge(upscaled, src, fvf.Depth(credit_mask, 16))
-scaled = fvf.rfs(upscaled, m_upscaled, mappings=f"[{opstart} {opstart+2159}] [{edstart} {edstart+2159}]")
+    fsrcnnx = clip.resize.Point(format=vs.YUV444P16, dither_type=None)
+    fsrcnnx = depth(core.placebo.Shader(fsrcnnx, width = clip.width * 2, height = clip.height * 2,
+                                        shader = shader, filter = 'box'), 32)
+    merge = core.std.Merge(nn3, get_y(fsrcnnx), weight=0.5).resize.Spline36(ref.width, ref.height)
+    return join([get_y(merge), plane(ref, 1), plane(ref, 2)])
 
 
-# Much like the denoising, way stronger debanding is performed on brighter areas.
-# This way less perceivable detail is lost to the void. Darker areas will be grained stronger instead.
-deb_d_mask = fvf.Depth(kgf.adaptive_grain(src, show_mask=True, luma_scaling=8), 16)
-deband_a = core.f3kdb.Deband(scaled, range=21, y=56, cb=48, cr=48, grainy=12, grainc=0, output_depth=16)
-deband_b = core.f3kdb.Deband(scaled, range=17, y=40, cb=32, cr=32, grainy=24, grainc=0, output_depth=16)
-deband_c = core.f3kdb.Deband(scaled, range=5, y=0, cb=120, cr=120, grainy=0, grainc=0, output_depth=16)
-deband_c = core.f3kdb.Deband(deband_c, range=20, y=64, cb=80, cr=80, grainy=24, grainc=0, output_depth=16)
-deband = core.std.MaskedMerge(deband_a, deband_b, deb_d_mask)
-deband = fvf.rfs(deband, deband_a, mappings=darker_shots +
-                                            f"""[{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]
-                                                [{edstart+1494} {edstart+1600}]
-                                                [9469 9540] [10083 10166] [11103 11228] [11346 11588] [11701 11951] [13537 13860]""")
-deband = fvf.rfs(deband, deband_c, mappings="[12210 12305]")
+def fix_lineart(clip) -> vs.VideoNode:
+    deh = haf.EdgeCleaner(clip, strength=6, rmode=13, smode=1, hot=True)
+    return fine_dehalo(deh, rx=2.2, ry=2, darkstr=0, brightstr=1)
 
-# Graining. Strong dynamic grain added to parts of the OP and darker slow-motion scenes.
-grain_a = kgf.adaptive_grain(deband, 0.3, luma_scaling=8)
-grain_b = kgf.adaptive_grain(deband, 1)
-grain_c = core.grain.Add(deband, var=6, uvar=0, constant=False)
-grain_d = core.grain.Add(deband, var=3, uvar=0, constant=False)
-grain_e = core.grain.Add(deband, var=1, uvar=0, constant=False)
-grain = fvf.rfs(grain_a, grain_b, mappings=f"""[{opstart+1128} {opstart+1296}] [{opstart+2004} {opstart+2046}] [{opstart+2113} {opstart+2156}]
-                                               [9469 9540] [10083 10166] [11103 11228] [11346 11588] [11701 11951]""")
-grain = fvf.rfs(grain, grain_c, mappings=f"[{opstart+28} {opstart+288}] [{opstart+401} {opstart+406}] [{opstart+1313} {opstart+1368}]")
-grain = fvf.rfs(grain, grain_d, mappings=darker_shots)
-grain = fvf.rfs(grain, grain_d, mappings="[12210 12305] [13537 13860]")
+
+def antialias(clip: vs.VideoNode, ranges = []) -> vs.VideoNode:
+    return lvf.rfs(clip, lvf.aa.upscaled_sraa(clip), ranges = ranges)
+
+
+# Second cut in the OP and blood drop cut in ED
+opstart = 635
+edstart = 31686
+
+# Filtering on specific parts of the OPs
+OP_aa  = [(opstart+910, opstart+972), (opstart+1788, opstart+1885)] if opstart is not None else []
+
+# Replace certain scenes in an episodes with an unscaled and un-AA'd clip
+replace = []
+
+# AA on scenes with heavy aliasing
+aa = []
+
+# Arguments for debanding
+deband_args   = dict(iterations = 2, radius = 12)
+upscaled_args = dict(width = 1520, height = 855, kernel = lvf.kernels.Bicubic(1/5, 2/5))
+
+
+src = lvf.src(r"BDMV/[BDMV][191030][Kimetsu no Yaiba][Vol.4]/BDMV/STREAM/00004.m2ts")[:-24]
+src = depth(src, 32)
+
+if opstart is not None:
+    src_NCOP = lvf.src(r'BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00007.m2ts')[:-24]
+    src_NCOP = depth(src_NCOP, 32)
+
+if edstart is not None:
+    src_NCED = lvf.src(r'BDMV/[BDMV][190731][Kimetsu no Yaiba][Vol.1]/BDMV/STREAM/00008.m2ts')[:-24]
+    src_NCED = depth(src_NCED, 32)
+
+
+descaled = lvf.scale.descale(get_y(src), mask = None, upscaler = None, **upscaled_args)
+
+# Decently strong dehaloing to fix the leftover halo
+dehalo = lvf.util.quick_resample(descaled, fix_lineart)
+
+# Strong AA on specific frames
+aa = antialias(dehalo, ranges = OP_aa + aa)
+
+# Upscaling using FSRCNNX and nnedi3_rpow2, then we merge the chroma from ``src``
+scaled = reupscale(aa, src)
+scaled = lvf.rfs(scaled, src, ranges = replace)
+
+
+# Masking credits using NCs
+op_mask = DCM(src, src[opstart-107:opstart+2050], src_NCOP, opstart-107, opstart+src_NCOP.num_frames-107) if opstart is not None else core.std.BlankClip(scaled)
+ed_mask = DCM(src, src[edstart-755:edstart+1402], src_NCED, edstart-755, edstart+src_NCED.num_frames-755) if edstart is not None else core.std.BlankClip(scaled)
+credit_mask = core.std.Expr([get_y(op_mask), get_y(ed_mask)], expr = 'x y +')
+merge = core.std.MaskedMerge(scaled, src, credit_mask)
+
+
+detail_mask = lvf.denoise.detail_mask(merge, rad=2, radc=3, brz_a=0.025, brz_b=0.025)
+deband = core.placebo.Deband(merge,  planes = 1,   threshold = 4,   grain = 6, **deband_args)
+deband = core.placebo.Deband(deband, planes = 2|4, threshold = 5.5, grain = 0, **deband_args)
+deband = core.std.MaskedMerge(deband, merge, detail_mask)
+
+grain = kgf.adaptive_grain(deband, 0.25)
 
 
 out = grain
-final = fvf.Depth(out, 10)
+final = depth(out, 10)
 final.set_output()
