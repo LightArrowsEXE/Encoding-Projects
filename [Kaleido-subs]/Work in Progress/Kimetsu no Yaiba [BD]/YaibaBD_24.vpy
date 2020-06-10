@@ -5,6 +5,7 @@ import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import mvsfunc as mvf
+from finedehalo import fine_dehalo
 from vardefunc import diff_creditless_mask as DCM
 from vsutil import depth, get_y, join, plane
 
@@ -20,18 +21,27 @@ if path.exists(shader) is False:
     shader = r'C:/Users/light/AppData/Roaming/mpv/shaders/FSRCNNX_x2_16-0-4-1.glsl'
 
 
-def fsrcnnx_reupscale(clip: vs.VideoNode, ref: vs.VideoNode,
+def reupscale(clip: vs.VideoNode, ref: vs.VideoNode,
                       width: int = 1920, height: int = 1080) -> vs.VideoNode:
-    descaled = clip.resize.Point(format=vs.YUV444P16)
-    descaled = depth(core.placebo.Shader(descaled, width = src.width * 2, height = src.height * 2,
-                                         shader = shader, filter = 'mitchell'), 32)
-    descaled = core.resize.Bicubic(descaled, width, height)
-    return join([get_y(descaled), plane(ref, 1), plane(ref, 2)])
+    """
+        Reupscale using FSRCNNX and nnedi3_rpow2 to fix it a bit.
+        Code mostly stolen from Varde, but ssshhh. Don't tell him. :)
+    """
+    args = dict(nsize=4, nns=4, qual=2, pscrn=1)
+    nn3 = clip.std.Transpose().nnedi3.nnedi3(0, True, **args) \
+           .std.Transpose().nnedi3.nnedi3(0, True, **args)
+    nn3 = core.resize.Spline36(nn3, src_top=.5, src_left=.5)
+
+    fsrcnnx = clip.resize.Point(format=vs.YUV444P16, dither_type=None)
+    fsrcnnx = depth(core.placebo.Shader(fsrcnnx, width = clip.width * 2, height = clip.height * 2,
+                                        shader = shader, filter = 'box'), 32)
+    merge = core.std.Merge(nn3, get_y(fsrcnnx), weight=0.5).resize.Spline36(ref.width, ref.height)
+    return join([get_y(merge), plane(ref, 1), plane(ref, 2)])
 
 
 def fix_lineart(clip) -> vs.VideoNode:
-    deh = haf.FineDehalo(clip, rx=1.8, thmi=0, thma=255, darkstr=0, brightstr=1, contra=1)
-    return haf.EdgeCleaner(deh, strength=3, rmode=13, smode=1, hot=True)
+    deh = haf.EdgeCleaner(clip, strength=6, rmode=13, smode=1, hot=True)
+    return fine_dehalo(deh, rx=2.2, ry=2, darkstr=0, brightstr=1)
 
 
 def antialias(clip: vs.VideoNode, ranges = []) -> vs.VideoNode:
@@ -70,14 +80,14 @@ if edstart is not None:
 
 descaled = lvf.scale.descale(get_y(src), mask = None, upscaler = None, **upscaled_args)
 
-# Amending parts of the lineart that seems slightly halo'd
-dehalo = fix_lineart(depth(descaled, 16))
+# Decently strong dehaloing to fix the leftover halo
+dehalo = lvf.util.quick_resample(descaled, fix_lineart)
 
 # Strong AA on specific frames
-aa = depth(antialias(dehalo, ranges = OP_aa + aa), 32)
+aa = antialias(dehalo, ranges = OP_aa + aa)
 
-# Upscaling using FSRCNNX and muxes in ``src`` chroma
-scaled = fsrcnnx_reupscale(dehalo, src)
+# Upscaling using FSRCNNX and nnedi3_rpow2, then we merge the chroma from ``src``
+scaled = reupscale(aa, src)
 scaled = lvf.rfs(scaled, src, ranges = replace)
 
 
