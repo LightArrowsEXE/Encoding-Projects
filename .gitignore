@@ -79,6 +79,11 @@
 *.xml
 
 
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Misc
 *.7z
 *.avs
