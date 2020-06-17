@@ -1,42 +1,74 @@
-import vapoursynth as vs
-import lvsfunc as lvf
-import kagefunc as kgf
+from os import path
+
 import fvsfunc as fvf
 import havsfunc as haf
+import kagefunc as kgf
+import lvsfunc as lvf
 import mvsfunc as mvf
-from vsutil import *
-from cooldegrain import *
-core = vs.core
+from awsmfunc import bbmod
+from cooldegrain import CoolDegrain
+from vsutil import depth, get_y, join, plane
+
+import vapoursynth as vs
+
+core                = vs.core
+core.max_cache_size = 1024 * 4
+core.num_threads    = 14
 
 
-src = lvf.src(r"BDMV/かぐや様は告らせたい Vol.6/BD/BDMV/STREAM/00002.m2ts")
-src = src[:-24]
-ef = core.edgefixer.ContinuityFixer(src, 1, 1, 1, 1)
-shift = haf.FixChromaBleedingMod(ef, cx=0.5, cy=0, thr=100, strength=1, blur=True)
-shift = fvf.Depth(shift, 32)
+shader = 'FSRCNNX_x2_56-16-4-1.glsl'
+if path.exists(shader) is False:
+    shader = r'C:/Users/light/AppData/Roaming/mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl'
 
 
-planes = split(shift)
-planes[0] = fvf.DescaleAA(planes[0], get_w(874), 874, kernel='bicubic', b=0, c=1/2)
-scaled = join(planes)
+@lvf.misc.chroma_injector
+@lvf.misc.allow_variable(width=1920, height=1080)
+def reupscale(clip: vs.VideoNode,
+              width: int = 1920,
+              height: int = 1080) -> vs.VideoNode:
+    """
+        Reupscale using FSRCNNX and nnedi3_rpow2 to fix it a bit.
+        Code mostly stolen from Varde, but ssshhh. Don't tell him. :)
+    """
+    args = dict(nsize=4, nns=4, qual=2, pscrn=1)
+    nn3 = clip.std.Transpose().nnedi3.nnedi3(0, True, **args) \
+           .std.Transpose().nnedi3.nnedi3(0, True, **args)
+    nn3 = core.resize.Spline36(nn3, clip.width * 2, clip.height * 2,
+                               src_top=.5, src_left=.5)
 
-ref = mvf.BM3D(src, sigma=[4,0], depth=16, profile1="lc")
-ref = core.f3kdb.Deband(ref, output_depth=16, range=18, preset="high/luma/nograin")
-d_mask = kgf.adaptive_grain(ref, show_mask=True, luma_scaling=24)
-l_mask = kgf.retinex_edgemask(ref)
-den_mask = fvf.Depth(core.std.Expr([d_mask, l_mask], "x y +"), 16)
+    fsrcnnx = clip.resize.Point(format=vs.YUV444P16, dither_type=None)
+    fsrcnnx = core.placebo.Shader(fsrcnnx, width = clip.width * 2, height = clip.height * 2,
+                                  shader = shader, filter = 'box').resize.Bicubic(nn3.width, nn3.height,
+                                  format=nn3.format)
+    merge = core.std.Merge(nn3, fsrcnnx, weight = 1/2)
+    return merge.resize.Bicubic(width, height, format=clip.format)
 
-denoise_a = mvf.BM3D(scaled, sigma=[.8, 1], depth=16)
-denoise_b = CoolDegrain(scaled, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise = core.std.MaskedMerge(denoise_a, denoise_b, den_mask)
 
-deband_a = core.f3kdb.Deband(denoise, range=16, output_depth=16, preset="medium/nograin")
-deband_b = core.f3kdb.Deband(denoise, range=14, output_depth=16, preset="medium")
-denoise = core.std.MaskedMerge(deband_a, deband_b, fvf.Depth(d_mask, 16))
+# Arguments for debanding, upscaling, etc.
+deband_args = dict(iterations = 2, threshold = 5, radius = 14)
 
-grain = kgf.adaptive_grain(denoise, 0.2, luma_scaling=6)
+
+src = lvf.src(r"BDMV/かぐや様は告らせたい Vol.6/BD/BDMV/STREAM/00002.m2ts")[:-24]
+ef = bbmod(src, 1, 1, 1, 1, thresh=40, blur=999, y=True, u=False, v=False, scale_thresh=True)
+shift = haf.FixChromaBleedingMod(ef, cx=0.25, cy=0, thr=100, strength=1, blur=True)
+shift = depth(shift, 32)
+
+
+scaled = lvf.scale.descale(shift, upscaler = lambda clip, width, height: reupscale(src, clip, width, height), width=1554, height=874)
+
+
+# Debanding and masking, as well as graining
+detail_mask = lvf.denoise.detail_mask(scaled, rad=3, radc=4, brz_a=0.03, brz_b=0.045)
+deband = join([ # Twice as fast to process for ??? reason
+    core.placebo.Deband(plane(scaled, 0), grain = 8, **deband_args),
+    core.placebo.Deband(plane(scaled, 1), grain = 0, **deband_args),
+    core.placebo.Deband(plane(scaled, 2), grain = 0, **deband_args)
+])
+deband = core.std.MaskedMerge(deband, scaled, detail_mask)
+
+grain = kgf.adaptive_grain(deband, 0.25)
 
 
 out = grain
-final = fvf.Depth(out, 10)
+final = depth(out, 10)
 final.set_output()
