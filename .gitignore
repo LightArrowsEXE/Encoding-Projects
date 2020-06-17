@@ -107,6 +107,7 @@ __pycache__/
 *.txt
 *.xcf
 *.xz
+*.yml
 *.zip
 *comp.vpy
 *diff.vpy
