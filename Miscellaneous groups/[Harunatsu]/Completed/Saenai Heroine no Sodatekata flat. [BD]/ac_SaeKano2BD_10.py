@@ -1,21 +1,11 @@
 #!/usr/bin/env python3
-
-import vapoursynth as vs
-import audiocutter
-from subprocess import call
-import shutil
 import os
+from acsuite import eztrim
+import lvsfunc as lvf
 
-core = vs.core
-ts_in = r'[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.06 Fin/BDMV/STREAM/00001.m2ts'
-src = core.lsmas.LWLibavSource(ts_in)
 
-ac = audiocutter.AudioCutter()
+path = r'[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.06 Fin/BDMV/STREAM/00001.m2ts'
+src = lvf.src(path)
 
-vid = ac.split(src, [(24,32871)])
-
-ac.ready_qp_and_chapters(vid)
-
-vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('ac_SaeKano2BD_10.m4a', audio_source='[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.06 Fin/BDMV/STREAM/00001.m4a')
+    eztrim(src, (24, 32872), f"{os.path.splitext(path)[0]}.wav", f"{__file__[:-3]}_cut.wav")

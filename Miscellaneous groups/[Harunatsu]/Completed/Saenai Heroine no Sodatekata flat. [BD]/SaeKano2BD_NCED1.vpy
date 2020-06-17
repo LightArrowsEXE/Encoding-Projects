@@ -1,41 +1,50 @@
-import vapoursynth as vs
-import kagefunc as kgf
-import vsTAAmbk as taa
-import lvsfunc as lvf
-import fvsfunc as fvf
+from functools import partial
+
 import havsfunc as haf
-import vsTAAmbk as taa
+import kagefunc as kgf
+import lvsfunc as lvf
 import mvsfunc as mvf
+import vsTAAmbk as taa
 from nnedi3_rpow2 import nnedi3_rpow2
+from vsTAAmbk import TAAmbk
+from vsutil import depth, get_y, join, plane
+
+import vapoursynth as vs
+
 core = vs.core
 
-src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00010.m2ts")
-src = src[24:2184]
-src = fvf.Depth(src, 16)
+
+upscale_args = dict(height=878, kernel=lvf.kernels.Bicubic(0, 3/5))
 
 
-Y, U, V = kgf.split(src)
-scaled = kgf.inverse_scale(Y, height=878, kernel='bicubic', b=0, c=3/5, mask_detail=True)
-scaled = fvf.Depth(scaled, 16)
+src = lvf.src(r"[BDMV]冴えない彼女の育てかた♭Vol.01~Vol.06/[BDMV]冴えない彼女の育てかた♭ VOL.01/BDMV/STREAM/00010.m2ts")[24:2184]
+src = depth(src, 32)
 
-denoised = mvf.BM3D(scaled, sigma=1)
+
+descaled = lvf.scale.descale(get_y(src), upscaler=False, mask=False, **upscale_args)
+
+denoised = mvf.BM3D(descaled, sigma=1)
 darken = haf.FastLineDarkenMOD(denoised, strength=48, protection=15, luma_cap=130, threshold=4, thinning=0) # some subjective darkening
 
-aa = taa.TAAmbk(darken, aatype='Eedi3')
+aa = lvf.util.quick_resample(darken, partial(TAAmbk, aatype='Eedi3'))
 
-upscaled = nnedi3_rpow2(aa).resize.Spline36(1920, 1080)
-upscaled = kgf.join([upscaled, U, V])
+upscaled = nnedi3_rpow2(aa, width=src.width, height=src.height)
+upscaled = join([upscaled, plane(src, 1), plane(src, 2)])
+
+mask = lvf.scale.descale(get_y(src), mask=False, show_mask=True, **upscale_args)
+upscaled = depth(core.std.MaskedMerge(upscaled, src, mask), 16)
+
 
 deband = core.f3kdb.Deband(upscaled, range=16, y=48, cr=40, cb=40, grainy=12, grainc=0, output_depth=16)
 
-sharp = haf.ContraSharpening(deband, upscaled)
+csharp = haf.ContraSharpening(deband, upscaled)
 
-mask = kgf.retinex_edgemask(src)
-masked = core.std.MaskedMerge(sharp, upscaled, mask)
+mask = lvf.util.quick_resample(src, kgf.retinex_edgemask)
+masked = core.std.MaskedMerge(csharp, upscaled, mask)
 
 grain = kgf.adaptive_grain(masked, 0.3)
 
 
 out = grain
-final = fvf.Depth(out, 10)
+final = depth(out, 10)
 final.set_output()
