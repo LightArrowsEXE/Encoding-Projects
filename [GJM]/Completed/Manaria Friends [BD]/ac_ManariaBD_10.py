@@ -1,34 +1,51 @@
 #!/usr/bin/env python3
-
-import vapoursynth as vs
-import audiocutter
-from subprocess import call
 import os
+import subprocess
 
-# Note: before cutting
-endcard = 16688
-part_b = 16928
-epend = 21002
-
-# Note: after cutting
-edstart = 13198
+import lvsfunc as lvf
+from acsuite import eztrim
 
 
-core = vs.core
-ts_in = r"BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00010.m2ts"
-src = core.lsmas.LWLibavSource(ts_in)
+path = r'BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00011.m2ts'
+src = lvf.src(path)
 
-ac = audiocutter.AudioCutter()
+prev_start = 16688
 
-vid = ac.split(src, [(24,endcard-1),(epend-48,epend),(part_b,epend),(endcard,part_b)])
-
-ac.ready_qp_and_chapters(vid)
-
-vid.set_output(0)
 if __name__ == "__main__":
-    ac.cut_audio('ManariaBD_10_ac.m4a', audio_source='BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00011.m4a')
+    files = [f"{__file__[:-3]}_{i}_cut.wav" for i in 'ABCD']
 
-os.remove("tmp-001.mka")
-os.remove("tmp-002.mka")
-os.remove("tmp-003.mka")
-os.remove("tmp-004.mka")
+    trims = [(24,prev_start), (0,24), (prev_start+240,0), (prev_start,prev_start+240)]
+
+    print("\n[*] Trimming tracks")
+    for f, t in zip(files, trims):
+        print(f"    [+] Trimming {f} with trims {t}")
+        eztrim(src, t, f"{os.path.splitext(path)[0]}.wav", f, quiet=True)
+
+    print("\n[*] Writing concact file")
+    concat = open(f"{__file__[:-3]}_concat.txt", "w")
+    for f in files:
+        print(f"    [+] Adding {f}")
+        concat.write(f"file {f}\n")
+    concat.close()
+
+    print("\n[*] Concatinating trimmed tracks")
+    subprocess.run(["ffmpeg", "-f", "concat", "-i", f"{__file__[:-3]}_concat.txt",
+                              "-loglevel", "panic", "-stats",
+                              "-c", "copy", f"{__file__[3:-3]}_cut.wav"])
+    print("   [+] Tracks successfully concatinated")
+
+    print("\n[*] Removing files")
+    for f in files:
+        print(f"    [-] Removing {f}")
+
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            print(f"    [*] Failed to remove {f}")
+
+    try:
+        os.remove(f"{__file__[:-3]}_concat.txt")
+    except FileNotFoundError:
+        print(f"    [*] Failed to remove {__file__[:-3]}_concat.txt")
+
+    print("\n[*] Done")

@@ -44,8 +44,7 @@ def fix_lineart(clip) -> vs.VideoNode:
 
 
 # First frame of ED
-ed_start   = 15596
-prev_start = 16688
+ed_start = 0
 
 # Very strong AA on some scenes
 strong_aa = []
@@ -58,57 +57,25 @@ deband_args   = dict(iterations = 2, threshold = 4, radius = 12)
 upscaled_args = dict(height = 878, kernel = lvf.kernels.Bicubic(b=0, c=1/2))
 
 
-src = lvf.src(r"BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00010.m2ts")
+src = lvf.src(r'BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00012.m2ts')[2011:2994]
 src = depth(src, 32)
-
-
-if ed_start is not None:
-    src_NCED = lvf.src(r'BDMV/[BDMV][190402][マナリアフレンズ II]/BD/BDMV/STREAM/00012.m2ts')[2038:2985]
-    src_NCED = src_NCED[0] * 50 + src_NCED + src_NCED[-1] * 95
-    src_NCED = depth(src_NCED, 32) # The NC fades in, unlike the ED. Play around a bit with the trims
-    scomp = lvf.comparison.stack_compare(src[ed_start:prev_start], src_NCED, make_diff=True)
 
 
 descaled = lvf.scale.descale(get_y(src), upscaler = None, **upscaled_args)
 
 # Upscaling using FSRCNNX and nnedi3_rpow2, dehalo/dering, downscale
 scaled = reupscale(descaled)
-
-# The titlecard and outro card are native FHD
-scaled = lvf.rfs(scaled, get_y(src), ranges = replace + ([(prev_start, prev_start + 240)]))
-
-
-# Super strong AA on some specific scenes
-aa = lvf.rfs(scaled, lvf.aa.upscaled_sraa(scaled, rfactor=1.3), ranges = strong_aa)
-
-
-# Masking credits in the ED using the NC, and signs using a descale mask
-if ed_start is not None:
-    mask = lvf.rfs(
-        lvf.scale.descale_detail_mask(get_y(src), lvf.scale.test_descale(get_y(src), **upscaled_args)[0]),
-        DCM(src, src[ed_start:ed_start+src_NCED.num_frames], src_NCED, ed_start, ed_start+src_NCED.num_frames),
-        [(ed_start, ed_start+src_NCED.num_frames)]
-    )
-else:
-    mask = lvf.scale.descale_detail_mask(get_y(src), lvf.scale.test_descale(get_y(src), **upscaled_args)[0])
-
-merge = core.std.MaskedMerge(aa, get_y(src), mask)
-merge = join([merge, plane(src, 1), plane(src, 2)])
-
-
-# Trimming to move the preview titlecard and endcard to the end
-shift = merge[24:prev_start] + merge[:24] + merge[prev_start+240:] + merge[prev_start:prev_start+240]
-scomp2 = lvf.comparison.stack_compare(src.resize.Bicubic(format=merge.format), shift, make_diff=True)
+merge = join([scaled, plane(src, 1), plane(src, 2)])
 
 
 # Debanding and masking, as well as graining
-detail_mask = lvf.denoise.detail_mask(shift, pre_denoise=0.2, rad=3, radc=4, brz_a=0.015, brz_b=0.04)
+detail_mask = lvf.denoise.detail_mask(merge, pre_denoise=0.2, rad=3, radc=4, brz_a=0.015, brz_b=0.04)
 deband = join([ # Twice as fast to process for ??? reason
-    core.placebo.Deband(plane(shift, 0), grain = 6, **deband_args),
-    core.placebo.Deband(plane(shift, 1), grain = 0, **deband_args),
-    core.placebo.Deband(plane(shift, 2), grain = 0, **deband_args)
+    core.placebo.Deband(plane(merge, 0), grain = 6, **deband_args),
+    core.placebo.Deband(plane(merge, 1), grain = 0, **deband_args),
+    core.placebo.Deband(plane(merge, 2), grain = 0, **deband_args)
 ])
-deband = core.std.MaskedMerge(deband, shift, detail_mask)
+deband = core.std.MaskedMerge(deband, merge, detail_mask)
 
 grain = kgf.adaptive_grain(deband, 0.25)
 
