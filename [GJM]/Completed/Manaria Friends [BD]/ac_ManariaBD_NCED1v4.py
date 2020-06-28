@@ -8,4 +8,4 @@ path = r'BDMV/[BDMV][190302][マナリアフレンズ I]/BD/BDMV/STREAM/00012.m2
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    eztrim(src, (2994, -42), f"{os.path.splitext(path)[0]}.wav", f"{__file__[:-3]}_cut.wav")
+    eztrim(src, (2994, -42), f"{os.path.splitext(path)[0]}.wav", f"{__file__[3:-3]}_cut.wav")
