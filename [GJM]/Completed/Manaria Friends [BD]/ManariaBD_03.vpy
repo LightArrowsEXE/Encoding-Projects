@@ -115,4 +115,4 @@ grain = kgf.adaptive_grain(deband, 0.25)
 
 out = grain
 final = depth(out, 10)
-src.set_output()
+final.set_output()
