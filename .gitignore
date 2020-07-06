@@ -37,8 +37,9 @@
 *.y4m
 
 
-# VapourSynth files
+# VapourSynth & Indexing files
 *.bookmarks
+*.dgi
 *.ffindex
 *.index
 *.lwi
