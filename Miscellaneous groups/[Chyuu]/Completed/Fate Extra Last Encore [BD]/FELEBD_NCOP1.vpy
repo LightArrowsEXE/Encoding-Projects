@@ -1,4 +1,4 @@
-from os import path
+import os
 
 import havsfunc as haf
 import kagefunc as kgf
@@ -9,14 +9,14 @@ from vsutil import depth, get_y, join, plane
 
 import vapoursynth as vs
 
-core                = vs.core
-core.max_cache_size = 1024 * 4
-core.num_threads    = 14
-
+core = vs.core
+core.max_cache_size = 1024 * 128
+core.num_threads = 20
 
 shader = 'FSRCNNX_x2_56-16-4-1.glsl'
-if path.exists(shader) is False:
-    shader = r'C:/Users/light/AppData/Roaming/mpv/shaders/FSRCNNX_x2_16-0-4-1.glsl'
+if os.path.exists(shader) is False:
+    hookpath = "mpv/shaders/mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
+    shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
 def reupscale(clip: vs.VideoNode, ref: vs.VideoNode,
@@ -27,12 +27,12 @@ def reupscale(clip: vs.VideoNode, ref: vs.VideoNode,
     """
     args = dict(nsize=4, nns=4, qual=2, pscrn=1)
     nn3 = clip.std.Transpose().nnedi3.nnedi3(0, True, **args) \
-           .std.Transpose().nnedi3.nnedi3(0, True, **args)
+        .std.Transpose().nnedi3.nnedi3(0, True, **args)
     nn3 = core.resize.Spline36(nn3, src_top=.5, src_left=.5)
 
     fsrcnnx = clip.resize.Point(format=vs.YUV444P16, dither_type=None)
-    fsrcnnx = depth(core.placebo.Shader(fsrcnnx, width = clip.width * 2, height = clip.height * 2,
-                                        shader = shader, filter = 'box'), 32)
+    fsrcnnx = depth(core.placebo.Shader(fsrcnnx, width=clip.width*2, height=clip.height*2,
+                                        shader=shader, filter='box'), 32)
     merge = core.std.Merge(nn3, get_y(fsrcnnx), weight=0.5)
     dehalo = lvf.util.quick_resample(merge, fix_lineart).resize.Bicubic(ref.width, ref.height)
 
@@ -51,15 +51,15 @@ edstart = None
 
 
 # Arguments for debanding, upscaling, etc.
-deband_args   = dict(iterations = 2, threshold = 6, radius = 14)
-upscaled_args = dict(kernel = lvf.kernels.Bicubic(b=0.2620, c=0.3690))
+deband_args = dict(iterations=2, threshold=6, radius=14)
+upscaled_args = dict(kernel=lvf.kernels.Bicubic(b=0.2620, c=0.3690))
 
 
 src = lvf.src(r'BDMV/Fate Extra Last Encore/Vol1/BDROM/BDMV/STREAM/00011.m2ts')[24:-96]
 src = core.std.Limiter(depth(src, 32), min=0, max=1, planes=0)
 
 
-descaled = lvf.scale.descale(get_y(src), upscaler = None, **upscaled_args)
+descaled = lvf.scale.descale(get_y(src), upscaler=None, **upscaled_args)
 
 # Upscaling using FSRCNNX and nnedi3_rpow2, dehalo/dering, downscale, then merge the chroma from ``src``
 scaled = reupscale(descaled, src)
@@ -72,10 +72,10 @@ cwarp = core.rgsf.Repair(cwarp, scaled, 13)
 
 
 detail_mask = lvf.denoise.detail_mask(cwarp, rad=3, radc=4, brz_a=0.03, brz_b=0.025)
-deband = join([ # Don't ask me why, but for some godforsaken reason, this is twice as fast to process
-                core.placebo.Deband(plane(cwarp, 0), grain = 6, **deband_args),
-                core.placebo.Deband(plane(cwarp, 1), grain = 0, **deband_args),
-                core.placebo.Deband(plane(cwarp, 2), grain = 0, **deband_args)
+deband = join([  # Don't ask me why, but for some godforsaken reason, this is twice as fast to process
+                core.placebo.Deband(plane(cwarp, 0), grain=6, **deband_args),
+                core.placebo.Deband(plane(cwarp, 1), grain=0, **deband_args),
+                core.placebo.Deband(plane(cwarp, 2), grain=0, **deband_args)
 ])
 deband = core.std.MaskedMerge(deband, cwarp, detail_mask)
 
