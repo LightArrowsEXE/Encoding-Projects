@@ -78,10 +78,10 @@ mask_scale_args = dict(width=get_w(873), height=873,
 replace = []
 
 # First frame of OP, first frame after preview
-opstart = 1104
-edstart = 31889
+opstart = None
+edstart = None
 
-src = lvf.src(r"BDMV/[BDMV][ANZX-15504][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.2][JP]/BDROM/DISC2/BDMV/STREAM/00000.m2ts")[24:-24]
+src = lvf.src(r"BDMV/[BDMV][ANZX-15504][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.2][JP]/BDROM/DISC2/BDMV/STREAM/00011.m2ts")[24:-24]
 
 
 if opstart is not None:
@@ -92,7 +92,7 @@ if edstart is not None:
 
 
 op_mask = DCM(
-    src, src[opstart:opstart+src_NCOP.num_frames-3], src_NCOP,
+    src, src[opstart:opstart+src_NCOP.num_frames-1], src_NCOP,
     opstart, opstart+src_NCOP.num_frames) \
     if opstart is not None else core.std.BlankClip(src)
 ed_mask = DCM(

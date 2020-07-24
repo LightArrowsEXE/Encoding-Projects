@@ -1,88 +1,146 @@
-import vapoursynth as vs
-import lvsfunc as lvf
+import os
+from functools import partial
+
 import kagefunc as kgf
-import fvsfunc as fvf
-import mvsfunc as mvf
-import havsfunc as haf
-from vsutil import *
-from cooldegrain import *
+import lvsfunc as lvf
+import xvs
+from cooldegrain import CoolDegrain
+from finedehalo import fine_dehalo
+from vardefunc import diff_creditless_mask as DCM
+from vsutil import depth, get_w, get_y, join, plane
+
+import vapoursynth as vs
+
 core = vs.core
-core.num_threads = 3
+core.max_cache_size = 1024 * 128
+core.num_threads = 40
+
+shader = 'FSRCNNX_x2_56-16-4-1.glsl'
+if os.path.exists(shader) is False:
+    hookpath = "mpv\shaders\FSRCNNX_x2_56-16-4-1.glsl"
+    shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
-def _fractional_descale(clip: vs.VideoNode, h: int, b: float, c: float, src_left: float = None) -> vs.VideoNode:
-    planes = split(clip)
-    planes[0] = core.fmtc.resample(planes[0], get_w(h), h, sy=math_l, kernel='bicubic', a1=b, a2=c, invks=True)
-    planes[0] = lvf.upscaled_sraa(planes[0], h=clip.height, rfactor=2.4, sharp_downscale=True)
-    planes[0] = core.resize.Spline36(planes[0], src_top=-math_l)
-    if src_left:
-        planes[1], planes[2] = [core.resize.Bicubic(p, src_left=src_left) for p in planes[1:]]
-    return join(planes)
+def reupscale(clip: vs.VideoNode,
+              ref: vs.VideoNode = None,
+              width: int = 1920,
+              height: int = 1080,
+              merge: float = 1 / 2) -> vs.VideoNode:
+    """
+        Reupscale using FSRCNNX and nnedi3_rpow2 to fix it a bit.
+        Code mostly stolen from Varde, but ssshhh. Don't tell him. :)
+    """
+    fsrcnnx = join([
+        clip,
+        plane(ref, 1).resize.Bicubic(clip.width, clip.height, clip.format),
+        plane(ref, 2).resize.Bicubic(clip.width, clip.height, clip.format)]) \
+        .resize.Bicubic(format=vs.YUV444P16)
+
+    fsrcnnx = depth(
+        core.placebo.Shader(
+            fsrcnnx,
+            width=clip.width * 2,
+            height=clip.height * 2,
+            shader=shader, filter='box'), 32)
+
+    if merge > 0:
+        sraa = lvf.sraa(clip, rfactor=1.7, rep=13, height=fsrcnnx.height,
+                        downscaler=partial(core.fmtc.resample, kernel='gauss',
+                                           invks=True, invkstaps=2,
+                                           taps=1, a1=32))
+    else:
+        sraa = clip.resize.Point(fsrcnnx.width, fsrcnnx.height, fsrcnnx.format)
+
+    merge = core.std.Expr([get_y(fsrcnnx), get_y(sraa)], 'x y < x y ?') \
+        .resize.Bicubic(width, height)
+
+    if ref:
+        ref = core.resize.Bicubic(ref, width, height, format=vs.YUV444PS) \
+            if ref.height > height else ref
+
+    return join([merge, plane(ref, 1), plane(ref, 2)]) \
+        if ref is not None else merge
 
 
-def _create_credit_mask(clip: vs.VideoNode, h: int, b: float, c: float) -> vs.VideoNode:
-    clip_y = get_y(clip)
-    descaled = core.fmtc.resample(clip_y, get_w(h), h, sy=math_l, kernel='bicubic', a1=b, a2=c, invks=True)
-    upscaled = core.fmtc.resample(descaled, clip_y.width, clip_y.height, sy=-math_l, kernel='bicubic', a1=b, a2=c)
-    credit_mask = core.std.Expr([clip_y, upscaled], 'x y - abs').std.Binarize(10000)
-    credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 6)
-    return kgf.iterate(credit_mask, core.std.Inflate, 2)
+# Common arguments
+den_args = dict(tr=1, thsadc=32, bits=16, blksize=4, overlap=2)
+deband_args = dict(iterations=2, threshold=4, radius=16)
+descale_args = dict(width=get_w(873), height=873,
+                    b=0, c=1/2, src_top=0.25,
+                    src_width=get_w(872.5), src_height=872.5)
+mask_scale_args = dict(width=get_w(873), height=873,
+                       kernel=lvf.kernels.Bicubic(0, 1/2),
+                       mask=partial(lvf.scale.descale_detail_mask, threshold=0.05),
+                       show_mask=True)
 
 
-def _fix_lineart(clip) -> vs.VideoNode:
-    dehalo = haf.FineDehalo(clip, rx=2.3, thmi=91, thma=191, darkstr=0, brightstr=1.6, contra=1)
-    dering = haf.EdgeCleaner(dehalo, strength=6, rmode=13, smode=1, hot=True)
-    return core.rgvs.Repair(dering, clip, 13)
+# Frames to replace with an unscaled clip
+replace = []
 
-
-def _create_dmask(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.VideoNode:
-    if depth:
-        clip = fvf.Depth(clip, depth)
-    return core.adg.Mask(clip.std.PlaneStats(), luma_scaling)
-
-
-def _adap_denoise(clip: vs.VideoNode, luma_scaling: float, depth: int) -> vs.VideoNode:
-    d_mask = _create_dmask(clip, luma_scaling, depth)
-    denoise_a = CoolDegrain(clip, tr=1, thsad=72, thsadc=48, bits=depth, blksize=8, overlap=4)
-    denoise_b = CoolDegrain(clip, tr=1, thsad=24, thsadc=48, bits=depth, blksize=8, overlap=4)
-    return core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
-
-
+# First frame of OP, first frame after preview
 opstart = 1750
-op_sf_a = f"[{opstart+378} {opstart+401}] [{opstart+1564} {opstart+1581}]" if opstart is not None else ""
-op_sf_b = f"[{opstart+1728} {opstart+1757}]" if opstart is not None else ""
+edstart = 31888
+
+src = lvf.src(r"BDMV/[BDMV][ANZX-15507][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.3][JP]/BDROM/DISC2/BDMV/STREAM/00000.m2ts")[24:-24]
 
 
-src = lvf.src(r"BDMV/[BDMV][ANZX-15507][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.3][JP]/BDROM/DISC2/BDMV/STREAM/00000.m2ts")
-src = src[24:-24]
-src = fvf.Depth(src, 32)
+if opstart is not None:
+    src_NCOP = lvf.src(r'BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/disc2/BDMV/STREAM/00007.m2ts')[24:-24]
+
+if edstart is not None:
+    src_NCED = lvf.src(r'BDMV/[BDMV][ANZX-15507][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.3][JP]/BDROM/DISC2/BDMV/STREAM/00007.m2ts')[24:-28]
 
 
-h = 873
-math_l = 0.5 * src.height / h * -1
-scaled = _fractional_descale(src, h=h, b=1/5, c=2/5, src_left=.25)
-credit_mask = _create_credit_mask(src, h=h, b=1/5, c=2/5)
+op_mask = DCM(
+    src, src[opstart:opstart+src_NCOP.num_frames-1], src_NCOP,
+    opstart, opstart+src_NCOP.num_frames) \
+    if opstart is not None else core.std.BlankClip(src)
+ed_mask = DCM(
+    src, src[edstart:edstart+src_NCED.num_frames-4], src_NCED,
+    edstart, edstart+src_NCED.num_frames-4) \
+    if edstart is not None else core.std.BlankClip(src)
+credit_mask = core.std.Expr([get_y(op_mask), get_y(ed_mask)], expr='x y +')
+check_mask = core.std.Merge(src, credit_mask.resize.Bicubic(format=src.format))
 
 
-denoise = fvf.rfs(_adap_denoise(scaled, luma_scaling=4, depth=16),
-                  mvf.BM3D(scaled, sigma=[1,0.5], depth=16, profile1='lc'),
-                  mappings=op_sf_a)
+src = depth(src, 32)
+credit_mask = depth(credit_mask, 32)
 
-fix_lines = _fix_lineart(denoise)
-merge_credits = core.std.MaskedMerge(fix_lines,
-                                     fvf.Depth(src, get_depth(fix_lines)),
-                                     fvf.Depth(credit_mask, get_depth(fix_lines)))
+title_mask = lvf.scale.descale(get_y(src), **mask_scale_args)
+descaled = core.descale.Debicubic(get_y(src), **descale_args)
+upscaled = reupscale(descaled, src, merge=1/2)
 
-ref = core.f3kdb.Deband(merge_credits, range=6, y=72, cb=64, cr=64, grainy=0, grainc=0, output_depth=16)
-deband = fvf.rfs(core.f3kdb.Deband(merge_credits, range=15, y=40, cb=32, cr=32, grainy=12, grainc=0, output_depth=16),
-                 core.f3kdb.Deband(ref, range=14, y=48, cb=40, cr=40, grainy=24, grainc=0, output_depth=16),
-                 mappings=op_sf_a)
-deband = fvf.rfs(deband, core.f3kdb.Deband(merge_credits, range=12, y=56, cb=48, cr=48, grainy=36, grainc=0, output_depth=16),
-                 mappings=op_sf_b)
+denoise = lvf.util.quick_resample(
+    upscaled, partial(CoolDegrain, thsad=24, **den_args)
+)
 
-grain = kgf.adaptive_grain(deband, 0.3, luma_scaling=4)
+l_mask = lvf.util.quick_resample(denoise, kgf.retinex_edgemask)
+aa = lvf.aa.nneedi3_clamp(denoise, strength=1.25)
+aa = core.std.MaskedMerge(denoise, aa, l_mask)
+
+dehalo = fine_dehalo(aa, rx=2.4, ry=2.2, darkstr=0, brightstr=1)
+
+# Chroma is slightly misaligned, so we forcibly warp it around the edges
+l_mask = lvf.util.quick_resample(dehalo, kgf.retinex_edgemask)
+cwarp = core.std.MaskedMerge(xvs.WarpFixChromaBlend(dehalo, depth=6), aa, l_mask)
+cwarp = core.rgsf.Repair(cwarp, dehalo, 13)
+
+# Merge credits back and 1080p detail back
+masked = core.std.MaskedMerge(cwarp, src, title_mask)
+merge = core.std.MaskedMerge(masked, src, credit_mask)
+merge = lvf.rfs(merge, src, replace)
+
+detail_mask = lvf.denoise.detail_mask(merge, rad=2, radc=1, brz_a=0.025, brz_b=0.02)
+deband = join([
+    core.placebo.Deband(plane(merge, 0), grain=8, **deband_args),
+    core.placebo.Deband(plane(merge, 1), grain=0, **deband_args),
+    core.placebo.Deband(plane(merge, 2), grain=0, **deband_args)
+])
+deband = core.std.MaskedMerge(deband, merge, detail_mask)
+
+grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=4)
 
 
 out = grain
-final = fvf.Depth(out, 10)
+final = depth(out, 10)
 final.set_output()

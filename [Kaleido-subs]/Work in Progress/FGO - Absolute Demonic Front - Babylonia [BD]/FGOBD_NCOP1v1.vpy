@@ -6,7 +6,6 @@ import lvsfunc as lvf
 import xvs
 from cooldegrain import CoolDegrain
 from finedehalo import fine_dehalo
-from vardefunc import diff_creditless_mask as DCM
 from vsutil import depth, get_w, get_y, join, plane
 
 import vapoursynth as vs
@@ -51,7 +50,7 @@ def reupscale(clip: vs.VideoNode,
     else:
         sraa = clip.resize.Point(fsrcnnx.width, fsrcnnx.height, fsrcnnx.format)
 
-    merge = core.std.Expr([get_y(fsrcnnx), get_y(sraa)], 'x y < x y ?') \
+    merge = core.std.Merge(get_y(fsrcnnx), sraa, weight=merge) \
         .resize.Bicubic(width, height)
 
     if ref:
@@ -68,50 +67,18 @@ deband_args = dict(iterations=2, threshold=4, radius=16)
 descale_args = dict(width=get_w(873), height=873,
                     b=0, c=1/2, src_top=0.25,
                     src_width=get_w(872.5), src_height=872.5)
-mask_scale_args = dict(width=get_w(873), height=873,
-                       kernel=lvf.kernels.Bicubic(0, 1/2),
-                       mask=partial(lvf.scale.descale_detail_mask, threshold=0.05),
-                       show_mask=True)
 
 
-# Frames to replace with an unscaled clip
-replace = []
-
-# First frame of OP, first frame after preview
-opstart = 1104
-edstart = 31889
-
-src = lvf.src(r"BDMV/[BDMV][ANZX-15504][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.2][JP]/BDROM/DISC2/BDMV/STREAM/00000.m2ts")[24:-24]
-
-
-if opstart is not None:
-    src_NCOP = lvf.src(r'BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/disc2/BDMV/STREAM/00007.m2ts')[24:-24]
-
-if edstart is not None:
-    src_NCED = lvf.src(r'BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/disc2/BDMV/STREAM/00008.m2ts')[24:-28]
-
-
-op_mask = DCM(
-    src, src[opstart:opstart+src_NCOP.num_frames-3], src_NCOP,
-    opstart, opstart+src_NCOP.num_frames) \
-    if opstart is not None else core.std.BlankClip(src)
-ed_mask = DCM(
-    src, src[edstart:edstart+src_NCED.num_frames-3], src_NCED,
-    edstart, edstart+src_NCED.num_frames-3) \
-    if edstart is not None else core.std.BlankClip(src)
-credit_mask = core.std.Expr([get_y(op_mask), get_y(ed_mask)], expr='x y +')
-check_mask = core.std.Merge(src, credit_mask.resize.Bicubic(format=src.format))
-
-
+src = lvf.src(r"BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/disc2/BDMV/STREAM/00007.m2ts")[24:-24]
 src = depth(src, 32)
-credit_mask = depth(credit_mask, 32)
 
-title_mask = lvf.scale.descale(get_y(src), **mask_scale_args)
 descaled = core.descale.Debicubic(get_y(src), **descale_args)
 upscaled = reupscale(descaled, src, merge=1/2)
 
+
 denoise = lvf.util.quick_resample(
-    upscaled, partial(CoolDegrain, thsad=24, **den_args)
+    upscaled,
+    partial(CoolDegrain, thsad=24, **den_args)
 )
 
 l_mask = lvf.util.quick_resample(denoise, kgf.retinex_edgemask)
@@ -125,18 +92,14 @@ l_mask = lvf.util.quick_resample(dehalo, kgf.retinex_edgemask)
 cwarp = core.std.MaskedMerge(xvs.WarpFixChromaBlend(dehalo, depth=6), aa, l_mask)
 cwarp = core.rgsf.Repair(cwarp, dehalo, 13)
 
-# Merge credits back and 1080p detail back
-masked = core.std.MaskedMerge(cwarp, src, title_mask)
-merge = core.std.MaskedMerge(masked, src, credit_mask)
-merge = lvf.rfs(merge, src, replace)
 
-detail_mask = lvf.denoise.detail_mask(merge, rad=2, radc=1, brz_a=0.025, brz_b=0.02)
+detail_mask = lvf.denoise.detail_mask(cwarp, rad=2, radc=1, brz_a=0.025, brz_b=0.02)
 deband = join([
-    core.placebo.Deband(plane(merge, 0), grain=8, **deband_args),
-    core.placebo.Deband(plane(merge, 1), grain=0, **deband_args),
-    core.placebo.Deband(plane(merge, 2), grain=0, **deband_args)
+    core.placebo.Deband(plane(cwarp, 0), grain=8, **deband_args),
+    core.placebo.Deband(plane(cwarp, 1), grain=0, **deband_args),
+    core.placebo.Deband(plane(cwarp, 2), grain=0, **deband_args)
 ])
-deband = core.std.MaskedMerge(deband, merge, detail_mask)
+deband = core.std.MaskedMerge(deband, cwarp, detail_mask)
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=4)
 
