@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-import acsuite as acs
+import ntpath
+import os
+
 import lvsfunc as lvf
-ac = acs.AC()
+from acsuite import eztrim
 
 
 path = r'BDMV/[BDMV][ANZX-15501][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.1][JP]/BDROM/disc2/BDMV/STREAM/00008.m2ts'
