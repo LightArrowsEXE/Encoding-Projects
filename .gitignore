@@ -99,6 +99,8 @@ __pycache__/
 *.json
 *.lgd
 *.MDS
+*.midicsv
+*.mscz
 *.mtxcfg
 *.nfo
 *.parts
@@ -120,6 +122,7 @@ __pycache__/
 *test.vpy
 *wraw.vpy
 authorized_keys
+midicsv2ass
 
 
 # Utility Scripts
