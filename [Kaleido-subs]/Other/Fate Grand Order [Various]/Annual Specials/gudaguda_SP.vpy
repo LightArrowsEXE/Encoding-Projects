@@ -27,7 +27,7 @@ if os.path.exists(shader) is False:
 deband_a_args = dict(iterations=2, threshold=4, radius=16)
 deband_b_args = dict(iterations=4, threshold=8, radius=12)
 
-src = lvf.src("Fate Grand Order -First Order- Fate Project (BS11).dgi")
+src = lvf.src("src/Fate Grand Order -First Order- Fate Project (BS11).dgi")
 dec = lvf.deinterlace.decomb(src, TFF=True)
 dec = dec[113503:115443] + dec[121382:123205] \
     + dec[136688:137764] + dec[144624:146134] \

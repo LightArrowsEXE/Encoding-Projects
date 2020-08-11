@@ -9,9 +9,8 @@ from vsTAAmbk import *
 core = vs.core
 
 
-src_a, src_b = lvf.src(r'src/1912312200_【ＢＳ１１イレブン】Fate Project 大晦日TVスペシャル 2019【BS11 大晦日超アニメスペシャル！】.d2v'), lvf.src(r'src/_-yHmQsWyCP3Q.mp4')
-src_a = lvf.decomb(src_a, True)
-src_a = src_a[80566:81285]
+src_a, src_b = lvf.src(r'src/1912312200_【ＢＳ１１イレブン】Fate Project 大晦日TVスペシャル 2019【BS11 大晦日超アニメスペシャル！】.d2v'), lvf.src(r'Anniversaries/src/_-yHmQsWyCP3Q.mp4')
+src_a = lvf.decomb(src_a, True)[80566:81285]
 src = src_a[:672]+src_b[665:]
 
 blank = core.std.BlankClip(src)
