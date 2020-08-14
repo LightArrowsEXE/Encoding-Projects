@@ -1,13 +1,10 @@
-import os
 from functools import partial
 
 import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
-import vardefunc as vdf
 import xvs
 from awsmfunc import bbmod
-from finedehalo import fine_dehalo
 from vsutil import depth, join, plane
 
 import vapoursynth as vs
@@ -15,12 +12,6 @@ import vapoursynth as vs
 core = vs.core
 core.max_cache_size = 1024 * 128
 core.num_threads = 20
-
-
-shader = 'FSRCNNX_x2_56-16-4-1.glsl'
-if os.path.exists(shader) is False:
-    hookpath = r"mpv\shaders\FSRCNNX_x2_56-16-4-1.glsl"
-    shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
 def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode) -> vs.VideoNode:
@@ -35,18 +26,6 @@ def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode) -> vs.VideoNode:
     if replace_scenes:
         clip = lvf.rfs(clip, clip_b, ranges=replace_scenes)
     return clip
-
-
-def reupscale(clip: vs.VideoNode, ref:vs.VideoNode,
-              shader: str) -> vs.VideoNode:
-    def _rescale(clip, n, f):
-        return vdf.fsrcnnx_upscale(
-            clip.resize.Bicubic(f.width, f.height),
-            1080, shader, core.resize.Bicubic)
-    upscaled = core.std.FrameEval(clip, partial(_rescale, clip=clip),
-                                  prop_src=clip) \
-        .resize.Bicubic(ref.width, ref.height)
-    return join([upscaled, plane(ref, 1), plane(ref, 2)])
 
 
 # Common args
@@ -78,10 +57,7 @@ ef = bbmod(src, 1, 1, 1, 1, thresh=50, blur=999,
 ef = depth(ef, 32)
 
 
-credit_mask = lvf.scale.descale(ef, show_mask=True, **descale_args)
-descaled = lvf.scale.descale(ef, upscaler=None, **descale_args)
-upscaled = reupscale(descaled, ef, shader)
-scaled = core.std.MaskedMerge(upscaled, ef, credit_mask)
+scaled = lvf.scale.descale(ef, **descale_args)
 
 aa = lvf.aa.nneedi3_clamp(scaled, strength=1.5)
 cwarp = xvs.WarpFixChromaBlend(aa, depth=10)
