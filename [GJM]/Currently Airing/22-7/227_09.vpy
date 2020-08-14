@@ -55,8 +55,9 @@ deband_args = dict(iterations=2, threshold=4, radius=12)
 
 
 hs_signs = [
-    (2828, 2935), (5721, 5783), (7730, 7788),
-    (9277, 9409), (34303, 34406)
+    (4579, 4678), (6898, 6987), (7756, 7911), (12190, 12284),
+    (18498, 18550), (31674, 31677), (31732, 31735), (31789, 31792)
+    (34264, 34310)
 ]
 
 replace_scenes = [
@@ -64,10 +65,10 @@ replace_scenes = [
 ]
 
 
-src_cr = lvf.src(r"07/[Erai-raws] 22-7 - 07 [1080p][Multiple Subtitle].mkv")
-src_wk = lvf.src(r"07/22 7  E07 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
+src_cr = lvf.src(r"09/[Erai-raws] 22-7 - 09 [1080p][Multiple Subtitle].mkv")
+src_wk = lvf.src(r"09/22 7  E09 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
 b = core.std.BlankClip(src_cr)[0]  # Blank clip to make it easier to scomp it
-src_wk = src_wk[0] + src_wk + src_wk[-1]*11
+src_wk = src_wk[0] + src_wk[:15930] + src_wk[15930] * 13 + src_cr[15944:16016] + src_wk[15974:34269] + src_cr[34311:]
 scomp = lvf.comparison.stack_compare(src_cr+b, src_wk+b, make_diff=True)
 
 src = dehardsub(src_wk, src_cr)
