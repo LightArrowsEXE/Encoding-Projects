@@ -16,7 +16,7 @@ core.num_threads = 20
 
 shader = 'FSRCNNX_x2_56-16-4-1.glsl'
 if os.path.exists(shader) is False:
-    hookpath = "mpv/shaders/mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
+    hookpath = r"mpv\shaders\FSRCNNX_x2_56-16-4-1.glsl"
     shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
