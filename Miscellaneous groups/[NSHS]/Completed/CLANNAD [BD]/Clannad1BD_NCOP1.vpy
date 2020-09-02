@@ -37,7 +37,7 @@ def fix_lineart(clip: vs.VideoNode) -> vs.VideoNode:
         A function that performs HQDeringmod with a repair on the lineart.
     """
     dering = lvf.util.quick_resample(
-        aa, partial(haf.HQDeringmod, nrmode=1, mrad=2, thr=3, sharp=0)
+        clip, partial(haf.HQDeringmod, nrmode=1, mrad=2, thr=3, sharp=0)
     )
     return lvf.util.pick_repair(dering)(dering, clip, 13)
 
