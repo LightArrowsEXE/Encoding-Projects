@@ -14,7 +14,7 @@ from vsutil import depth, get_y, insert_clip, join, plane
 import vapoursynth as vs
 
 core = vs.core
-core.max_cache_size = 1024 * 128
+core.max_cache_size = 1024 * 224
 core.num_threads = 12
 
 
@@ -208,4 +208,4 @@ grain = kgf.adaptive_grain(fade, 0.45, luma_scaling=4)
 out = grain
 final = depth(out, 10)
 #diff = lvf.comparison.tvbd_diff(src, src_jp, thr=96)
-final.set_output()
+src_ger.set_output()

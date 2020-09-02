@@ -14,7 +14,7 @@ from vsutil import depth, get_y, insert_clip, join, plane
 import vapoursynth as vs
 
 core = vs.core
-core.max_cache_size = 1024 * 128
+core.max_cache_size = 1024 * 224
 core.num_threads = 12
 
 
