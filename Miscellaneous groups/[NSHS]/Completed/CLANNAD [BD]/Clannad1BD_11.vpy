@@ -124,7 +124,8 @@ if edstart is not None:
 
 
 # GER BD is overall of higher quality, but replaced quite a few signs
-src = lvf.misc.replace_ranges(src_ger, src_jp, ranges=JP_signs)
+#src = lvf.misc.replace_ranges(src_ger, src_jp, ranges=JP_signs)
+src = src_jp
 
 op_mask = DCM(src, src[opstart:opstart+2154], src_NCOP, opstart, opstart+src_NCOP.num_frames) \
     if opstart is not None else core.std.BlankClip(src)
