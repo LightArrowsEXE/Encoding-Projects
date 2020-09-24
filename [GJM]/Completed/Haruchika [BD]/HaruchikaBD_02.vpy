@@ -24,7 +24,7 @@ def demangle(clip: vs.VideoNode) -> vs.VideoNode:
 
 
 def create_mask(clip: vs.VideoNode, height: vs.VideoNode) -> vs.VideoNode:
-    downscale = src.resize.Bicubic(src.width/2, src.height/2)
+    downscale = clip.resize.Bicubic(clip.width/2, clip.height/2)
     mask = fine_dehalo(downscale, showmask=1)
     return mask.resize.Bicubic(get_w(height), height)
 
