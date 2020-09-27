@@ -46,7 +46,7 @@ opstart = 31646
 edstart = None
 extra = 0
 
-src = lvf.src(r"BDMV/HARUCHIKA_1/BDMV/STREAM/00003.m2ts")[24:-24]
+src = lvf.src(r"ハルチカ ~ハルタとチカは青春する~/HARUCHIKA_1/BDMV/STREAM/00003.m2ts")[24:-24]
 
 
 if opstart is not None: # Check trims every episode
