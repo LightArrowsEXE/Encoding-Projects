@@ -63,9 +63,6 @@ deband = core.std.MaskedMerge(deband, cwarp, detail_mask)
 grain = kgf.adaptive_grain(deband, 0.1, luma_scaling=4)
 
 
-t1 = lvf.src(r"Tabitabi_01v2_01 (Premux).mkv")
-t2 = lvf.src(r"Tabitabi_01v2_02 (Premux).mkv")
-
 out = grain
 final = depth(out, 10)
-final[t1.num_frames:-t2.num_frames].set_output()
+final.set_output()
