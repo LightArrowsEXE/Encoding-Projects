@@ -95,7 +95,7 @@ lmasked = core.std.MaskedMerge(upscaled, get_y(shift),
     depth(create_mask(depth(shift, 16), shift.height), 32))
 cmasked = core.std.MaskedMerge(lmasked, get_y(shift),
     lvf.scale.descale(shift, show_mask=True, **scale_args))
-recon = demangle(reconstruct(shift))
+recon = demangle(reconstruct(shift)).resize.Bicubic(format=shift.format)
 scaled = join([get_y(cmasked), plane(recon, 1), plane(recon, 2)])
 
 
