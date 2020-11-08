@@ -133,7 +133,7 @@ if ntpath.basename(__file__) == "KamiNatta_05.vpy":
 
 
 scomp2 = lvf.comparison.stack_compare(src, src_a, make_diff=True)
-diff = lvf.comparison.tvbd_diff(src, src_a, thr=104)
+#diff = lvf.comparison.tvbd_diff(src, src_a, thr=104)
 
 
 shift = haf.FixChromaBleedingMod(src, cx=-.75, cy=0, thr=100, strength=1, blur=False)
@@ -185,4 +185,4 @@ grain = kgf.adaptive_grain(deband, 0.15, luma_scaling=2)
 
 out = grain
 final = depth(out, 10)
-diff.set_output()
+final.set_output()
