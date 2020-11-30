@@ -180,5 +180,4 @@ grain = kgf.adaptive_grain(deband, 0.15, luma_scaling=2)
 
 out = grain
 final = depth(out, 10)
-comp = lvf.comp(src, out, [10010, 10011])
-comp.set_output()
+final.set_output()
