@@ -1,3 +1,5 @@
+import glob
+import ntpath
 import os
 from functools import partial
 
@@ -5,8 +7,8 @@ import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import vapoursynth as vs
-import xvs
 import vardefunc as vdf
+import xvs
 from awsmfunc import bbmod
 from vsutil import depth, get_y, join, plane
 
@@ -30,7 +32,7 @@ scale_args = dict(height=936, kernel=lvf.kernels.Spline36())
 deband_args = dict(iterations=2, threshold=4, radius=14)
 
 
-src = lvf.src(r"09/[SubsPlease] Majo no Tabitabi - 09 (1080p) [9CEE67B8].mkv")[240:]
+src = lvf.src(glob.glob(f'{ntpath.basename(__file__)[9:-3]}/*.mkv')[0])[240:]
 ef = bbmod(src, left=1, right=1, top=1, bottom=1,
            thresh=100, blur=999, scale_thresh=False,
            y=True, u=True, v=True)
