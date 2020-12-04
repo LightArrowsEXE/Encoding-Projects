@@ -5,7 +5,7 @@ import ntpath
 import lvsfunc as lvf
 from acsuite import eztrim
 
-path = glob.glob(f'{ntpath.basename(__file__)[13:-3]}/*.mkv')[0]
+path = glob.glob(f'{ntpath.basename(__file__)[12:-3]}/*.mkv')[0]
 src = lvf.src(path)
 
 if __name__ == "__main__":
