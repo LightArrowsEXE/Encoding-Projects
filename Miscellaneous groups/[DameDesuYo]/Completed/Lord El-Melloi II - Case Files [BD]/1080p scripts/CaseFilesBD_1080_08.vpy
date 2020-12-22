@@ -72,7 +72,7 @@ OP_dehalo = [(opstart+960, opstart+1028)]
 interp_aa_ranges = []
 
 
-src = lvf.src(r"BDMV/[BDMV][アニメ][191204] ロード・エルメロイII世の事件簿 -魔眼蒐集列車 Grace note- 4/BDROM/BDMV/STREAM/00001.m2ts")[24:-24]
+src = lvf.src(r"BDMV/[BDMV][191204][Lord El-Melloi II-sei no Jikenbo][Vol.04]/BDROM/BDMV/STREAM/00001.m2ts")[24:-24]
 
 if opstart is not None:
     src_NCOP = lvf.src(r'BDMV/[BDMV] Lord El-Melloi II-sei no Jikenbo ~Rail Zeppelin Grace Note~ [Vol.02]/BDROM/BDMV/STREAM/00004.m2ts')[24:-24]
