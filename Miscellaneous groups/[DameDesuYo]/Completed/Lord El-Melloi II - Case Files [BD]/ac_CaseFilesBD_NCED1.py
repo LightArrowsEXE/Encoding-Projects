@@ -8,4 +8,4 @@ path = r'BDMV/[BDMV] Lord El-Melloi II-sei no Jikenbo ~Rail Zeppelin Grace Note~
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    eztrim(src, (24, -38), f"{os.path.splitext(path)[0]}.wav", f"{__file__[:-3]}_cut.wav")
+    eztrim(src, (24, -41), f"{os.path.splitext(path)[0]}.wav", f"{__file__[:-3]}_cut.wav")
