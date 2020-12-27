@@ -1,3 +1,7 @@
+import glob
+import itertools as it
+import ntpath
+
 import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
@@ -20,20 +24,18 @@ def debander(clip: vs.VideoNode, **deband_args) -> vs.VideoNode:
 deband_args = dict(iterations=2, threshold=3, radius=14)
 
 
-ep = "09"
-src = lvf.src(fr"{ep}/[SubsPlease] Maou-jou de Oyasumi - {ep} (1080p) [0044B167].mkv")[168:]
-src_c = src  # copy for comp purposes
-amazon_src = fr"{ep}/Maou-jou de Oyasumi - {ep} (Amazon Prime VBR 1080p).mkv"
+ext = [f'{ntpath.basename(__file__)[-6:-4]}/*.mkv']
+src = [lvf.src(p) for p in it.chain.from_iterable(glob.glob(g) for g in ext)]
+src[1] = src[1][168:]
 
-# Amazon has better lineart in busy scenes, otherwise similar enough
-src_a = lvf.src(amazon_src)
-l_mask = kgf.retinex_edgemask(src_a)
-src = core.std.MaskedMerge(src, src_a, l_mask)
-src = depth(src, 16)
+# Amazon (src[0]) has better lineart in busy scenes, otherwise similar enough
+l_mask = kgf.retinex_edgemask(src[1])
+merged = core.std.MaskedMerge(src[1], src[0], l_mask)
+merged = depth(merged, 16)
 
 
 # Relatively lazy and quick script because I want to be able to encode this on my own system for once lol
-sharp = haf.LSFmod(src, strength=80, defaults='Slow') # Usually I avoid artificial sharpening like the plague, but meh. It works okay-ish here.
+sharp = haf.LSFmod(merged, strength=80, defaults='Slow') # Usually I avoid artificial sharpening like the plague, but meh. It works okay-ish here.
 dehalo = fine_dehalo(sharp, rx=2.6, ry=2.4, thmi=80, thma=132, darkstr=0.1, brightstr=0.85)
 ec = haf.EdgeCleaner(dehalo, strength=4, rmode=13, hot=True)
 ec = depth(ec, 32)  # Lineart is really shit, but I can't figure out the native res. Shit sucks.
