@@ -122,6 +122,7 @@ __pycache__/
 *test.vpy
 *wraw.vpy
 authorized_keys
+BDMV
 midicsv2ass
 
 
@@ -175,7 +176,7 @@ rename.py
 
 
 # Ignored project directories.
-# These usually were uploaded at some point, but hidden either because of various reasons,
+# These usually were uploaded at some point, but hidden because of various reasons,
 # ranging from them being basically empty, discontinued, horribly breaking some things, etc.
 # If you want to see the files in actions, check the commit history of this file.
 
@@ -184,7 +185,7 @@ rename.py
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
 \!temp_archiving
 
-# A suffix for directories I want to temporarily remove being automatically pushed
+# A suffix for directories I want to temporarily prevent being accidentally pushed
 *_hidden
 
 # Paths to other repos that git picks up because git bad
