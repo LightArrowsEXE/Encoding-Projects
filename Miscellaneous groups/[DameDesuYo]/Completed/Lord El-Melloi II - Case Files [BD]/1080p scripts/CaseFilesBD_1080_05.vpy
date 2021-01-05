@@ -110,7 +110,7 @@ else:
     chr = core.resize.Bicubic(ef, descaled.width, descaled.height, vs.YUV444PS)
     scaled = join([descaled, plane(chr, 1), plane(chr, 2)])
 descale_mask = lvf.scale.descale(ef, show_mask=True, **scale_args)
-credit_mask = core.std.Expr([credit_mask, depth(descale_mask, 16)], "x y + abs")
+credit_mask = core.std.Expr([get_y(credit_mask), depth(descale_mask, 16)], "x y + abs")
 scaled = depth(scaled, 16)
 
 ref = haf.SMDegrain(scaled, tr=1, thSAD=150, prefilter=3, search=3, contrasharp=True, RefineMotion=True)
