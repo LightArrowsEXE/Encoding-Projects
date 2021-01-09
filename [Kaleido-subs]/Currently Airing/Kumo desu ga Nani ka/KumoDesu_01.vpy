@@ -2,6 +2,7 @@ import ntpath
 import os
 from glob import glob
 
+import adjust
 import debandshit as dbs
 import havsfunc as haf
 import kagefunc as kgf
@@ -54,8 +55,19 @@ def c_mask(clip: vs.VideoNode) -> vs.VideoNode:
 # Common args
 descale_args = dict(height=844, kernel=lvf.kernels.Bicubic(0, 1/2))
 
+# First frame of first cut of the ED
+edstart = 31800
+
+# Scenefiltering
+undim_ranges = [(edstart+1550, edstart+1579), (edstart+1700, edstart+1817)]
+undim_values = [1.3, 1.12]
+
 
 src = lvf.src(glob(f'{ntpath.basename(__file__)[-6:-4]}/*.mkv')[0])
+t = src
+for value, ranges in zip(undim_values, undim_ranges):
+    undim = adjust.Tweak(src, sat=value, cont=value)
+    src = lvf.rfs(src, undim, [ranges])
 src = depth(src, 32)
 
 descaled = lvf.scale.descale(src, upscaler=None, **descale_args)
