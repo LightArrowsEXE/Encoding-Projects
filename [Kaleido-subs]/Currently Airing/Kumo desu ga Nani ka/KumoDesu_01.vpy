@@ -23,7 +23,7 @@ if os.path.exists(shader) is False:
     shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
-def brz_aa(clip: vs.VideoNode, opencl: bool = False) -> vs.VideoNode:
+def brz_aa(clip: vs.VideoNode) -> vs.VideoNode:
     aa = core.eedi3m.EEDI3(clip, field=0, gamma=70)
     diff = core.std.MakeDiff(clip, aa)
     brz = core.std.Binarize(get_y(diff), scale_value(131.5, 8, clip.format.bits_per_sample))
@@ -64,7 +64,6 @@ undim_values = [1.3, 1.12]
 
 
 src = lvf.src(glob(f'{ntpath.basename(__file__)[-6:-4]}/*.mkv')[0])
-t = src
 for value, ranges in zip(undim_values, undim_ranges):
     undim = adjust.Tweak(src, sat=value, cont=value)
     src = lvf.rfs(src, undim, [ranges])
