@@ -86,7 +86,7 @@ lineart = core.std.FrameEval(denoise, partial(cond_fix_lines, clip=denoise), den
 dehalo = fine_dehalo(lineart, rx=2.2, ry=2, darkstr=0, brightstr=0.7)
 
 merge = core.std.MaskedMerge(dehalo, src, depth(descale_m, 16))
-cfix = demangle(dehalo, radius=2)
+cfix = demangle(merge, radius=2)
 
 
 detail_mask = lvf.denoise.detail_mask(cfix, sigma=0.8, brz_a=0.09, brz_b=0.025)
