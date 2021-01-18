@@ -70,6 +70,11 @@ def adaptive_grain_mod(clip: vs.VideoNode):
 
 
 descale_args = dict(height=[828, 832])
+opstart = False
+
+str_deb = []
+if opstart:
+    str_deb = str_deb + [(opstart+1648, opstart+1680)]
 
 
 src = lvf.src(r"BDMV/[BDMV][201223][Kamisama ni Natta Hi][Vol.01]/BD/BDMV/STREAM/00000.m2ts")[24:-24]
@@ -90,7 +95,9 @@ cfix = demangle(merge, radius=2)
 
 
 detail_mask = lvf.denoise.detail_mask(cfix, sigma=0.8, brz_a=0.09, brz_b=0.025)
-deband = dbs.f3kpf(cfix, range=14, y=52, cb=52)
+deband_def = dbs.f3kpf(cfix, range=14, y=49, cb=49)
+deband_str = dbs.f3kpf(cfix, range=12, y=81, cb=81)
+deband = lvf.rfs(deband_def, deband_str, str_deb)
 deband = core.std.MaskedMerge(deband, cfix, detail_mask)
 
 grain = adaptive_grain_mod(deband)
