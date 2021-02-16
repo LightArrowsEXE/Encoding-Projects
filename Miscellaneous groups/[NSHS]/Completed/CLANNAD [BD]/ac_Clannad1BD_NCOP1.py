@@ -10,4 +10,4 @@ path = r'BDMV/[KUNO-DIY][BDMV][CLANNAD][Blu-ray BOX Disc 1-5 Fin]/CLANNAD_5/BDMV
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    eztrim(src, (0, -48), f"{os.path.splitext(path)[0]}.wav", f"{ntpath.basename(__file__)[3:-3]}_cut.wav")
+    eztrim(src, (0, -48), path, f"{ntpath.basename(__file__)[3:-3]}_cut.mka", ffmpeg_path='')  # noqa

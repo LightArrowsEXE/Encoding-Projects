@@ -16,36 +16,35 @@ src_b = lvf.src(path_b)
 if __name__ == "__main__":
     paths = [path_a, path_b]
     clips = [src_a, src_b]
-    files = [f"{ntpath.basename(__file__)[3:-3]}_{i}_cut.wav" for i in 'AB']
+    files = [f"{ntpath.basename(__file__)[3:-3]}_{i}_cut.mka" for i in 'AB']
 
     print("\n[*] Trimming tracks")
     for c, p, f in zip(clips, paths, files):
         print(f"    [+] Trimming {f}")
-        eztrim(c, (0, -48), f"{os.path.splitext(p)[0]}.wav", f, quiet=True)
+        eztrim(c, (0, -48), p, f, quiet=True)
 
     print("\n[*] Writing concact file")
     concat = open(f"{ntpath.basename(__file__)[3:-3]}_concat.txt", "w")
     for f in files:
-        print(f"    [+] Adding {f}")
-        concat.write(f"file {f}\n")
+        print(f"    [+] Appending {f[:-4]}.wav")
+        concat.write(f"file {f[:-4]}.wav\n")
     concat.close()
 
     print("\n[*] Concatinating trimmed tracks")
     subprocess.run([
         "ffmpeg", "-f", "concat",
         "-i", f"{ntpath.basename(__file__)[3:-3]}_concat.txt",
-        "-loglevel", "panic", "-stats",
-        "-c", "copy", f"{ntpath.basename(__file__)[3:-3]}_cut.wav"
+        "-c", "copy", f"{ntpath.basename(__file__)[3:-3]}_cut.mka"
     ])
 
     print("\n[*] Removing files")
     for f in files:
-        print(f"    [-] Removing {f}")
+        print(f"    [-] Removing {f[:-4]}.wav")
 
         try:
-            os.remove(f)
+            os.remove(f"{f[:-4]}.wav")
         except FileNotFoundError:
-            print(f"    [*] Failed to remove {f}; file not found")
+            print(f"    [*] Failed to remove {f[:-4]}.wav; file not found")
 
     try:
         os.remove(f"{ntpath.basename(__file__)[3:-3]}_concat.txt")

@@ -2,20 +2,21 @@ import os
 from functools import partial
 from typing import List, Tuple, Union
 
+import awsmfunc as awsm
+import debandshit as dbs
 import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import mvsfunc as mvf
-from awsmfunc import bbmod
+import vapoursynth as vs
+from finedehalo import fine_dehalo
 from vardefunc import diff_creditless_mask as DCM
 from vsTAAmbk import TAAmbk
-from vsutil import depth, get_y, insert_clip, join, plane
-
-import vapoursynth as vs
+from vsutil import depth, get_y, insert_clip, iterate
 
 core = vs.core
-core.max_cache_size = 1024 * 224
-core.num_threads = 12
+core.max_cache_size = 1024 * 32
+core.num_threads = 16
 
 
 shader = 'FSRCNNX_x2_56-16-4-1.glsl'
@@ -24,12 +25,29 @@ if os.path.exists(shader) is False:
     shader = os.path.join(os.getenv("APPDATA"), hookpath)
 
 
-@lvf.misc.chroma_injector
-@lvf.misc.allow_variable(width=1920, height=1080)
-def tfsr(clip, width: int = 1920, height: int = 1080) -> vs.VideoNode:
-    return clip.resize.Point(format=vs.YUV444P16) \
-        .placebo.Shader(width=width*2, height=height*2, shader=shader) \
-        .resize.Bicubic(width, height, format=clip.format.id)
+both = dict(coordinates=[0, 1, 0, 1, 1, 0, 1, 0])
+
+
+def ringing_mask(clip, rad=4, ethr1=30 << 8, ethr2=50 << 8, minthr=0.5):
+    """
+    Zastin I love you
+    """
+    prew = clip.std.Prewitt()
+    mask_lo = prew.std.Binarize(ethr1)
+    mask_hi = prew.std.Binarize(ethr2)
+    main = core.std.Expr([mask_lo, mask_hi.std.Maximum().std.Maximum(), mask_hi], 'x y - z max')
+    main = main.std.Maximum().std.Maximum().std.Minimum().std.Minimum()
+    shrink = main.std.Minimum()
+    lines = core.std.Expr(
+        [clip.std.Maximum(**both).std.Maximum(**both).std.Minimum(**both).std.Minimum(**both), clip], 'x y -') \
+        .std.Binarize(10 << 8)
+    mask = core.std.Expr([main, shrink.std.Maximum(), main.std.Merge(shrink, minthr), lines], 'x y 0 = and x z ? a max')
+    imask = iterate(mask, core.std.Maximum, rad).std.Invert()
+    return core.std.Expr([mask, imask], 'x y +')
+
+
+def median(*clips): return core.std.Expr(clips, 'x y z min max y z max min')
+def mergechroma(luma, chroma): return core.std.ShufflePlanes([luma, chroma], [0, 1, 2], vs.YUV)
 
 
 def fader(clip: vs.VideoNode,
@@ -43,16 +61,6 @@ def fader(clip: vs.VideoNode,
                            * length, clip[end_frame] * length, length - 1),
                            input_frame)
     return clip
-
-
-def fix_lineart(clip: vs.VideoNode) -> vs.VideoNode:
-    """
-        A function that performs HQDeringmod with a repair on the lineart.
-    """
-    dering = lvf.util.quick_resample(
-        clip, partial(haf.HQDeringmod, nrmode=1, mrad=2, thr=3, sharp=0)
-    )
-    return lvf.util.pick_repair(dering)(dering, clip, 13)
 
 
 def replace_section(clip: vs.VideoNode,
@@ -145,18 +153,17 @@ if replace_bg:  # Fix certain frames with background issues, if applicable.
 
 b = core.std.BlankClip(src)[0]
 scomp = lvf.comparison.stack_compare(src_jp+b, src+b, make_diff=True)
-ef = bbmod(src, 1, 1, 1, 1, thresh=40, blur=999, y=True, u=False, v=False)
+ef = awsm.bbmod(src, 1, 1, 1, 1, thresh=40, u=False, v=False)
 ef = depth(ef, 32)
 
 
-scaled = lvf.scale.descale(ef, upscaler=lambda clip, width, height:
-                           tfsr(ef, clip, width, height), mask=None, **upscaled_args) \
-            .rgsf.Repair(ef, 13)
+lmask = lvf.util.quick_resample(ef, kgf.retinex_edgemask)
+lmask = iterate(lmask, core.std.Inflate, 2)
+scaled = lvf.scale.descale(ef, mask=None, **upscaled_args)
+sraa = lvf.sraa(scaled, rfactor=1.8, downscaler=lvf.kernels.Bicubic().scale, opencl=True)
+sraa = core.std.MaskedMerge(ef, sraa, lmask)
 
-
-aa = lvf.aa.nneedi3_clamp(scaled)
-dering = fix_lineart(aa)
-
+dehalo = fine_dehalo(sraa, ref=ef, thmi=48, thma=192)
 
 # The credits look fine, but the preview and episode titles are heavily aliased
 strong_aa = lvf.misc.replace_ranges(
@@ -171,42 +178,52 @@ title_mask = lvf.scale.descale(
 
 # We're also masking the credits in the OP/ED by using the NCs as reference
 # Masking credits using NCs
-merge = core.std.MaskedMerge(dering, strong_aa, title_mask)
+merge = core.std.MaskedMerge(dehalo, strong_aa, title_mask)
 merge = core.std.MaskedMerge(merge, ef, credit_mask)
-
+merge = depth(merge, 16)
 
 # Interpolation for some scenes with shimmering
 if interp_scene:
-    interp = lvf.util.quick_resample(
-        merge, partial(
-            haf.QTGMC, InputType=1, TR0=1, TR1=2, TR2=3, Preset="Very Slow"
-        )
-    )
+    interp = haf.QTGMC(merge, InputType=1, TR0=1, TR1=2, TR2=3, Preset="Very Slow")
     interp = lvf.rfs(merge, interp, ranges=interp_scene)
 else:
     interp = merge
 
+recon = lvf.recon.chroma_reconstruct(interp)
 
-# vs-placebo does a pretty aight job of debanding this
-detail_mask = lvf.denoise.detail_mask(
-    interp, pre_denoise=0.6, brz_a=0.06, brz_b=0.012
-)
-denoise = mvf.BM3D(interp, sigma=[0.6, 1], profile1='lc')
-deband = join([  # For whatever reason this is faster, like ???
-            core.placebo.Deband(plane(denoise, 0), grain=10, **deband_args),
-            core.placebo.Deband(plane(denoise, 1), grain=0,  **deband_args),
-            core.placebo.Deband(plane(denoise, 2), grain=0,  **deband_args)
-])
-deband = core.std.MaskedMerge(deband, interp, detail_mask)
+ref = haf.SMDegrain(recon, tr=1, thSAD=100, prefilter=3, search=3)
+denoise = mvf.BM3D(recon, ref=ref, sigma=[0.4, 0.7], profile1='lc')
 
 
-# Some fades have heavy banding. This fixes that.
+den = mvf.BM3D(denoise, sigma=6)
+diff_den = core.std.MakeDiff(denoise, den)
+
+detail_mask = lvf.mask.detail_mask(denoise, sigma=0.7, brz_a=0.012, brz_b=0.015)
+deband = dbs.f3kpf(den, range=13, y=56, cb=40, cr=40)
+deband = core.std.MaskedMerge(deband, den, detail_mask)
+deband = core.std.MergeDiff(deband, diff_den)
+
+# Some fades have heavy banding. Fading it myself should fix most of that.
 fade = fader(deband, values=fade_fix)
-
-grain = kgf.adaptive_grain(fade, 0.45, luma_scaling=4)
+grain = kgf.adaptive_grain(fade, 0.2, luma_scaling=4)
 
 
 out = grain
 final = depth(out, 10)
-#diff = lvf.comparison.tvbd_diff(src, src_jp, thr=96)
 final.set_output()
+
+
+if __name__ == '__vapoursynth__':
+    import ntpath
+    import os
+
+    import kagefunc as kgf
+
+    def keyframes(clip: vs.VideoNode, kf_path: str):
+        if not os.path.isdir("keyframes"):
+            os.makedirs("keyframes")
+        kgf.generate_keyframes(clip, out_path=kf_path, header=False)
+
+    kf_path = f"keyframes/{ntpath.basename(__file__)[:-4]}_keyframes.txt"
+    if not os.path.isfile(kf_path):
+        keyframes(src, kf_path)
