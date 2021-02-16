@@ -110,6 +110,7 @@ sraa = lvf.sraa(scaled, rfactor=1.8, downscaler=lvf.kernels.Bicubic().scale, ope
 sraa = core.std.MaskedMerge(ef, sraa, lmask)
 
 dehalo = fine_dehalo(sraa, ref=ef, thmi=48, thma=192)
+dehalo = depth(dehalo, 16)
 
 recon = lvf.recon.chroma_reconstruct(dehalo)
 
