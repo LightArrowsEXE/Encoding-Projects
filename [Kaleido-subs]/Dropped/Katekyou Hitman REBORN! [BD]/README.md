@@ -1,4 +1,4 @@
-Some notes for certain encoding decisions taken while working on this show, since I've heard some critiscms about various things and 
+Some notes for certain encoding decisions taken while working on this show, since I've heard some critiscms about various things and
 would like to explain my reasoning behind some of the filter choices.
 
 ## Upscaling:
