@@ -2,7 +2,6 @@ import ntpath
 import os
 from glob import glob
 
-import adjust
 import debandshit as dbs
 import havsfunc as haf
 import kagefunc as kgf
