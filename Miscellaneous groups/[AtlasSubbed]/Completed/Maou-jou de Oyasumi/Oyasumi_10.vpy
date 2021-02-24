@@ -41,7 +41,7 @@ ec = haf.EdgeCleaner(dehalo, strength=4, rmode=13, hot=True)
 ec = depth(ec, 32)  # Lineart is really shit, but I can't figure out the native res. Shit sucks.
 
 
-detail_mask = lvf.denoise.detail_mask(ec, brz_a=0.02, brz_b=0.025)
+detail_mask = lvf.mask.detail_mask(ec, brz_a=0.02, brz_b=0.025)
 deband = debander(ec, **deband_args)
 deband = core.std.MaskedMerge(deband, ec, detail_mask)
 

@@ -23,7 +23,7 @@ deband_args = dict(iterations=2, threshold=3, radius=14)
 ep = "07"
 src = lvf.src(fr"{ep}/[SubsPlease] Maou-jou de Oyasumi - {ep} (1080p) [4FCFF0A7].mkv")[168:]
 src_c = src  # copy for comp purposes
-amazon_src = fr"{ep}/Maou-jou de Oyasumi - {ep} (Amazon Prime VBR 1080p).mkv"
+amazon_src = fr"{ep}/Maou-jou de Oyasumi - {ep} (Amazon Prime CBR 1080p).mkv"
 
 # Amazon has better lineart in busy scenes, otherwise similar enough
 src_a = lvf.src(amazon_src)
@@ -39,7 +39,7 @@ ec = haf.EdgeCleaner(dehalo, strength=4, rmode=13, hot=True)
 ec = depth(ec, 32)  # Lineart is really shit, but I can't figure out the native res. Shit sucks.
 
 
-detail_mask = lvf.denoise.detail_mask(ec, brz_a=0.02, brz_b=0.025)
+detail_mask = lvf.mask.detail_mask(ec, brz_a=0.02, brz_b=0.025)
 deband = debander(ec, **deband_args)
 deband = core.std.MaskedMerge(deband, ec, detail_mask)
 
