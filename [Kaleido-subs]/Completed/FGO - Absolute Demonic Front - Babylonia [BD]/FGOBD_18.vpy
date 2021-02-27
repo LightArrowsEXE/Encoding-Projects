@@ -81,7 +81,7 @@ replace = []
 opstart = 288
 edstart = 32869
 
-src_BD = lvf.src(r"BDMV/[BDMV][200624][Fate Grand Order Zettai Majuu Sensen Babylonia][Vol.05]/DISC1/BDROM/BDMV/STREAM/00001.m2ts")[24:-24]
+src_BD = lvf.src(r"BDMV/[BDMV][ANZX-15513][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.5][JP]/DISC1/BDROM/BDMV/STREAM/00001.m2ts")[24:-24]
 src_WEB = lvf.src(r"BDMV/Fate Grand Order Absolute Demonic Front Babylonia E18 [1080p][AAC][JapDub][GerSub][Web-DL].mkv")
 src = lvf.rfs(src_BD, src_WEB, [19448])
 

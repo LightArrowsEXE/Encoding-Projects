@@ -81,7 +81,7 @@ replace = []
 opstart = 1654
 edstart = 31889
 
-src = lvf.src(r"BDMV/[BDMV][200624][Fate Grand Order Zettai Majuu Sensen Babylonia][Vol.05]/DISC1/BDROM/BDMV/STREAM/00000.m2ts")[24:-24]
+src = lvf.src(r"BDMV/[BDMV][ANZX-15513][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.5][JP]/DISC1/BDROM/BDMV/STREAM/00000.m2ts")[24:-24]
 
 
 if opstart is not None:

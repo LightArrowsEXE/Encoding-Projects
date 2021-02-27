@@ -10,4 +10,4 @@ path = r'BDMV/[BDMV][ANZX-15510][Fate Grand Order - Absolute Demonic Front Babyl
 src = lvf.src(path)
 
 if __name__ == "__main__":
-    eztrim(src, (24, -24), f"{os.path.splitext(path)[0]}.wav", f"{ntpath.basename(__file__)[3:-3]}_cut.wav")
+    eztrim(src, (24, -24), path, f"{ntpath.basename(__file__)[3:-3]}_cut.mka", ffmpeg_path='')  # noqa
