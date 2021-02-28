@@ -6,7 +6,7 @@ import lvsfunc as lvf
 from acsuite import eztrim
 
 
-path = r'BDMV/[BDMV][200624][Fate Grand Order Zettai Majuu Sensen Babylonia][Vol.05]/DISC1/BDROM/BDMV/STREAM/00000.m2ts'
+path = r'BDMV/[BDMV][ANZX-15513][Fate Grand Order - Absolute Demonic Front Babylonia][Vol.5][JP]/DISC1/BDROM/BDMV/STREAM/00000.m2ts'
 src = lvf.src(path)
 
 if __name__ == "__main__":
