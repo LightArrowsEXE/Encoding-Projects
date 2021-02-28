@@ -7,7 +7,7 @@ import lvsfunc as lvf
 from acsuite import eztrim
 
 
-path_a = r'BDMV/[KUNO-DIY][BDMV][CLANNAD][Blu-ray BOX Disc 1-5 Fin]/CLANNAD_5/BDMV/STREAM/00001.m2ts'
+path_a = r'BDMV/[KUNO-DIY][BDMV][CLANNAD][Blu-ray BOX Disc 1-5 Fin]/CLANNAD_5/BDMV/STREAM/00002.m2ts'
 path_b = r'BDMV/[KUNO-DIY][BDMV][CLANNAD][Blu-ray BOX Disc 1-5 Fin]/CLANNAD_5/BDMV/STREAM/00004.m2ts'
 
 src_a = lvf.src(path_a)
