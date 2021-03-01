@@ -1,3 +1,5 @@
+from functools import partial
+
 import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
@@ -7,6 +9,22 @@ from finedehalo import fine_dehalo
 from vsutil import depth, get_y, iterate, join, plane
 
 core = vs.core
+
+
+def dehardsub(clip_a: vs.VideoNode, clip_b: vs.VideoNode,
+              signs = [], replace_scenes = [],
+              showmask: bool = False) -> vs.VideoNode:
+    hardsubmask = kgf.hardsubmask(clip_a, clip_b)
+    if showmask:
+        return hardsubmask
+    clip = core.std.MaskedMerge(clip_a, clip_b, hardsubmask)
+
+    hardsubmask_fade = lvf.util.quick_resample(
+        clip_a, partial(kgf.hardsubmask_fades, ref=clip_b, expand_n=15, highpass=600)
+    )
+    clip_fade = core.std.MaskedMerge(clip_a, clip_b, hardsubmask_fade)
+    clip = lvf.rfs(clip, clip_fade, ranges=signs)
+    return lvf.rfs(clip, clip_b, ranges=replace_scenes)
 
 
 def placebo_debander(clip: vs.VideoNode, grain: int = 4, **deband_args) -> vs.VideoNode:
@@ -28,7 +46,11 @@ edstart = 29972
 
 start, end = 24, -31
 path = r"BDMV/[BDMV][201216][GREAT PRETENDER][Vol.1]/GREAT_PRETENDER_CASE_1/BDMV/STREAM/00007.m2ts"
-src = lvf.src(path)[start:end]
+src_a = lvf.src(path)[start:end]
+src_b = lvf.src(r"src/Great Pretender - 01 (Netflix 1080p).mkv")[24:]
+
+src = dehardsub(src_a, src_b)
+scomp = lvf.comparison.stack_compare(src, src_a, make_diff=True)
 b = core.std.BlankClip(src, length=1)
 
 if edstart is not False:
