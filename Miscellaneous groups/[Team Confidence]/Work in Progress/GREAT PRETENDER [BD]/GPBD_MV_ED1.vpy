@@ -1,8 +1,6 @@
-import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import vapoursynth as vs
-from finedehalo import fine_dehalo
 from vsutil import depth, join, plane
 
 core = vs.core
@@ -26,9 +24,9 @@ path = r"BDMV/[BDMV][201216][GREAT PRETENDER][Vol.1]/GREAT_PRETENDER_CASE_1/BDMV
 src = lvf.src(path)[start:end]
 src = depth(src, 16)
 
-dehalo_m = fine_dehalo(src, rx=2.6, ry=2.4, showmask=1)
-dehalo = haf.DeHalo_alpha(src, rx=2.2, ry=2, darkstr=0, brightstr=0.7)
-dehalo = core.std.MaskedMerge(src, dehalo, dehalo_m)
+dehalo_m = lvf.mask.halo_mask(src, rad=2)
+blur = core.bilateral.Gaussian(src, sigma=0.7)
+dehalo = core.std.MaskedMerge(src, blur, dehalo_m)
 
 scaled = lvf.scale.descale(dehalo, **scale_args)
 

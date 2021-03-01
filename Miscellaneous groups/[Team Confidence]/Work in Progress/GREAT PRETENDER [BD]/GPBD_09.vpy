@@ -1,9 +1,9 @@
-import havsfunc as haf
+from functools import partial
+
 import kagefunc as kgf
 import lvsfunc as lvf
 import vapoursynth as vs
 import vardefunc as vdf
-from finedehalo import fine_dehalo
 from vsutil import depth, get_y, iterate, join, plane
 
 core = vs.core
@@ -48,9 +48,9 @@ credit_mask = depth(credit_mask, 16).std.Binarize()
 
 src = depth(src, 16)
 
-dehalo_m = fine_dehalo(src, rx=2.6, ry=2.4, showmask=1)
-dehalo = haf.DeHalo_alpha(src, rx=2.2, ry=2, darkstr=0, brightstr=0.7)
-dehalo = core.std.MaskedMerge(src, dehalo, dehalo_m)
+dehalo_m = lvf.mask.halo_mask(src, rad=2)
+blur = core.bilateral.Gaussian(src, sigma=0.7)
+dehalo = core.std.MaskedMerge(src, blur, dehalo_m)
 
 scaled = lvf.scale.descale(dehalo, **scale_args)
 

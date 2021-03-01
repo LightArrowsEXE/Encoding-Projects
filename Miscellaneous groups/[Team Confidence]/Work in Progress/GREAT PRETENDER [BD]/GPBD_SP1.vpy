@@ -1,9 +1,7 @@
 import awsmfunc as awsm
-import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import vapoursynth as vs
-from finedehalo import fine_dehalo
 from vsutil import depth, join, plane
 
 core = vs.core
@@ -22,15 +20,15 @@ scale_args = dict(height=868, kernel=lvf.kernels.Bicubic())
 deband_args = dict(iterations=2, threshold=3, radius=14)
 
 
-start, end = 24, -23
+start, end = 24, -24
 path = r"BDMV/[BDMV][201216][GREAT PRETENDER][Vol.1]/GREAT_PRETENDER_CASE_1/BDMV/STREAM/00015.m2ts"
-src = lvf.src(path)#[start:end]
+src = lvf.src(path)[start:end]
 ef = awsm.bbmod(src, top=1)
 ef = depth(ef, 16)
 
-dehalo_m = fine_dehalo(ef, rx=2.6, ry=2.4, showmask=1).std.Inflate()
-dehalo = haf.DeHalo_alpha(ef, rx=2.4, ry=2.2, darkstr=0, brightstr=0.85)
-dehalo = core.std.MaskedMerge(ef, dehalo, dehalo_m)
+dehalo_m = lvf.mask.halo_mask(src, rad=2)
+blur = core.bilateral.Gaussian(src, sigma=0.7)
+dehalo = core.std.MaskedMerge(src, blur, dehalo_m)
 
 aa = lvf.aa.nneedi3_clamp(dehalo, strength=3)
 crecon = lvf.recon.chroma_reconstruct(aa)

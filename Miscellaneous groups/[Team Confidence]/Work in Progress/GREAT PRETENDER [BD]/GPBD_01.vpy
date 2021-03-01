@@ -1,11 +1,9 @@
 from functools import partial
 
-import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
 import vapoursynth as vs
 import vardefunc as vdf
-from finedehalo import fine_dehalo
 from vsutil import depth, get_y, iterate, join, plane
 
 core = vs.core
@@ -37,7 +35,7 @@ def placebo_debander(clip: vs.VideoNode, grain: int = 4, **deband_args) -> vs.Vi
 
 # Common args
 scale_args = dict(height=868, kernel=lvf.kernels.Bicubic())
-deband_args = dict(iterations=2, threshold=3, radius=14)
+deband_args = dict(iterations=2, threshold=4, radius=14)
 
 
 # First frame of ED. OP credits are not 1080p
@@ -69,9 +67,9 @@ credit_mask = depth(credit_mask, 16).std.Binarize()
 
 src = depth(src, 16)
 
-dehalo_m = fine_dehalo(src, rx=2.6, ry=2.4, showmask=1)
-dehalo = haf.DeHalo_alpha(src, rx=2.2, ry=2, darkstr=0, brightstr=0.7)
-dehalo = core.std.MaskedMerge(src, dehalo, dehalo_m)
+dehalo_m = lvf.mask.halo_mask(src, rad=2)
+blur = core.bilateral.Gaussian(src, sigma=0.7)
+dehalo = core.std.MaskedMerge(src, blur, dehalo_m)
 
 scaled = lvf.scale.descale(dehalo, **scale_args)
 
@@ -94,6 +92,7 @@ if __name__ == '__vapoursynth__':
     import ntpath
     import os
     import subprocess
+
     import kagefunc as kgf
     from acsuite import eztrim
 
