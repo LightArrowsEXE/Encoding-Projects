@@ -64,7 +64,7 @@ for value, ranges in zip(undim_values, undim_ranges):
 src_04 = lvf.src(glob(f'04/*.mkv')[0])
 
 # Used to just undim it myself, but Ep4 and onwards have undimmed frames
-src = lvf.rfs(src, src_04, [(30158, 30187)])
+src = kgf.insert_clip(src, src_04[31166:31196], 30158)
 src = depth(src, 32)
 
 descaled = lvf.scale.descale(src, upscaler=None, **descale_args)
