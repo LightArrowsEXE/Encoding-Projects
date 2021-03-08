@@ -51,28 +51,19 @@ except NameError:
 
 
 src_nc1 = lvf.src(r"BDMV/DIMENSION_W_1/BDMV/STREAM/00012.m2ts")[:-24]
-ef_nc1 = awsm.bbmod(src_nc1, **ef_args)
-ef_nc1 = depth(ef_nc1, 32)
-
-descaled_nc1 = lvf.scale.descale(ef_nc1, upscaler=None, kernel=lvf.kernels.Bicubic(0, 1))
-descaled_nc1 = depth(descaled_nc1, 16)
-
-# NCOP2 is not sharp bicubic. Thank fuck.
 src_nc2 = lvf.src(r"BDMV/DIMENSION_W_2/BDMV/STREAM/00013.m2ts")[:-24]
-ef_nc2 = awsm.bbmod(src_nc2, **ef_args)
-ef_nc2 = depth(ef_nc2, 32)
+src = lvf.rfs(src_nc2, src_nc1, [(1537, 1572)])
+ef = awsm.bbmod(src, **ef_args)
+ef = depth(ef, 32)
 
-descaled_nc2 = lvf.scale.descale(ef_nc2, upscaler=None, kernel=lvf.kernels.Bicubic(0, 1/2))
-descaled_nc2 = depth(descaled_nc2, 16)
-
-# Replacing the changes made in OP2 with OP1
-descaled = lvf.rfs(descaled_nc2, descaled_nc1, [(1537, 1572)])
+descaled = lvf.scale.descale(ef, upscaler=None, kernel=lvf.kernels.Bicubic(0, 1/2))
+descaled = depth(descaled, 16)
 
 if upscaled:
-    planes = split(depth(ef_nc2, 16))
+    planes = split(depth(ef, 16))  # Less efficient to denoise per plane, but meh. Still plenty fast
     planes[1], planes[2] = [denoising(p) for p in planes[1:]]
 
-chr = core.resize.Bicubic(ef_nc2, descaled.width, descaled.height, format=vs.YUV444P16)
+chr = core.resize.Bicubic(ef, descaled.width, descaled.height, format=vs.YUV444P16)
 descaled = join([descaled, plane(chr, 1), plane(chr, 2)])
 denoise = denoising(descaled)
 
@@ -84,8 +75,8 @@ dehalo = core.std.MaskedMerge(denoise, blur, dehalo_m)
 aa = lvf.sraa(denoise, rfactor=2, rep=13, downscaler=lvf.kernels.Bicubic().scale, opencl=True)
 
 if upscaled:
-    upscaled = vdf.fsrcnnx_upscale(get_y(aa), ef_nc2.width*2, ef_nc2.height*2, shader) \
-        .resize.Spline36(ef_nc2.width, ef_nc2.height)
+    upscaled = vdf.fsrcnnx_upscale(get_y(aa), src.width*2, src.height*2, shader) \
+        .resize.Spline36(src.width, src.height)
     scaled = join([upscaled, planes[1], planes[2]])
     recon = lvf.recon.chroma_reconstruct(scaled)
 else:
