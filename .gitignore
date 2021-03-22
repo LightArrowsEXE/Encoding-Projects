@@ -105,6 +105,7 @@ __pycache__/
 *.nfo
 *.parts
 *.properties
+*.pth
 *.rar
 *.torrent
 *.txt
