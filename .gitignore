@@ -3,6 +3,7 @@
 
 # Video, Audio & Picture files
 *.264
+*.265
 *.aac
 *.ac3
 *.bmp
