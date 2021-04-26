@@ -160,7 +160,7 @@ grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=4)
 
 out = grain
 final = depth(grain, 10)
-final[:381].set_output()
+final.set_output()
 
 
 if __name__ == '__vapoursynth__':
@@ -173,4 +173,4 @@ if __name__ == '__vapoursynth__':
 
     kf_path = f"keyframes/{ntpath.basename(__file__)[:-4]}_keyframes.txt"
     if not os.path.isfile(kf_path):
-        keyframes(dh[:381], kf_path)
+        keyframes(dh, kf_path)
