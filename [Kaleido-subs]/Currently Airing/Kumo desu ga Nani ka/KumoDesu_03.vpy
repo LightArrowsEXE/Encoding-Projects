@@ -2,34 +2,23 @@ import ntpath
 import os
 from glob import glob
 
-import adjust
 import debandshit as dbs
 import havsfunc as haf
 import kagefunc as kgf
 import lvsfunc as lvf
-import mvsfunc as mvf
 import vapoursynth as vs
 import vardefunc as vdf
 import xvs
 from finedehalo import fine_dehalo
-from vsutil import depth, get_y, iterate, join, plane, scale_value
+from vsutil import depth, get_w, get_y, join, plane
 
 core = vs.core
 
 
 shader = 'FSRCNNX_x2_56-16-4-1.glsl'
 if os.path.exists(shader) is False:
-    hookpath = r"mpv\shaders\FSRCNNX_x2_56-16-4-1.glsl"
+    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
     shader = os.path.join(os.getenv("APPDATA"), hookpath)
-
-
-def brz_aa(clip: vs.VideoNode) -> vs.VideoNode:
-    aa = core.eedi3m.EEDI3(clip, field=0, gamma=70)
-    diff = core.std.MakeDiff(clip, aa)
-    brz = core.std.Binarize(get_y(diff), scale_value(130, 8, clip.format.bits_per_sample))
-    brz = iterate(brz, core.std.Inflate, 3)
-    brz = iterate(brz, core.std.Maximum, 3)
-    return core.std.MaskedMerge(aa, lvf.sraa(clip, rep=13), brz)
 
 
 def makemask(clip_y: vs.VideoNode,
@@ -47,42 +36,32 @@ def c_mask(clip: vs.VideoNode) -> vs.VideoNode:
 
 
 # Common args
-descale_args = dict(height=844, kernel=lvf.kernels.Bicubic(0, 1/2))
-
-# First frame of first cut of the ED
-edstart = 28608
-
-# Scenefiltering
-undim_ranges = [(edstart+1700, edstart+1817)]
-undim_values = [1.12]
+descale_args = dict(width=get_w(844), height=844)
+bicubic_args = dict(b=0, c=1/2)
 
 
 src = lvf.src(glob(f'{ntpath.basename(__file__)[-6:-4]}/*.mkv')[0])
-for value, ranges in zip(undim_values, undim_ranges):
-    undim = adjust.Tweak(src, sat=value, cont=value)
-    src = lvf.rfs(src, undim, [ranges])
-src_04 = lvf.src(glob(f'04/*.mkv')[0])
-
-# Used to just undim it myself, but Ep4 and onwards have undimmed frames
-src = kgf.insert_clip(src, src_04[31166:31196], 30158)
+src8 = src
+src16 = depth(src, 16)
 src = depth(src, 32)
 
-descaled = lvf.scale.descale(src, upscaler=None, **descale_args)
-descaled_m = lvf.scale.descale(src, show_mask=True, **descale_args)
+descaled = core.descale.Debicubic(plane(src, 0), **bicubic_args, **descale_args)
+descaled_m = lvf.scale.descale(plane(src, 0), show_mask=True, kernel=lvf.kernels.Bicubic(**bicubic_args), **descale_args)  # noqa
 descaled = depth(descaled, 16)
 
 ref = haf.SMDegrain(descaled, tr=1, thSAD=150, prefilter=3, search=3, contrasharp=True, RefineMotion=True)
-denoise = mvf.BM3D(descaled, sigma=0.5, radius1=1, profile1='lc', psample=0, ref=ref)
+denoise = lvf.denoise.bm3d(descaled, sigma=0.5, radius=1, ref=ref)
 
-aa = brz_aa(denoise)
+aa = lvf.aa.upscaled_sraa(denoise, rfactor=1.8)
+csharp = haf.ContraSharpening(aa, denoise, radius=3, rep=17)
 
-sharp = haf.LSFmod(get_y(aa), strength=100, soft=10, edgemode=1, Smethod=2, Lmode=2, defaults='slow', edgemaskHQ=True)
-sharp = core.std.MaskedMerge(get_y(aa), sharp, c_mask(aa))
+sharp = haf.LSFmod(get_y(csharp), strength=100, soft=10, edgemode=1, Smethod=2, Lmode=2, defaults='slow', edgemaskHQ=True)
+sharp = core.std.MaskedMerge(get_y(csharp), sharp, c_mask(csharp))
 
-dehalo = fine_dehalo(sharp, ref=get_y(aa), rx=4, darkstr=0)
+dehalo = fine_dehalo(sharp, ref=get_y(csharp), rx=4, darkstr=0)
 
 darken = haf.FastLineDarkenMOD(dehalo, strength=16)
-rescale = vdf.fsrcnnx_upscale(darken, shader_file=shader)
+rescale = vdf.scale.fsrcnnx_upscale(darken, shader_file=shader)
 
 cwarp = xvs.WarpFixChromaBlend(src, thresh=10)
 cwarp = core.std.MaskedMerge(cwarp, src, c_mask(src))
@@ -95,23 +74,20 @@ detail_mask = core.std.Expr(
     [lvf.mask.detail_mask(merged,
      sigma=0.4, brz_a=0.0125, brz_b=0.025),
      makemask(plane(merged, 0))],
-     expr="x y + abs")
-deband = dbs.f3kpf(merged, range=16, y=40, cb=32)
+    expr="x y + abs"
+)
+deband = dbs.f3kpf(merged, radius=16, threshold=[40, 32])
 deband = core.std.MaskedMerge(deband, merged, detail_mask)
 
 grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=4)
 
-src_04 = src_04.resize.Bicubic(format=src.format)
 
 out = grain
 final = depth(out, 10)
-final.set_output()
+final.set_output(0)
 
 
 if __name__ == '__vapoursynth__':
-    import ntpath
-    import os
-
     def keyframes(clip: vs.VideoNode, kf_path: str):
         if not os.path.isdir("keyframes"):
             os.makedirs("keyframes")
