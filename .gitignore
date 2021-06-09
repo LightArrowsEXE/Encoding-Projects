@@ -94,6 +94,7 @@ __pycache__/
 *.crt
 *.csv
 *.diff
+*.egg
 *.exe
 *.glsl
 *.html
