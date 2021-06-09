@@ -193,3 +193,6 @@ rename.py
 
 # Paths to other repos that git picks up because git bad
 [Kaleido-subs]/Completed/Joshiraku [BD]/Joshiraku/
+
+# There is a good reason for this (no, there is not, besides annoyance)
+*.crdownload
