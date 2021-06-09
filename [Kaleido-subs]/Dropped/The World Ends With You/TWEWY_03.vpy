@@ -10,7 +10,7 @@ import vapoursynth as vs
 import vardefunc as vdf
 import xvs
 from finedehalo import fine_dehalo
-from vsutil import depth, get_y, join, plane
+from vsutil import depth, get_y
 
 core = vs.core
 
@@ -84,7 +84,6 @@ replace_with_waka = [  # Primarily to prevent super-compressed frames to get dh'
 ]  # https://slow.pics/c/LSuJnKGM
 
 replace_with_amz = [
-    (295, 414), (6437, 6556), (16736, 16807)
 ]
 
 signs_dh = [
@@ -110,7 +109,7 @@ dh = lvf.rfs(dh, src[0], replace_with_amz) if replace_with_amz else dh
 
 
 scomp2 = lvf.comparison.stack_compare(dh, src[0], make_diff=True)
-diff = lvf.diff(src[0].bilateral.Gaussian(sigma=2), dh.bilateral.Gaussian(sigma=2), thr=104)  # Comment once used
+#diff = lvf.diff(src[0].bilateral.Gaussian(sigma=2), dh.bilateral.Gaussian(sigma=2), thr=104)  # Comment once used
 
 
 # Creating a detail mask using a gaussian blur and edgemasking
@@ -119,7 +118,7 @@ detail_m = detail_mask(pf, pf=True)
 
 denoise = haf.SMDegrain(dh, thSAD=200)
 denoise = core.std.MaskedMerge(denoise, dh, detail_m)
-decsiz = vdf.decsiz(denoise, sigmaS=4, min_in=208 << 8, max_in=232 << 8)
+decsiz = vdf.noise.decsiz(denoise, sigmaS=4, min_in=208 << 8, max_in=232 << 8)
 
 
 dehalo = fine_dehalo(decsiz, rx=2, darkstr=0, brightstr=0.9)
@@ -138,7 +137,7 @@ lmask = kgf.retinex_edgemask(credits_masked)
 cwarp = xvs.WarpFixChromaBlend(credits_masked, thresh=96, depth=6)
 cwarp = core.std.MaskedMerge(cwarp, credits_masked, lmask)
 
-deband = vdf.dumb3kdb(cwarp, threshold=40, grain=24)
+deband = vdf.deband.dumb3kdb(cwarp, threshold=40, grain=24)
 deband = core.std.MaskedMerge(deband, cwarp, detail_m)
 
 grain = adp.adptvgrnMod(deband, 0.3, size=1.2, static=False, grain_chroma=False, luma_scaling=4)
@@ -146,7 +145,7 @@ grain = adp.adptvgrnMod(deband, 0.3, size=1.2, static=False, grain_chroma=False,
 
 out = grain
 final = depth(grain, 10)
-diff.set_output()
+final.set_output()
 
 
 if __name__ == '__vapoursynth__':
