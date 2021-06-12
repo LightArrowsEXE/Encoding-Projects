@@ -83,7 +83,9 @@
 
 # Python files
 __pycache__/
+*.egg-info/
 *.py[cod]
+*.pyi
 *$py.class
 
 # Misc
@@ -185,14 +187,22 @@ rename.py
 
 [Kaleido-subs]/Work in Progress/Katekyou Hitman REBORN! [BD]/!KHR encoder notes
 
+
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
 \!temp_archiving
 
-# A suffix for directories I want to temporarily prevent being accidentally pushed
+
+# A suffix for directories I want to temporarily prevent from being accidentally pushed
 *_hidden
+
 
 # Paths to other repos that git picks up because git bad
 [Kaleido-subs]/Completed/Joshiraku [BD]/Joshiraku/
 
+
 # There is a good reason for this (no, there is not, besides annoyance)
 *.crdownload
+
+
+# Ignore lossless files. These are generally used as intermediary files to check temporal consistency or encoding settings.
+*lossless*
