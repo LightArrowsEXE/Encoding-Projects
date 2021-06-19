@@ -186,7 +186,7 @@ rename.py
 
 # Exceptions
 !settings
-
+!requirements.txt
 
 # Exceptions to the exceptions
 *.lnk
