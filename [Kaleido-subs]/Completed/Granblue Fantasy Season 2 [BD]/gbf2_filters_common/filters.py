@@ -1,6 +1,6 @@
 """
     Generic filtering.
-    Sticking all the common filtering in here means I have do to less updating to invidiual scripts, yay.
+    Sticking all the common filtering in here means I have to do less updating to invidiual scripts, yay.
 """
 from typing import Any, Dict, List, Optional, Tuple, Union
 
