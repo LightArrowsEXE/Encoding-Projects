@@ -1,0 +1,4 @@
+[submodule "[GJM]/Movies & OVAs/Kaguya-sama - Love is War S2 OVA [DVD]/kaguya-sama-ova-encoding"]
+	path = [GJM]/Movies & OVAs/Kaguya-sama - Love is War S2 OVA [DVD]/kaguya-sama-ova-encoding
+	url = https://github.com/Ichunjo/kaguya-sama-ova-encoding
+	branch = gjm
