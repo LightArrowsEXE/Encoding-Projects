@@ -30,6 +30,7 @@ final.set_output(0)
 
 
 if __name__ == '__vapoursynth__':
+    import os
     from pathlib import Path
 
     from lvsfunc.render import SceneChangeMode, find_scene_changes
