@@ -8,7 +8,7 @@ from gbf2_filters_common import filters
 core = vs.core
 
 
-src = lvf.src(r"BDMV/GRANBLUE_FANTASY_SEASON2_1/BDMV/STREAM/00007.m2ts", cachedir="")[:-24]
+src = lvf.src(r"BDMV/GRANBLUE_FANTASY_SEASON2_7/BDMV/STREAM/00001.m2ts", cachedir="")[:-27]
 src = depth(src, 16)
 
 scaled, credit_mask = filters.rescaler(src, height=844)
@@ -26,9 +26,11 @@ final.set_output(0)
 
 
 if __name__ == '__vapoursynth__':
+    import os
     from pathlib import Path
 
     from lvsfunc.render import SceneChangeMode, find_scene_changes
+
 
     out_path = Path(f'{Path.cwd()}/.qp/{os.path.basename(__file__)[:-4]}_qpfile.txt')
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -4,7 +4,7 @@ import os
 import lvsfunc as lvf
 from acsuite import eztrim
 
-path = r"BDMV/GRANBLUE_FANTASY_SEASON2_1/BDMV/STREAM/00007.m2ts"
+path = r"BDMV/GRANBLUE_FANTASY_SEASON2_7/BDMV/STREAM/00008.m2ts"
 src = lvf.src(path, cachedir="")
 
 if __name__ == "__main__":

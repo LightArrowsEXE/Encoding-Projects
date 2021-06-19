@@ -8,7 +8,7 @@ from gbf2_filters_common import filters
 core = vs.core
 
 
-src = lvf.src(r"BDMV/GRANBLUE_FANTASY_SEASON2_1/BDMV/STREAM/00007.m2ts", cachedir="")[:-24]
+src = lvf.src(r"BDMV/GRANBLUE_FANTASY_SEASON2_7/BDMV/STREAM/00007.m2ts", cachedir="")[:-24]
 src = depth(src, 16)
 
 scaled, credit_mask = filters.rescaler(src, height=844)

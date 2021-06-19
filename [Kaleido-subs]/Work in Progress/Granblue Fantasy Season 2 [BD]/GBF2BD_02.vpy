@@ -1,41 +1,39 @@
-import vapoursynth as vs
 import lvsfunc as lvf
-import kagefunc as kgf
-import fvsfunc as fvf
-from cooldegrain import *
-from nnedi3_rpow2 import *
-from vsutil import *
+import vapoursynth as vs
+from adptvgrnMod import adptvgrnMod
+from vsutil import depth
+
+from gbf2_filters_common import filters
+
 core = vs.core
 
 
-src = lvf.src(r'BDMV/GRANBLUE_FANTASY_SEASON2_1/BDMV/STREAM/00002.m2ts')
-src = fvf.Depth(src, 32)
-src = src[:-27]
+src = lvf.src(r"BDMV/GRANBLUE_FANTASY_SEASON2_1/BDMV/STREAM/00002.m2ts", cachedir="")[:-24]
+src = depth(src, 16)
 
-h = 844
-b, c = 0, 1/2
-planes = split(src)
-descaled = core.descale.Debicubic(planes[0], get_w(h), h, b=b, c=c)
-upscaled = core.resize.Bicubic(descaled, planes[0].width, planes[0].height, filter_param_a=b, filter_param_b=c)
-credit_mask = core.std.Expr([planes[0], upscaled], 'x y - abs').std.Binarize(0.05)
-credit_mask = kgf.iterate(credit_mask, core.std.Maximum, 6)
-credit_mask = kgf.iterate(credit_mask, core.std.Inflate, 2)
+scaled, credit_mask = filters.rescaler(src, height=844)
+denoise = filters.denoising(scaled)
+aa_clamped = filters.antialiasing(denoise)
 
-planes[0] = nnedi3_rpow2(descaled).resize.Bicubic(planes[0].width, planes[0].height, filter_param_a=0, filter_param_b=1/2)
-upscaled = join(planes)
+credits_merged = core.std.MaskedMerge(aa_clamped, depth(src, 16), credit_mask)
 
-scaled = core.std.MaskedMerge(upscaled, src, credit_mask)
+deband = filters.debanding(credits_merged)
+grain = adptvgrnMod(deband, strength=0.3, luma_scaling=10, size=1.25, sharp=80, grain_chroma=False, seed=42069)
 
 
-d_mask = kgf.adaptive_grain(fvf.Depth(scaled, 16), show_mask=True, luma_scaling=10)
-denoise_a = CoolDegrain(scaled, tr=1, thsad=72, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise_b = CoolDegrain(scaled, tr=1, thsad=24, thsadc=48, bits=16, blksize=8, overlap=4)
-denoise = core.std.MaskedMerge(denoise_a, denoise_b, d_mask)
-
-deband = core.f3kdb.Deband(denoise, range=18, y=40, cb=32, cr=32, grainy=36, grainc=0, output_depth=16)
-grain = kgf.adaptive_grain(deband, 0.2, luma_scaling=7)
+final = depth(grain, 10)
+final.set_output(0)
 
 
-out = grain
-final = fvf.Depth(out, 10)
-final.set_output()
+if __name__ == '__vapoursynth__':
+    from pathlib import Path
+
+    from lvsfunc.render import SceneChangeMode, find_scene_changes
+
+    out_path = Path(f'{Path.cwd()}/.qp/{os.path.basename(__file__)[:-4]}_qpfile.txt')
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if os.path.isfile(out_path) is False:
+        with open(out_path, 'w') as o:
+            for f in find_scene_changes(src, SceneChangeMode.WWXD_SCXVID_UNION):
+                o.write(f"{f} I -1\n")
