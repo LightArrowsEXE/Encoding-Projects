@@ -1,4 +1,4 @@
-## [◯PMan]
+# [◯PMan] Scripts
 
 The scripts for my ◯PMan releases.
 These are far more experimental than my regular scripts,
@@ -12,7 +12,7 @@ Here,
 I first split shows up into seasonals and other
 (movies,
 OVAs,
-specials,
+non-TV specials,
 etc.).
 I then dump the scripts in the relevant folders (the season they aired in for multicour stuff).
 Additionally I also add an `[a#####]` code,
@@ -26,6 +26,8 @@ but that's mainly because I don't think forcibly splitting everything apart is *
 Included with every seasonal directory is also a WIP list of all the OPs and EDs that came out in that season to my knowledge.
 Please let me know in an [Issue][issues_link] if I forgot something in those lists!
 
+(Also obligatory *I AM **NOT** ΣDMan*,
+stop asking me about their stuff)
 
 [issues_link]: https://github.com/LightArrowsEXE/Encoding-Projects/issues
 [bento_anidb]: https://anidb.net/anime/8292
