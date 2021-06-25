@@ -59,7 +59,7 @@ class Encoding:
         assert self.file.a_src
         assert self.file.a_enc_cut
 
-        v_encoder = X265Encoder('x265', 'x265_settings_BD')
+        v_encoder = X265Encoder('x265', 'settings/x265_settings_BD')
 
         a_extracters = [
             BasicTool(
