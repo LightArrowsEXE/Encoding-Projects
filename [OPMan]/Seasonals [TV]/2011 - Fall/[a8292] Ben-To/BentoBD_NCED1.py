@@ -22,6 +22,7 @@ EPNUM = __file__[-5:-3]
 JPBD = FileInfo(r'BDMV/Vol.1/BDMV/STREAM/00002.m2ts', 0, -24,
                 idx=lambda x: source(x, cachedir=''),
                 preset=[PresetBD, PresetFLAC])
+JPBD.name_file_final = VPath(fr"premux/{JPBD.name} (Premux).mkv")
 JPBD.do_qpfile = True
 
 
