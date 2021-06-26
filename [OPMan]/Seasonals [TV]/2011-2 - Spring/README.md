@@ -48,7 +48,7 @@
 | [One Piece][onep_link]                                   | OP14               | Fall 1999         | help  |       |
 | [Oretachi ni Tsubasa wa Nai: Under the Innocent Sky][oretsuba_link] | OP1v1-v2, ED1, Ep01 ED, Ep10 ED | | | X     |
 | [Plastic Nee-san][plastic_link]<a name="myfootnote1"><sup>1</sup></a>  | OP1, ED1 |               | ONA   |       |
-| [Pocket Monsters: Best Wishes!][pmnbw_link]              | ED2                | Fall 2010         |       |       |
+| [Pocket Monsters: Best Wishes!][pkmbw_link]              | ED2                | Fall 2010         |       |       |
 | [Pretty Rhythm: Aurora Dream][prerhy_link]               | OP1, ED1           |                   |       |       |
 | [Ring ni Kakero 1: Sekai Taikai-hen][ring14_link]        | OP1, ED1           |                   |       |       |
 | [Seikon no Qwaser II][qwaser2_link]                      | OP1v1-v2, ED1      |                   |       |       |
@@ -106,7 +106,7 @@
 [kaiji2_link]: https://anidb.net/anime/8242
 [kaminomi2_link]: https://anidb.net/anime/8167
 [mariaholic2_link]: https://anidb.net/anime/8041
-[maruko2link]: https://anidb.net/anime/1842
+[maruko2_link]: https://anidb.net/anime/1842
 [moshidora_link]: https://anidb.net/anime/8027
 [naruto2_link]: https://anidb.net/anime/4880
 [nichijou_link]: https://anidb.net/anime/8168
@@ -138,5 +138,5 @@
 [xros3_link]: https://anidb.net/anime/8616
 [zexal_link]: https://anidb.net/anime/8140
 
-<sup>[1](#myfootnote1)</sup> Can only *barely* be counted as Spring 2011, so this might be moved to `Specials` eventually.
-<sup>[2](#myfootnote2)</sup> ED1v2 aired during the rebroadcast in Fall 2014 (?), in Ep23 maybe? Not 100% sure.
+<sup>[1](#myfootnote1)</sup> Can only *barely* be counted as Spring 2011, so this might be moved to `Specials` eventually.<br>
+<sup>[2](#myfootnote2)</sup> ED1v2 aired during the rebroadcast in Fall 2014 (?), in Ep23 maybe? Not 100% sure.<br>
