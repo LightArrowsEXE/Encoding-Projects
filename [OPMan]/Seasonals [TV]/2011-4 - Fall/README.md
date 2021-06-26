@@ -34,11 +34,11 @@
 | [Mawaru Penguindrum][penguindrum_link]                   | OP2, ED2, ED3v2-v3(?), ED4, Ep16 ED, Ep19 ED, Ep21 ED, Ep22 ED, Ep23 ED | Summer 2011 |        |       |
 | [Mirai Nikki][mirainikki_link]                           | OP1, ED1v1, ED1v2  |                   |       |       |
 | [Morita-san wa Mukuchi. 2][morita2_link]                 | OP1                |                   |       |       |
-| [Naruho: Shippuuden][narutos_link]                       | OP10, ED19   | Winter 2007       |       |       |
+| [Naruho: Shippuuden][narutos_link]                       | OP10, ED19         | Winter 2007       |       |       |
 | [Naruto Shounen-hen][shounenhen_link]                    | OP10               | ???               | Rebroadcast | |
 | [Nihon Omoshiro Mukashibanashi][folklore_link]           | OP1                |                   |       |       |
 | [Nurarihyon no Mago: Sessen Makyou][nurarihyon2_link]    | OP2, ED2           | Summer 2011       |       |       |
-| [One Piece][onep_link]                                   | OP15v1             |                   | help  |       |
+| [One Piece][onep_link]                                   | OP15v1             | Fall 1999         | help  |       |
 | [Persona 4 the ANIMATION][p4_link]                       | OP1, Ep1 OP, Ep9 OP, Ep1 ED, ED2 |     |       |       |
 | [Phi Brain: Kami no Puzzle][phibrain_link]               | OP1, ED1           |                   |       |       |
 | [Pretty Rhythm: Aurora Dream][prerhymeaurora_link]       | OP2, ED3           | Spring 2011       |       |       |
