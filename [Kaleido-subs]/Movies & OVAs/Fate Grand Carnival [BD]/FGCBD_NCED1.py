@@ -29,7 +29,7 @@ def main() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     from vsutil import get_y
 
     src = JP_BD.clip_cut
-    panorama = flt.panner_x(src, r"assets/ED/FGCBD_NCED1_panorama.png")
+    panorama = flt.panner_x(src, JP_BD.workdir.to_str() + r"/assets/ED/FGCBD_NCED1_panorama.png")
 
     denoise = decsiz(panorama, min_in=164 << 8, max_in=204 << 8)
     grain = flt.grain(denoise, strength=0.2, luma_scaling=6)
