@@ -1,0 +1,2 @@
+# Allowing certain assets from these directories
+!*.png
