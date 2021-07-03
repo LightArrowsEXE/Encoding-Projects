@@ -103,7 +103,9 @@ def output(clip: vs.VideoNode) -> vs.VideoNode:
 
     return depth(clip, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])
 
+
 XML_TAG = "settings/tags_aac.xml"
+
 
 class Encoding:
     def __init__(self, file: FileInfo, clip: vs.VideoNode) -> None:

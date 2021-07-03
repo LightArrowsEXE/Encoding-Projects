@@ -53,6 +53,7 @@ def output(clip: vs.VideoNode) -> vs.VideoNode:
 
     return depth(clip, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])
 
+
 XML_TAG = "settings/tags_aac.xml"
 
 
@@ -69,7 +70,7 @@ class Encoding:
 
         ap_video_source(self.file.path.to_str(),
                         [self.file.frame_start, self.file.frame_end],
-                        framerate=self.clip.fps,
+                        framerate=JP_BD.clip.fps,  # Pass base clip to not fuck up the trimming
                         noflac=True, noaac=False, nocleanup=False, silent=False)
         os.rename(self.file.path_without_ext.to_str() + "_2_cut.aac", self.file.a_src_cut.to_str())
 
@@ -86,7 +87,7 @@ class Encoding:
 
         runner = SelfRunner(self.clip, self.file, config)
         runner.run()
-        runner.do_cleanup(XML_TAG)
+        runner.do_cleanup()
 
 
 if __name__ == '__main__':
