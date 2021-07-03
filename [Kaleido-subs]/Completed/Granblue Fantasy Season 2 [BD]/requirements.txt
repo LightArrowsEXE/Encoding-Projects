@@ -1,5 +1,5 @@
-# Forcing versions whenever reasonable
 VapourSynth>=51
 vsutil>=0.5.0
 vardefunc==0.2.7
 lvsfunc==0.3.5
+git+https://github.com/Ichunjo/encode-scripts.git@3384e50#subdirectory=vardautomation/

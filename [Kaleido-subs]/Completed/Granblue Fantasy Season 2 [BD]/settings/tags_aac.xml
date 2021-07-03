@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Tags>
+  <Tag>
+    <Targets/>
+    <Simple>
+      <Name>ENCODER</Name>
+      <String>qaac 2.71, CoreAudioToolbox 7.10.6.0</String>
+    </Simple>
+    <Simple>
+      <Name>Encoder Settings</Name>
+      <String>AAC-LC Encoder, TVBR q127, Quality 96</String>
+    </Simple>
+  </Tag>
+</Tags>
