@@ -1,0 +1,9 @@
+VapourSynth>=51
+git+https://github.com/Irrational-Encoding-Wizardry/vsutil.git
+vardefunc==0.2.7
+lvsfunc==0.3.6
+git+https://github.com/Ichunjo/encode-scripts.git#subdirectory=vardautomation/
+git+https://github.com/begna112/bvsfunc.git
+git+https://github.com/HomeOfVapourSynthEvolution/havsfunc.git
+git+https://github.com/Irrational-Encoding-Wizardry/kagefunc.git
+git+https://gitlab.com/Ututu/adptvgrnmod.git
