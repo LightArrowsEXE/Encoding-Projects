@@ -1,22 +1,21 @@
 """The encoder class. This is where the actual magic happens."""
-from os import PathLike
-from typing import Any, List, Optional, Sequence, Tuple, Union
+import binascii
+import os
+from typing import Any, List, Optional, Union
 
 import vapoursynth as vs
 from bvsfunc.util import ap_video_source
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, AudioStream, FileInfo,
-                            MatroskaXMLChapters, Mux, PresetAAC, PresetBD,
-                            RunnerConfig, SelfRunner, VideoStream, VPath,
-                            X264Encoder, make_comps)
+from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, RunnerConfig,
+                            SelfRunner, VideoStream, VPath, X264Encoder,
+                            make_comps)
 from vsutil import depth
-
-from .filter import masked_f3kdb, default_grain
 
 core = vs.core
 
 
 XML_TAG = 'settings/tags_aac.xml'
+
 
 def dither_down(clip: vs.VideoNode) -> vs.VideoNode:
     """Output video node"""
@@ -28,17 +27,35 @@ def verify_trim(trims: Any) -> List[Optional[int]]:
     return list(trims) if isinstance(trims, tuple) else [None, None]
 
 
-def generate_comparison(src: FileInfo, enc: Union[PathLike[str], str], flt: vs.VideoNode) -> None:
-        make_comps(
+def generate_comparison(src: FileInfo, enc: Union[os.PathLike[str], str], flt: vs.VideoNode) -> None:
+    make_comps(
         {
             'source': src.clip_cut,
             'filtered': flt,
             'encode': source(str(enc), force_lsmas=True, cachedir='')
         },
-        num = int(src.clip_cut.num_frames / 500) if src.clip_cut.num_frames > 5000 else 50,
+        num=int(src.clip_cut.num_frames / 500) if src.clip_cut.num_frames > 5000 else 50,
         collection_name=f'{src.name} Encode',
         path=f'.comps/{src.name}', force_bt709=True, slowpics=True, public=False
     )
+
+
+def calculateCRC(f: str) -> str:
+    with open(f, 'rb') as file:
+        calc = file.read()
+    return "%08X" % (binascii.crc32(calc) & 0xFFFFFFFF)
+
+
+def appendCRC(f: Union[str, VPath]) -> None:
+    from vardautomation.status import Status
+
+    Status.info("Calculating CRC...")
+    basename = str(f)
+    crc = calculateCRC(basename)
+    Status.info(f"CRC: {crc}")
+    filename = f'{os.path.splitext(basename)[0]} [{crc}]{os.path.splitext(basename)[1]}'
+    Status.info(f'Renaming {basename} -> {filename}')
+    os.rename(basename, filename)
 
 
 class Encoder:
@@ -53,7 +70,6 @@ class Encoder:
 
         settings_file = 'settings/x264_settings' if not wraw else 'settings/x264_settings_wraw'
         v_encoder = X264Encoder(settings_file)
-
 
         self.clip = dither_down(self.clip)
 
@@ -78,6 +94,8 @@ class Encoder:
 
         runner = SelfRunner(self.clip, self.file, config)
         runner.run()
+
+        appendCRC(self.file.name_file_final)
 
         if make_comp:
             generate_comparison(self.file, self.file.name_file_final.to_str(), self.clip)
