@@ -1,4 +1,3 @@
-import argparse  # noqa
 import os
 from typing import List, Optional, Tuple, Union
 
@@ -6,11 +5,11 @@ import vapoursynth as vs
 from bvsfunc.util import ap_video_source
 from lvsfunc.misc import source
 from lvsfunc.types import Range
-from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, PresetAAC,
-                            PresetWEB, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X264Encoder, Patch)
+from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, Patch,
+                            PresetAAC, PresetWEB, RunnerConfig, SelfRunner,
+                            VideoStream, VPath, X264Encoder)
 
-from kobayashi2_filters import flt, util, encode
+from kobayashi2_filters import encode, flt, util
 
 core = vs.core
 
@@ -59,7 +58,7 @@ def trim() -> Tuple[vs.VideoNode, Optional[vs.VideoNode], vs.VideoNode]:
     src_hard = JP_AOD.clip_cut
     hdiff = None
 
-    dehardsubbed = util.dehardsub(src_hard, src_clean, hardsub_sign, replace_scenes)
+    dehardsubbed: vs.VideoNode = util.dehardsub(src_hard, src_clean, hardsub_sign, replace_scenes)
     scomp = stack_compare(src_clean, dehardsubbed)
 
     # Comment out after it's run because >lol wasting time in $(CURRENT YEAR)
@@ -134,19 +133,19 @@ if __name__ == '__main__':
     FILTERED = filterchain() if not make_wraw else wraw_filterchain()
     encode.Encoder(JP_AOD, FILTERED).run(wraw=make_wraw, make_comp=False)  # type: ignore
 elif __name__ == '__vapoursynth__':
-    FILTERED = filterchain()  # type: ignore
+    FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
-        for i, CLIP_FILTERED in enumerate(FILTERED, start=1):  # type: ignore
+        for i, CLIP_FILTERED in enumerate(FILTERED, start=1):
             CLIP_FILTERED.set_output(i)
     else:
         FILTERED.set_output(1)
 else:
-    JP_AOD.clip_cut.set_output(0)
-    #FILTERED = trim()
+    JP_AOD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
+    #FILTERED = trim()  # type: ignore
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
             if clip_filtered:
-                clip_filtered.set_output(i)
+                clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
     else:
-        FILTERED.set_output(1)
+        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)

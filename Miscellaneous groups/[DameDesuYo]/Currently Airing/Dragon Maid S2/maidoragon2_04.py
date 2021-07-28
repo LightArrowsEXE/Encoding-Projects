@@ -1,4 +1,3 @@
-import argparse  # noqa
 import os
 from typing import List, Optional, Tuple, Union
 
@@ -6,11 +5,11 @@ import vapoursynth as vs
 from bvsfunc.util import ap_video_source
 from lvsfunc.misc import source
 from lvsfunc.types import Range
-from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, PresetAAC,
-                            PresetWEB, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X264Encoder, Patch)
+from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, Patch,
+                            PresetAAC, PresetWEB, RunnerConfig, SelfRunner,
+                            VideoStream, VPath, X264Encoder)
 
-from kobayashi2_filters import flt, util, encode
+from kobayashi2_filters import encode, flt, util
 
 core = vs.core
 
@@ -145,7 +144,7 @@ elif __name__ == '__vapoursynth__':
         FILTERED.set_output(1)
 else:
     JP_AOD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    #FILTERED = trim()
+    #FILTERED = trim()  # type: ignore
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
