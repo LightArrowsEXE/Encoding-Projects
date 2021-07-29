@@ -1,6 +1,7 @@
 # Show-specific
 *EPISODES/
 
+
 # Video, Audio & Picture files
 *.264
 *.265
@@ -79,6 +80,7 @@
 *.vob
 *.xml
 
+
 # old files that I don't want to accidentally push
 .old/
 
@@ -115,19 +117,20 @@ __pycache__/
 *.rar
 *.torrent
 *.txt
+*.url
 *.xcf
 *.xz
 *.yml
 *.zip
-*comp.vpy
-*diff.vpy
-*fix.vpy
-*patch.vpy
-*sakuga.vpy
-*sakuga*.vpy
-*temp.vpy
-*test.vpy
-*wraw.vpy
+*comp.*py
+*diff.*py
+*fix.*py
+*patch.*py
+*sakuga.*py
+*sakuga*.*py
+*temp.*py
+*test.*py
+*wraw.*py
 authorized_keys
 BDMV
 midicsv2ass
@@ -182,7 +185,6 @@ rename.py
 *.30]
 
 
-
 # Exceptions
 !settings
 !requirements.txt
@@ -205,10 +207,6 @@ rename.py
 
 # A suffix for directories I want to temporarily prevent from being accidentally pushed
 *_hidden
-
-
-# Paths to other repos that git picks up because git bad
-[Kaleido-subs]/Completed/Joshiraku [BD]/Joshiraku/
 
 
 # There is a good reason for this (no, there is not, besides annoyance)
