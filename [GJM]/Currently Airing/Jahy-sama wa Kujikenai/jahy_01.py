@@ -96,6 +96,8 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     dehalo_masked = core.std.MaskedMerge(decs, dehalo, halo_mask)
 
     aa = lvf.aa.nneedi3_clamp(dehalo_masked, strength=1.5)
+    aa_strong = lvf.sraa(dehalo_masked, rfactor=1.35)
+    aa_spliced = lvf.rfs(aa, aa_strong, [(7056, 7322)])
 
     credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.08)
     credit_mask = iterate(credit_mask, core.std.Deflate, 3)
