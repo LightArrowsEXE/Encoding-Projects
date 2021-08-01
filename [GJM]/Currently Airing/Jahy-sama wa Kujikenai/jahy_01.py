@@ -83,8 +83,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     src_y = depth(get_y(src), 32)
     descale = lvf.kernels.Bicubic(b=0, c=3/4).descale(src_y, 1440, 810)
-    upscale = lvf.kernels.Bicubic(b=0, c=3/4).scale(descale, 1920, 1080)
-    double = vdf.scale.nnedi3cl_double(upscale, pscrn=1)
+    double = vdf.scale.nnedi3cl_double(descale, pscrn=1)
     rescale = depth(SSIM_downsample(double, 1920, 1080), 16)
     scaled = vdf.misc.merge_chroma(rescale, src)
 
@@ -96,9 +95,11 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     dehalo_masked = core.std.MaskedMerge(decs, dehalo, halo_mask)
 
     aa = lvf.aa.nneedi3_clamp(dehalo_masked, strength=1.5)
+    # Strong aliasing on the transformation scene (and probably elsewhere that I missed). Thanks, Silver Link!
     aa_strong = lvf.sraa(dehalo_masked, rfactor=1.35)
     aa_spliced = lvf.rfs(aa, aa_strong, [(7056, 7322)])
 
+    upscale = lvf.kernels.Bicubic(b=0, c=3/4).scale(descale, 1920, 1080)
     credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.08)
     credit_mask = iterate(credit_mask, core.std.Deflate, 3)
     credit_mask = iterate(credit_mask, core.std.Inflate, 3)
