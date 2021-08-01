@@ -103,7 +103,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     credit_mask = iterate(credit_mask, core.std.Deflate, 3)
     credit_mask = iterate(credit_mask, core.std.Inflate, 3)
     credit_mask = iterate(credit_mask, core.std.Maximum, 2)
-    merge_credits = core.std.MaskedMerge(aa, src, depth(credit_mask, 16))
+    merge_credits = core.std.MaskedMerge(aa_spliced, src, depth(credit_mask, 16))
 
     deband = flt.masked_f3kdb(merge_credits, rad=18, thr=32, grain=[24, 0])
     grain: vs.VideoNode = adptvgrnMod(deband, seed=42069, strength=0.15, luma_scaling=10,
