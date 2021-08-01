@@ -76,7 +76,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import vardefunc as vdf
     from adptvgrnMod import adptvgrnMod
     from muvsfunc import SSIM_downsample
-    from vsutil import depth, get_y
+    from vsutil import depth, get_y, iterate
 
     src = pre_freeze()
     src = depth(src, 16)
@@ -97,9 +97,15 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     aa = lvf.aa.nneedi3_clamp(dehalo_masked, strength=1.5)
 
-    deband = flt.masked_f3kdb(aa, rad=18, thr=32, grain=[24, 0])
-    grain: vs.VideoNode = adptvgrnMod(deband, seed=42069, strength=0.2, luma_scaling=10,
-                                      size=1.25, sharp=80, grain_chroma=False)
+    credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.08)
+    credit_mask = iterate(credit_mask, core.std.Deflate, 3)
+    credit_mask = iterate(credit_mask, core.std.Inflate, 3)
+    credit_mask = iterate(credit_mask, core.std.Maximum, 2)
+    merge_credits = core.std.MaskedMerge(aa, src, depth(credit_mask, 16))
+
+    deband = flt.masked_f3kdb(merge_credits, rad=18, thr=32, grain=[24, 0])
+    grain: vs.VideoNode = adptvgrnMod(deband, seed=42069, strength=0.15, luma_scaling=10,
+                                      size=1.25, sharp=80, static=True, grain_chroma=False)
 
     return grain
 
