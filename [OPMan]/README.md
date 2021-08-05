@@ -35,12 +35,13 @@ stop asking me about their stuff)
 [bento_anidb]: https://anidb.net/anime/8292
 [root_vndb]: https://vndb.org/v5000
 
-| Content Type  | Database              | Key   | Notes                                 |
-| ------------- | --------------------- | ----- | ------------------------------------- |
-| Anime         | AniDB[anidb_link]     | `a`   |                                       |
-| Doujin        | ???                   | ?     | For doujin anime and similar things   |
-| Visual Novels | vndb[vndb_link]       | `v`   |                                       |
-| Games         | IGDB[igdb_link]       | None  | Only Japanese anime/VN-esque OP/EDs   |
+| Content Type  | Database              | Key       | Notes                                                                 |
+| ------------- | --------------------- | --------- | --------------------------------------------------------------------- |
+| Anime         | [AniDB][anidb_link]   | `a`       |                                                                       |
+| Doujin        | ???                   | ?         | For doujinshi anime and similar things                                |
+| Visual Novels | [vndb][vndb_link]     | `v`/`r`   | `v` is for general entries, `r` is for specific entry (like consoles) |
+| Games         | [IGDB][igdb_link]     | None      | Only Japanese anime/VN-esque OP/EDs                                   |
 
 [anidb_link]: https://anidb.net/
 [vndb_link]: https://vndb.org/
+[igdb_link]: https://www.igdb.com
