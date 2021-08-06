@@ -118,7 +118,7 @@ class Encoder:
             self.file,
             streams=(
                 VideoStream(self.file.name_clip_output, metadata_message, JAPANESE),
-                AudioStream(self.file.a_src_cut.format(1), 'AAC 2.0', JAPANESE),
+                AudioStream(self.file.a_src_cut.set_track(1), 'AAC 2.0', JAPANESE),
                 chapters if self.chapter_list else None
             )
         )
@@ -136,9 +136,6 @@ class Encoder:
             except ValueError as e:
                 Status.fail(f"{e}")
 
-        if clean_up:
-            runner.do_cleanup()
-
         if wraw:
             mini_file = self.file
             # One of our staff has limited internet, so we need to mini-fy one wraw.
@@ -151,7 +148,7 @@ class Encoder:
                 mini_file,
                 streams=(
                     VideoStream(mini_file.name_clip_output, metadata_message, JAPANESE),
-                    AudioStream(self.file.a_src_cut.format(1), 'AAC 2.0', JAPANESE),
+                    AudioStream(self.file.a_src_cut.set_track(1), 'AAC 2.0', JAPANESE),
                     chapters if self.chapter_list else None
                 )
             )
@@ -170,4 +167,10 @@ class Encoder:
                     Status.fail(f"{e}")
 
             if clean_up:
+                wraw2runner.do_cleanup()
+
+        if clean_up:
+            try:
                 runner.do_cleanup()
+            except:
+                pass
