@@ -101,9 +101,9 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     dehalo_masked = core.std.MaskedMerge(decs, dehalo, halo_mask)
 
     aa = lvf.aa.nneedi3_clamp(dehalo_masked, strength=1.5)
-    # Strong aliasing on the transformation scene (and probably elsewhere that I missed). Thanks, Silver Link!
+    # Some scenes have super strong aliasing that I really don't wanna scenefilter until BDs. Thanks, Silver Link!
     aa_strong = lvf.sraa(dehalo_masked, rfactor=1.35)
-    aa_spliced = lvf.rfs(aa, aa_strong, [(7056, 7322)])
+    aa_spliced = lvf.rfs(aa, aa_strong, [()])
 
     upscale = lvf.kernels.Bicubic(b=0, c=3/4).scale(descale, 1920, 1080)
     credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.08)
