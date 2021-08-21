@@ -1,3 +1,6 @@
+Note: Some episodes are "missing" because I occasionally let others handle it on their side if I'm unavailable.
+The scripts remain largely the same, but the dehardsubbing ranges will be different, so there's not much lost.
+
 # Setup
 
 My encoding environment for this project.
