@@ -55,7 +55,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     src_NCOP = src_NCOP + src_NCOP[-1] * 11
     src_NCED = src_NCED + src_NCED[-1]
     src_03 = JP_BD_03.clip_cut
-    b = core.std.BlankClip(src, length=1)
+    # b = core.std.BlankClip(src, length=1)
 
     # Fixing an animation error in the NCOP
     sqmask_NCOP = lvf.mask.BoundingBox((419, 827), (1500, 68))
@@ -65,6 +65,11 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     # OP/ED stack comps to check that it lines up
     # op_scomp = lvf.scomp(src[opstart:opstart+src_NCOP.num_frames-1]+b, masked_NCOP[:-op_offset]+b)  # noqa
     # ed_scomp = lvf.scomp(src[edstart:edstart+src_NCED.num_frames-1]+b, src_NCED[:-ed_offset]+b)  # noqa
+
+    # Fix an animation error in the OP (Ep1, Ep2)
+    sqmask = lvf.mask.BoundingBox((100, 827), (1500, 68))
+    masked = core.std.MaskedMerge(src, src_03, sqmask.get_mask(src))
+    masked = lvf.rfs(src, masked, [(opstart+2064, opstart+2107)])
 
     # Masking credits
     op_mask = vdf.dcm(
@@ -77,11 +82,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
         else get_y(core.std.BlankClip(src))
     credit_mask = core.std.Expr([op_mask, ed_mask], expr='x y +')
     credit_mask = depth(credit_mask, 16).std.Binarize()
-
-    # Fix an animation error in the OP (Ep1, Ep2)
-    sqmask = lvf.mask.BoundingBox((100, 827), (1500, 68))
-    masked = core.std.MaskedMerge(src, b * opstart + src_03, sqmask.get_mask(src))
-    masked = lvf.rfs(src, masked, [(opstart+2064, opstart+2107)])
 
     # Edgefixing
     rkt = rekt.rektlvls(

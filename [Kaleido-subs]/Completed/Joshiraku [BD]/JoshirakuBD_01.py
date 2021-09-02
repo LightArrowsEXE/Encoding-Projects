@@ -60,28 +60,28 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     # Fixing an animation error in the NCOP
     sqmask_NCOP = lvf.mask.BoundingBox((419, 827), (1500, 68))
     masked_NCOP = core.std.MaskedMerge(src_NCOP, src_03, sqmask_NCOP.get_mask(src_NCOP))
-    masked_NCOP = lvf.rfs(src_NCOP, masked_NCOP, [(opstart+2064, opstart+2107)])
+    masked_NCOP = lvf.rfs(src_NCOP, masked_NCOP, [(2064, 2107)])
 
     # OP/ED stack comps to check that it lines up
     # op_scomp = lvf.scomp(src[opstart:opstart+src_NCOP.num_frames-1]+b, masked_NCOP[:-op_offset]+b)  # noqa
     # ed_scomp = lvf.scomp(src[edstart:edstart+src_NCED.num_frames-1]+b, src_NCED[:-ed_offset]+b)  # noqa
 
-    # Masking credits
-    op_mask = vdf.dcm(
-        src, src[opstart:opstart+src_NCOP.num_frames-op_offset], masked_NCOP[:-op_offset],
-        start_frame=opstart, thr=25, prefilter=True) if opstart is not False \
-        else get_y(core.std.BlankClip(src))
-    ed_mask = vdf.dcm(
-        src, src[edstart:edstart+src_NCED.num_frames-ed_offset], src_NCED[:-ed_offset],
-        start_frame=edstart, thr=25, prefilter=False) if edstart is not False \
-        else get_y(core.std.BlankClip(src))
-    credit_mask = core.std.Expr([op_mask, ed_mask], expr='x y +')
-    credit_mask = depth(credit_mask, 16).std.Binarize()
-
     # Fix an animation error in the OP (Ep1, Ep2)
     sqmask = lvf.mask.BoundingBox((100, 827), (1500, 68))
     masked = core.std.MaskedMerge(src, b * opstart + src_03, sqmask.get_mask(src))
     masked = lvf.rfs(src, masked, [(opstart+2064, opstart+2107)])
+
+    # Masking credits
+    op_mask = vdf.dcm(
+        masked, masked[opstart:opstart+src_NCOP.num_frames-op_offset], masked_NCOP[:-op_offset],
+        start_frame=opstart, thr=25, prefilter=True) if opstart is not False \
+        else get_y(core.std.BlankClip(masked))
+    ed_mask = vdf.dcm(
+        masked, masked[edstart:edstart+src_NCED.num_frames-ed_offset], src_NCED[:-ed_offset],
+        start_frame=edstart, thr=25, prefilter=False) if edstart is not False \
+        else get_y(core.std.BlankClip(masked))
+    credit_mask = core.std.Expr([op_mask, ed_mask], expr='x y +')
+    credit_mask = depth(credit_mask, 16).std.Binarize()
 
     # Edgefixing
     rkt = rekt.rektlvls(

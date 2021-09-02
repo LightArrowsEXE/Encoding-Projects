@@ -24,9 +24,11 @@ def dither_down(clip: vs.VideoNode) -> vs.VideoNode:
     return depth(clip, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])
 
 
-def verify_trim(trims: Any) -> List[Optional[int]]:
-    """Basically just to satisfy mypy. My trims should *always* be a tuple."""
-    return list(trims) if isinstance(trims, tuple) else [None, None]
+def resolve_trims(trims: Any) -> Any:
+    """Convert list[tuple] into list[list]. begna pls"""
+    if all(isinstance(trim, tuple) for trim in trims):
+        return [list(trim) for trim in trims]
+    return trims
 
 
 def generate_comparison(src: FileInfo, enc: Union[os.PathLike[str], str], flt: vs.VideoNode) -> None:
@@ -65,9 +67,9 @@ class Encoder:
         self.clip = dither_down(self.clip)
 
         audio_files = video_source(self.file.path.to_str(),
-                                   trimlist=verify_trim(self.file.trims_or_dfs),
-                                   framerate=self.file.clip.fps,
-                                   noflac=True, noaac=False, silent=False)
+                                   trim_list=resolve_trims(self.file.trims_or_dfs),
+                                   trims_framerate=self.file.clip.fps,
+                                   flac=False, aac=True, silent=False)
 
         audio_tracks: List[AudioStream] = []
         for track in audio_files:
@@ -142,10 +144,9 @@ class Encoder_NCOP1:
         self.clip = dither_down(self.clip)
 
         audio_files = video_source(self.file.path.to_str(),
-                                   trimlist=verify_trim(self.file.trims_or_dfs),
-                                   out_file=str(self.file.a_enc_cut),
-                                   framerate=self.file.clip.fps,
-                                   noflac=True, noaac=False, silent=False)
+                                   trim_list=resolve_trims(self.file.trims_or_dfs),
+                                   trims_framerate=self.file.clip.fps,
+                                   flac=False, aac=True, silent=False)
 
         audio_tracks: List[AudioStream] = []
         for track in audio_files:
@@ -166,7 +167,7 @@ class Encoder_NCOP1:
 
         try:
             if make_comp:
-                generate_comparison(self.file, self.file.name_file_final.to_str(), self.clip)
+                generate_comparison_NCOP1(self.file, self.file.name_file_final.to_str(), self.clip)
         except ValueError as e:
             Status.fail(str(e))
 
