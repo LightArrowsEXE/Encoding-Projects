@@ -46,6 +46,7 @@ hardsub_sign: List[Range] = [  # Leftover hardsubbed signs that need a stronger 
 ]
 
 replace_scenes: List[Range] = [  # List of scenes to replace
+    (6110, 6113)  # Holy shit this sign
 ]
 
 
@@ -130,7 +131,8 @@ def wraw_filterchain() -> vs.VideoNode:
 
 if __name__ == '__main__':
     FILTERED = filterchain() if not make_wraw else wraw_filterchain()
-    encode.Encoder(JP_AOD, FILTERED).run(wraw=make_wraw, make_comp=False)  # type: ignore
+    #encode.Encoder(JP_AOD, FILTERED).run(wraw=make_wraw, make_comp=False)  # type: ignore
+    encode.Patch(JP_AOD, FILTERED).patch(ranges=(5628, 6390))
 elif __name__ == '__vapoursynth__':
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
@@ -140,8 +142,8 @@ elif __name__ == '__vapoursynth__':
         FILTERED.set_output(1)
 else:
     JP_AOD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    FILTERED = trim()  # type: ignore
-    # FILTERED = filterchain()
+    # FILTERED = trim()  # type: ignore
+    FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
             if clip_filtered:

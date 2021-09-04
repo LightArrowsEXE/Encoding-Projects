@@ -1,14 +1,16 @@
 """The encoder class. This is where the actual magic happens."""
 import binascii
 import os
-from typing import Any, List, Optional, Union
+import shutil
+from typing import Any, List, Optional, Tuple, Union
 
 import vapoursynth as vs
 from bvsfunc.util import ap_video_source
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, RunnerConfig,
-                            SelfRunner, VideoStream, VPath, X264Encoder,
-                            make_comps)
+from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, Patch,
+                            RunnerConfig, SelfRunner, VideoStream, VPath,
+                            X264Encoder, make_comps)
+from vardautomation.status import Status
 from vsutil import depth
 
 core = vs.core
@@ -99,6 +101,51 @@ class Encoder:
 
         if make_comp:
             generate_comparison(self.file, self.file.name_file_final.to_str(), self.clip)
+
+        if clean_up:
+            runner.do_cleanup()
+
+
+class Patcher:
+    """"Simple patching class"""
+    def __init__(self, file: FileInfo, clip: vs.VideoNode) -> None:
+        self.file = file
+        self.clip = clip
+
+    def patch(self,
+              ranges: Union[Union[int, Tuple[int, int]], List[Union[int, Tuple[int, int]]]],
+              clean_up: bool = True,
+              external_file: Optional[Union[os.PathLike[str], str]] = None) -> None:
+        """
+        :ranges:            Frame ranges that require patching. Expects as a list of tuples or integers (can be mixed).
+                            Examples: [(0, 100), (400, 600)]; [50, (100, 200), 500]
+        :param clean_up:    Perform clean-up procedure after patching
+        :external_file:     File to patch into. This is intended for videos like NCs with only one or two changes
+                            so you don't need to encode the entire thing multiple times.
+                            It will copy the given file and rename it to ``FileInfo.name_file_final``.
+                            If None, performs regular patching.
+        """
+        v_encoder = X264Encoder('settings/x264_settings')
+        self.clip = dither_down(self.clip)
+
+        if external_file:
+            if os.path.exists(external_file):
+                Status.info(f"Copying {external_file} to {self.file.name_file_final}")
+                shutil.copy(external_file, self.file.name_file_final)
+            else:
+                Status.warn(f"{self.file.name_file_final} already exists; please ensure it's the correct file!")
+
+        runner = Patch(
+            clip=self.clip,
+            ranges=ranges,  # type:ignore[arg-type]
+            encoder=v_encoder,
+            file=self.file,
+        )
+        runner.run()
+
+        new = f"{self.file.name_file_final.to_str()[:-4]}_new.mkv"
+        Status.info(f"Replacing {self.file.name_file_final} -> {new}")
+        os.replace(new, self.file.name_file_final)
 
         if clean_up:
             runner.do_cleanup()
