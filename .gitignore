@@ -150,6 +150,7 @@ indexer.py
 QC.py
 remux.py
 rename.py
+gitignore-symlinks.sh
 
 
 # Symlinks with [Vol.#] at the end
@@ -215,3 +216,19 @@ rename.py
 
 # Ignore lossless files. These are generally used as intermediary files to check temporal consistency or encoding settings.
 *lossless*
+
+# Symlinks (gitignore annoyingly enough can't easily ignore these)
+!TEMP_ARCHIVING/[Kaleido]/Hayate no Gotoku! [BD]/BDMV
+[Kaleido-subs]/Completed/FGO - Absolute Demonic Front - Babylonia [BD]/BDMV
+[Kaleido-subs]/Completed/Joshiraku [BD]/BDMV
+[Kaleido-subs]/Completed/Majo no Tabitabi [BD]/BDMV
+[Kaleido-subs]/Completed/Uzaki-chan wa Asobitai [BD]/BDMV
+[Kaleido-subs]/Movies & OVAs/Kud Wafter [BD]/BDMV
+[OPMan]/Seasonals [TV]/2016-3 - Summer/[a11273] Tales of Zestiria the X/BDMV
+[OPMan]/Seasonals [TV]/2016-3 - Summer/[◯PMan] 2016-3 - Summer (Anime Openings & Endings)/[◯PMan] Tales of Zestiria the X Creditless Openings & Endings (BD 1080p FLAC)
+Miscellaneous groups/[DameDesuYo]/Completed/Dimension W [BD]/BDMV
+Miscellaneous groups/[DameDesuYo]/Completed/Lord El-Melloi II - Case Files [BD]/1080p scripts/BDMV
+Miscellaneous groups/[DameDesuYo]/Completed/Lord El-Melloi II - Case Files [BD]/720p scripts/BDMV
+Miscellaneous groups/[Foxtrot]/Work in Progress/GREAT PRETENDER [BD]/BDMV
+Miscellaneous groups/[PAS]/Movies & OVAs/Shirobako the Movie [BD]/BDMV
+[OPMan]/Seasonals [TV]/2016-3 - Summer/[◯PMan] 2016-3 - Summer (Anime Openings & Endings)/[◯PMan] Tales of Zestiria the X Creditless Openings & Endings (BD 1080p FLAC)
