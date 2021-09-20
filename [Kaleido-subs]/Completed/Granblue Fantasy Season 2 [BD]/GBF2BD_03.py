@@ -1,68 +1,34 @@
-import os
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, Tuple
 
 import vapoursynth as vs
-from bvsfunc.util import ap_video_source
 from lvsfunc.misc import source
-from lvsfunc.types import Range
-from vardautomation import (JAPANESE, AudioStream, FileInfo, Mux, PresetAAC,
-                            PresetBD, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X265Encoder)
-from vsutil import depth
-from gbf2_filters import chain
+from vardautomation import FileInfo, PresetAAC, PresetBD, VPath
+
+from project_module import chain, encode
 
 core = vs.core
-core.num_threads = 16
 
 
 # Sources
-JP_BD = FileInfo(r'BDMV/GRANBLUE_FANTASY_SEASON2_2/BDMV/STREAM/00001.m2ts', None, -24,
+JP_BD = FileInfo(r'BDMV/GRANBLUE_FANTASY_SEASON2_2/BDMV/STREAM/00001.m2ts', (None, -24),
                  idx=lambda x: source(x, force_lsmas=True, cachedir=''),
                  preset=[PresetBD, PresetAAC])
 JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
 JP_BD.a_src_cut = VPath(f"{JP_BD.name}_cut.aac")
 JP_BD.do_qpfile = True
 
-
-XML_TAG = "settings/tags_aac.xml"
-
-
-class Encoding:
-    def __init__(self, file: FileInfo, clip: vs.VideoNode) -> None:
-        self.file = file
-        self.clip = clip
-
-    def run(self) -> None:
-        assert self.file.a_src
-        assert self.file.a_src_cut
-
-        v_encoder = X265Encoder('settings/x265_settings_BD')
-
-        ap_video_source(self.file.path.to_str(),
-                        [self.file.frame_start, self.file.frame_end],
-                        framerate=self.clip.fps,
-                        noflac=True, noaac=False, nocleanup=False, silent=False)
-        os.rename(self.file.path_without_ext.to_str() + "_2_cut.aac", self.file.a_src_cut.to_str())
-
-        muxer = Mux(
-            self.file,
-            streams=(
-                VideoStream(self.file.name_clip_output, 'HEVC BDrip by LightArrowsEXE@Kaleido', JAPANESE),
-                AudioStream(self.file.a_src_cut.format(1), 'AAC 2.0', JAPANESE, XML_TAG),
-                None
-            )
-        )
-
-        config = RunnerConfig(v_encoder, None, None, None, None, muxer)
-
-        runner = SelfRunner(self.clip, self.file, config)
-        runner.run()
-        runner.do_cleanup()
-
+zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for x265
+    (3567, 3876): {'b': 0.75},
+    (5409, 5899): {'b': 0.75},
+    (6883, 7160): {'b': 0.75},
+    (15738, 21442): {'b': 0.75},
+    (21929, 22167): {'b': 0.75},
+    (25652, 25788): {'b': 0.75},
+}
 
 if __name__ == '__main__':
     filtered = chain.filterchain(JP_BD.clip_cut)
-    Encoding(JP_BD, filtered).run()
+    encode.Encoder(JP_BD, filtered).run(zones=zones)
 elif __name__ == '__vapoursynth__':
     filtered = chain.filterchain(JP_BD.clip_cut)
     if not isinstance(filtered, vs.VideoNode):

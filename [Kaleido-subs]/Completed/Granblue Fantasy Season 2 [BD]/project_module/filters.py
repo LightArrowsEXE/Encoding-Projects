@@ -18,7 +18,7 @@ def rescaler(clip: vs.VideoNode, height: int) -> Tuple[vs.VideoNode, vs.VideoNod
     from lvsfunc.scale import descale_detail_mask
     from vardefunc.mask import FDOG
     from vardefunc.scale import nnedi3_upscale
-    from vsutil import get_w, join, plane, Range
+    from vsutil import Range, get_w, join, plane
 
     bits, clip = _get_bits(clip, expected_depth=32)
 
@@ -33,7 +33,7 @@ def rescaler(clip: vs.VideoNode, height: int) -> Tuple[vs.VideoNode, vs.VideoNod
     scaled = join([masked_rescale, plane(clip, 1), plane(clip, 2)])
 
     upscale = Bicubic().scale(descale, 1920, 1080)
-    detail_mask = descale_detail_mask(clip_y, upscale, threshold=0.045)
+    detail_mask = descale_detail_mask(clip_y, upscale, threshold=0.055)
 
     scaled_down = scaled if bits == 32 else depth(scaled, bits)
     mask_down = detail_mask if bits == 32 else depth(detail_mask, 16, range_in=Range.FULL, range=Range.LIMITED)
@@ -88,8 +88,19 @@ def denoising(clip: vs.VideoNode,
     ref_args: Dict[str, Any] = dict(tr=3, thSAD=150, thSADC=200, contrasharp=16, pel=4, subpixel=3)
     ref_args |= SMD_args
 
+    is_list = False
+    if not isinstance(bm3d_sigma, list):
+        bm3d_sigma = [bm3d_sigma, 0]
+        is_list = True
+
     ref = SMDegrain(clip, **ref_args)
     denoise = bm3d(clip, sigma=bm3d_sigma, radius=bm3d_rad, ref=ref)
+
+    if is_list:
+        from ccd import ccd
+
+        denoise = ccd(denoise, threshold=6)
+
     decs = decsiz(denoise, sigmaS=dec_sigma, min_in=dec_min, max_in=dec_max)
     return decs if bits == 16 else depth(decs, bits)
 
@@ -106,13 +117,13 @@ def antialiasing(clip: vs.VideoNode, strength: float = 1.4) -> vs.VideoNode:
 
 
 def debanding(clip: vs.VideoNode) -> vs.VideoNode:
-    from vardefunc.deband import dumb3kdb
+    from debandshit import dumb3kdb
 
     bits, clip = _get_bits(clip)
 
-    deband_mask = detail_mask(clip, brz=(1000, 2750))
+    deband_mask = detail_mask(clip, brz=(750, 1750))
 
-    deband = dumb3kdb(clip, radius=18, threshold=[40, 64], grain=[12, 24])  # Heavy chroma banding
+    deband = dumb3kdb(clip, radius=18, threshold=[32, 56], grain=24)  # Heavy chroma banding
     deband_masked = core.std.MaskedMerge(deband, clip, deband_mask)
     return deband_masked if bits == 16 else depth(deband_masked, bits)
 

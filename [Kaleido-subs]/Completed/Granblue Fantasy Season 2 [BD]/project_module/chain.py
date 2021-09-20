@@ -3,9 +3,9 @@ Entire filter chain here, since we're reusing this for every single script, and 
 """
 import vapoursynth as vs
 
-core = vs.core
-
 from .filters import antialiasing, debanding, denoising, rescaler
+
+core = vs.core
 
 
 def filterchain(clip: vs.VideoNode) -> vs.VideoNode:
@@ -21,6 +21,7 @@ def filterchain(clip: vs.VideoNode) -> vs.VideoNode:
     credits_merged = core.std.MaskedMerge(aa_clamped, depth(clip16, 16), credit_mask)
 
     deband = debanding(credits_merged)
-    grain = adptvgrnMod(deband, strength=0.3, luma_scaling=10, size=1.25, sharp=80, grain_chroma=False, seed=42069)
+    grain = adptvgrnMod(deband, strength=0.3, luma_scaling=10, size=1.25, sharp=100,
+                        grain_chroma=False, static=False, seed=42069)
 
-    return depth(grain, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])
+    return depth(grain, 10)

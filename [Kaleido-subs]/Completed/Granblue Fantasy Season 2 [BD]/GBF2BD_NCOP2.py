@@ -10,7 +10,7 @@ core = vs.core
 
 
 # Sources
-JP_BD = FileInfo(r'BDMV/GRANBLUE_FANTASY_SEASON2_5/BDMV/STREAM/00002.m2ts', (None, -26),
+JP_BD = FileInfo(r'BDMV/GRANBLUE_FANTASY_SEASON2_7/BDMV/STREAM/00007.m2ts', (None, -24),
                  idx=lambda x: source(x, force_lsmas=True, cachedir=''),
                  preset=[PresetBD, PresetAAC])
 JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
@@ -18,14 +18,6 @@ JP_BD.a_src_cut = VPath(f"{JP_BD.name}_cut.aac")
 JP_BD.do_qpfile = True
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for x265
-    (0, 2397): {'b': 0.75},
-    (6200, 6495): {'b': 0.75},
-    (6724, 6873): {'b': 0.75},
-    (18620, 18964): {'b': 0.75},
-    (19061, 19264): {'b': 0.75},
-    (21124, 21590): {'b': 0.75},
-    (27492, 28454): {'b': 0.75},
-    (29214, 29822): {'b': 0.75},
 }
 
 if __name__ == '__main__':
