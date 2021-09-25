@@ -55,12 +55,12 @@ def detail_mask(clip: vs.VideoNode,
     blur_ret_dfl = core.std.Deflate(blur_ret_diff)
     blur_ret_ifl = iterate(blur_ret_dfl, core.std.Inflate, 4)
     blur_ret_brz = core.std.Binarize(blur_ret_ifl, brz[0])
-    blur_ret_brz = core.morpho.Close(blur_ret_brz, size=8)
+    # blur_ret_brz = core.morpho.Close(blur_ret_brz, size=8)  # No longer in R55
 
     kirsch_mask = kirsch(clip_y).std.Binarize(brz[1])
     kirsch_ifl = kirsch_mask.std.Deflate().std.Inflate()
     kirsch_brz = core.std.Binarize(kirsch_ifl, brz[1])
-    kirsch_brz = core.morpho.Close(kirsch_brz, size=4)
+    # kirsch_brz = core.morpho.Close(kirsch_brz, size=4)    # No longer in R55
 
     merged = core.std.Expr([blur_ret_brz, kirsch_brz], "x y +")
     rm_grain = core.rgvs.RemoveGrain(merged, rg_mode)
