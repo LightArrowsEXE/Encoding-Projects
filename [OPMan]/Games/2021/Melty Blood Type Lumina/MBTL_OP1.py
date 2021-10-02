@@ -54,7 +54,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     src = depth(src, 16)
     up = vdf.scale.to_444(src, src.width, src.height, join_planes=True)
 
-    # debl = lvf.deblock.vsdpir(src, matrix=1, strength=25, mode='deblock', i444=True)
     cbl = haf.FixChromaBleedingMod(up, cx=-0.35, cy=0, thr=4, strength=1, blur=False)
     debl = lvf.deblock.vsdpir(cbl, matrix=1, strength=25, mode='deblock', i444=True)
 
@@ -70,11 +69,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
                                       static=False, seed=42069, luma_scaling=10)
 
     return grain
-
-from project_module import flt
-
-enc = source("MBTL_OP1.mkv", force_lsmas=True, cachedir='')
-flt.generate_comparison(JP_BD, enc)
 
 
 if __name__ == '__main__':
