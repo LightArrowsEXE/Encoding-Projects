@@ -1,9 +1,11 @@
 """Filtering functions"""
-from typing import Union, List, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import vapoursynth as vs
-from typing import Any
+from vsutil import depth, get_y
+
 from .util import _get_bits
-from vsutil import get_y, depth
+
 core = vs.core
 
 
@@ -11,12 +13,12 @@ def masked_f3kdb(clip: vs.VideoNode,
                  rad: int = 16,
                  thr: Union[int, List[int]] = 24,
                  grain: Union[int, List[int]] = [12, 0],
-                 mask_args: Dict[str, Any] = {}
-                 ) -> vs.VideoNode:
+                 mask_args: Dict[str, Any] = {},
+                 show_mask: bool = False) -> vs.VideoNode:
     """
     Basic f3kdb debanding with detail mask
     """
-    from vardefunc.deband import dumb3kdb
+    from debandshit.debanders import dumb3kdb
 
     deb_mask_args: Dict[str, Any] = dict(brz=(1000, 2750))
     deb_mask_args |= mask_args
@@ -24,6 +26,8 @@ def masked_f3kdb(clip: vs.VideoNode,
     bits, clip = _get_bits(clip)
 
     deband_mask = detail_mask(clip, **deb_mask_args)
+    if show_mask:
+        return deband_mask
 
     deband = dumb3kdb(clip, radius=rad, threshold=thr, grain=grain)
     deband_masked = core.std.MaskedMerge(deband, clip, deband_mask)
