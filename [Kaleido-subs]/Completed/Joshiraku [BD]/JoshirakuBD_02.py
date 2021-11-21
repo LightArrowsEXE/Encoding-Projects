@@ -120,7 +120,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     decs = vdf.noise.decsiz(stab, sigmaS=8, min_in=208 << 8, max_in=232 << 8)
 
     # Fixing chroma
-    cshift = haf.FixChromaBleedingMod(decs, cx=-.25, cy=0, thr=100, strength=1, blur=True)
+    cshift = core.resize.Bicubic(decs, chromaloc_in=1, chromaloc=0)
     cwarp = WarpFixChromaBlend(cshift, thresh=88, blur=3, depth=6)
 
     # Regular debanding + graining

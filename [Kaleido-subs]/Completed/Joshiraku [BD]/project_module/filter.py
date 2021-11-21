@@ -24,6 +24,19 @@ def line_darkening(clip: vs.VideoNode, strength: float = 0.2, **kwargs: Any) -> 
     return core.std.MaskedMerge(clip, darken, darken_mask)
 
 
+def rekt(clip: vs.VideoNode) -> vs.VideoNode:
+    """Apply rekt consistently across multiple clips"""
+    import rekt
+    from awsmfunc import bbmod
+
+    rkt = rekt.rektlvls(
+        clip,
+        [0, 1079], [17, 16],
+        [0, 1, 2, 3] + [1917, 1918, 1919], [16, 4, -2, 2] + [-2, 5, 14]
+    )
+    return bbmod(rkt, left=4, right=3, y=False)
+
+
 def detail_mask(clip: vs.VideoNode,
                 sigma: float = 1.0, rxsigma: List[int] = [50, 200, 350],
                 pf_sigma: Optional[float] = 1.0,

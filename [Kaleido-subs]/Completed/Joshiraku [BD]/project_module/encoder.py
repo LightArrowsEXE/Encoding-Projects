@@ -7,9 +7,10 @@ import vapoursynth as vs
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
 from vardautomation import (JAPANESE, AudioStream, Chapter, ChapterStream,
-                            FileInfo, MatroskaXMLChapters, Mux, Patch,
-                            RunnerConfig, SelfRunner, VideoStream, VPath,
-                            X265Encoder, make_comps)
+                            EztrimCutter, FfmpegAudioExtracter, FileInfo,
+                            MatroskaXMLChapters, Mux, Patch, RunnerConfig,
+                            SelfRunner, VideoStream, VPath, X265Encoder,
+                            make_comps)
 from vardautomation.status import Status
 from vsutil import depth
 
@@ -63,7 +64,14 @@ class Encoder:
         """
         assert self.file.a_src
 
-        v_encoder = X265Encoder('settings/x265_settings')
+        is_dvd = False if self.file.clip.width > 1280 else True
+
+        if is_dvd:
+            Status.info("DVD encode detected: Switching over to DVD settings")
+        x265_settings = 'settings/x265_settings' if not is_dvd else 'settings/x265_settings_dvd'
+        msg = 'HEVC BDRip by LightArrowsEXE@Kaleido' if not is_dvd else 'HEVC DVDrip by LightArrowsEXE@Kaleido'
+
+        v_encoder = X265Encoder(x265_settings)
         self.clip = dither_down(self.clip)
 
         audio_files = video_source(self.file.path.to_str(),
@@ -71,9 +79,14 @@ class Encoder:
                                    trims_framerate=self.file.clip.fps,
                                    flac=False, aac=True, silent=False)
 
-        audio_tracks: List[AudioStream] = []
-        for track in audio_files:
-            audio_tracks += [AudioStream(VPath(track), 'AAC 2.0', JAPANESE, XML_TAG)]
+        if not is_dvd:
+            audio_tracks: List[AudioStream] = []
+            for track in audio_files:
+                audio_tracks += [AudioStream(VPath(track), 'AAC 2.0', JAPANESE, XML_TAG)]
+        else:
+            a_extracters = FfmpegAudioExtracter(self.file, track_in=0, track_out=0)
+            a_cutters = EztrimCutter(self.file, track=1)
+            audio_tracks = AudioStream(self.file.a_src_cut.set_track(1), 'AC-3 2.0', JAPANESE)
 
         if self.chapter_list:
             assert self.file.chapter
@@ -91,12 +104,15 @@ class Encoder:
         muxer = Mux(
             self.file,
             streams=(
-                VideoStream(self.file.name_clip_output, 'HEVC BDRip by LightArrowsEXE@Kaleido', JAPANESE),
+                VideoStream(self.file.name_clip_output, msg, JAPANESE),
                 audio_tracks, chapters if self.chapter_list else None
             )
         )
 
-        config = RunnerConfig(v_encoder, None, None, None, None, muxer)
+        if not is_dvd:
+            config = RunnerConfig(v_encoder, None, None, None, None, muxer)
+        else:
+            config = RunnerConfig(v_encoder, None, a_extracters, a_cutters, None, muxer)
 
         runner = SelfRunner(self.clip, self.file, config)
         runner.run()
