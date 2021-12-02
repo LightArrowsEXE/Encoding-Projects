@@ -37,7 +37,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     from vsutil import depth
 
     src = JP_BD.clip_cut
-    cloc = depth(src, 16).resize.Bicubic(chromaloc_in=1, chromaloc=1)
+    cloc = depth(src, 16).resize.Bicubic(chromaloc_in=1, chromaloc=0)
 
     dft = core.dfttest.DFTTest(cloc, sigma=0.6, sbsize=8, sosize=6, tbsize=3, tosize=1)
     decs = vdf.noise.decsiz(dft, sigmaS=4, min_in=200 << 8, max_in=232 << 8)

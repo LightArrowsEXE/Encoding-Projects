@@ -12,9 +12,9 @@ from project_module import flt
 core = vs.core
 
 
-shader_file = 'assets/FSRCNNX_x2_16-0-4-1.glsl'
+shader_file = 'assets/FSRCNNX_x2_56-16-4-1.glsl'
 if not Path(shader_file).exists():
-    hookpath = r"mpv/shaders/FSRCNNX_x2_16-0-4-1.glsl"
+    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
     shader_file = os.path.join(str(os.getenv("APPDATA")), hookpath)
 
 
@@ -33,13 +33,23 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for x265
 def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     """Main filterchain"""
     import lvsfunc as lvf
+    import rekt
     import vardefunc as vdf
-    from vsutil import depth
+    from muvsfunc import SSIM_downsample
+    from vsutil import depth, get_y
 
     src = JP_BD.clip_cut
-    cloc = depth(src, 16).resize.Bicubic(chromaloc_in=1, chromaloc=1)
+    rkt = rekt.rektlvls(src, [0, -1], [15, 15], [0, -1], [15, 15])
+    cloc = depth(rkt, 32).resize.Bicubic(chromaloc_in=1, chromaloc=0)
 
-    dft = core.dfttest.DFTTest(cloc, sigma=0.6, sbsize=8, sosize=6, tbsize=3, tosize=1)
+    descale = lvf.kernels.Bilinear().descale(get_y(cloc), 1280, 720)
+    supersample = vdf.scale.nnedi3_upscale(descale)
+    downscaled = SSIM_downsample(supersample, src.width, src.height, smooth=((3 ** 2 - 1) / 12) ** 0.5,
+                                 sigmoid=True, filter_param_a=0, filter_param_b=0)
+    scaled = vdf.misc.merge_chroma(downscaled, cloc)
+    scaled = depth(scaled, 16)
+
+    dft = core.dfttest.DFTTest(scaled, sigma=0.6, sbsize=8, sosize=6, tbsize=3, tosize=1)
     decs = vdf.noise.decsiz(dft, sigmaS=4, min_in=200 << 8, max_in=232 << 8)
 
     baa = lvf.aa.based_aa(decs, str(shader_file))
