@@ -1,0 +1,148 @@
+import os
+from functools import partial
+from pathlib import Path
+from typing import Tuple, Union
+
+import vapoursynth as vs
+from lvsfunc.misc import source
+from vardautomation import FileInfo, PresetAAC, PresetBD, VPath
+
+from project_module import enc, flt
+
+core = vs.core
+
+
+shader_file = Path(r'assets/FSRCNNX_x2_56-16-4-1.glsl')
+if not shader_file.exists:
+    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
+    shader_file = os.path.join(os.getenv("APPDATA"), hookpath)
+
+
+# Sources
+JP_BD = FileInfo(r'BDMV/[BDMV][210526][Yuru Camp Season 2][Vol.2]/BD/BDMV/STREAM/00007.m2ts', [(24, -24)],
+                 idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD, PresetAAC])
+JP_NCOP = FileInfo(r'BDMV/[BDMV][210728][Yuru Camp Season 2][Vol.3 Fin]/BD/BDMV/STREAM/00013.m2ts', [(24, -24)],
+                   idx=lambda x: source(x, force_lsmas=True, cachedir=''))
+JP_NCED = FileInfo(r'BDMV/[BDMV][210728][Yuru Camp Season 2][Vol.3 Fin]/BD/BDMV/STREAM/00014.m2ts', [(24, -24)],
+                   idx=lambda x: source(x, force_lsmas=True, cachedir=''))
+JP_BD.name_file_final = VPath(f"premux/{JP_BD.name} (Premux).mkv")
+JP_BD.a_src_cut = VPath(JP_BD.name)
+JP_BD.do_qpfile = True
+
+
+# OP/ED scenefiltering
+opstart = 2039
+edstart = 30378
+op_offset = 2
+ed_offset = 1
+
+
+def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
+    """Main VapourSynth filterchain"""
+    import EoEfunc as eoe
+    import lvsfunc as lvf
+    import vardefunc as vdf
+    from ccd import ccd
+    from finedehalo import fine_dehalo
+    from vsutil import depth, get_y, insert_clip
+
+    src = JP_BD.clip_cut
+    src_c = src
+    src_ncop, src_nced = JP_NCOP.clip_cut, JP_NCED.clip_cut
+    b = core.std.BlankClip(src, length=1)
+
+    # OP/ED stack comps to check if they line up
+    if opstart is not False:
+        op_scomp = lvf.scomp(src[opstart:opstart+src_ncop.num_frames-1]+b, src_ncop[:-op_offset]+b) \
+            .text.Text('src', 7).text.Text('op', 9)
+    if edstart is not False:
+        ed_scomp = lvf.scomp(src[edstart:edstart+src_nced.num_frames-1]+b, src_nced[:-ed_offset]+b) \
+            .text.Text('src', 7).text.Text('ed', 9)
+
+    # Splicing in NCs and diff'ing back the credits
+    if opstart is not False:
+        src = insert_clip(src, src_ncop[:-op_offset], opstart)
+        src = lvf.rfs(src, src_c, [(opstart+811, opstart+859)])
+    if edstart is not False:
+        src = insert_clip(src, src_nced[:-ed_offset], edstart)
+
+    den_src, den_ncs = map(partial(core.dfttest.DFTTest, sigma=10), [src_c, src])
+    den_src, den_ncs = depth(den_src, 32), depth(den_ncs, 32)
+    diff = core.std.MakeDiff(den_src, den_ncs).dfttest.DFTTest(sigma=50.0)
+
+    # For some reason there's noise from previous credits remaining? Removing that here
+    diff_brz = vdf.misc.merge_chroma(diff.std.Binarize(0.03), diff)
+    diff = core.std.Expr([diff, diff_brz], "x y min")
+
+    src = depth(src, 16)
+
+    # This noise can burn in hell.
+    denoise_pre = get_y(src.dfttest.DFTTest(sigma=1.0))
+    denoise_ret = core.retinex.MSRCP(denoise_pre, sigma=[50, 200, 350], upper_thr=0.005)
+    denoise_mask = flt.detail_mask(denoise_ret, sigma=2.0, lines_brz=3000).rgvs.RemoveGrain(4)
+
+    denoise_pre = core.dfttest.DFTTest(src, sigma=4.0)
+    denoise_smd = eoe.dn.CMDegrain(src, tr=5, thSAD=275, freq_merge=True, prefilter=denoise_pre)
+    denoise_masked = core.std.MaskedMerge(denoise_smd, src, denoise_mask)
+
+    denoise_uv = ccd(denoise_masked, threshold=6)
+    decs = vdf.noise.decsiz(denoise_uv, sigmaS=8, min_in=200 << 8, max_in=235 << 8)
+
+    # FUCK THIS SHOW'S LINEART HOLY SHIT
+    baa = lvf.aa.based_aa(decs.std.Transpose(), str(shader_file), gamma=120)
+    baa = lvf.aa.based_aa(baa.std.Transpose(), str(shader_file), gamma=120)
+    sraa = lvf.sraa(decs, rfactor=1.4)
+    clmp_aa = lvf.aa.clamp_aa(decs, baa, sraa, strength=1.65)
+
+    # AAing introduces some haloing (zzzzzz)
+    restr_edges = fine_dehalo(clmp_aa, decs)
+    restr_dark = core.std.Expr([clmp_aa, restr_edges], "x y min")
+
+    # Masking credits at the end if there's no NCED
+    get_max = core.std.Expr([restr_dark, decs], "x y max")
+
+    if opstart is False:
+        restr_dark = lvf.rfs(restr_dark, get_max, [(None, 3500)])
+    if edstart is False:
+        restr_dark = lvf.rfs(restr_dark, get_max, [(-5000, None)])
+
+    deband = core.average.Mean([
+        flt.masked_f3kdb(restr_dark, rad=17, thr=[28, 20], grain=[12, 8]),
+        flt.masked_f3kdb(restr_dark, rad=21, thr=[36, 32], grain=[24, 12]),
+        flt.masked_placebo(restr_dark, rad=6.5, thr=2.5, itr=2, grain=4)
+    ])
+
+    grain = vdf.noise.Graigasm(
+        thrs=[x << 8 for x in (32, 80, 128, 176)],
+        strengths=[(0.25, 0.0), (0.20, 0.0), (0.15, 0.0), (0.0, 0.0)],
+        sizes=(1.20, 1.15, 1.10, 1),
+        sharps=(80, 70, 60, 50),
+        grainers=[
+            vdf.noise.AddGrain(seed=69420, constant=True),
+            vdf.noise.AddGrain(seed=69420, constant=False),
+            vdf.noise.AddGrain(seed=69420, constant=False)
+        ]).graining(deband)
+
+    merge_creds = core.std.MergeDiff(depth(grain, 32), diff)
+
+    return merge_creds
+
+
+if __name__ == '__main__':
+    FILTERED = filterchain()
+    enc.Encoder(JP_BD, FILTERED).run(clean_up=True)
+elif __name__ == '__vapoursynth__':
+    FILTERED = filterchain()
+    if not isinstance(FILTERED, vs.VideoNode):
+        raise ImportError(
+            f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
+    else:
+        enc.dither_down(FILTERED).set_output(0)
+else:
+    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
+    FILTERED = filterchain()
+    if not isinstance(FILTERED, vs.VideoNode):
+        for i, clip_filtered in enumerate(FILTERED, start=1):
+            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+    else:
+        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
