@@ -125,7 +125,10 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     merge_creds = core.std.MergeDiff(depth(grain, 32), diff)
 
-    return merge_creds
+    # Freezeframing a sign to make it easier on the TS
+    final = core.std.FreezeFrames(merge_creds, [3861], [3890], [3860])
+
+    return final
 
 
 if __name__ == '__main__':
