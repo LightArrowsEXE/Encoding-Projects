@@ -38,7 +38,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     src, ep = JP_BD.clip_cut, JP_EP.clip_cut
     ep_ext = ep[0] * 16 + ep  # FUCK THIS STUDIO HOLY SHIT
-    src = lvf.rfs(src, ep_ext, [(811, 843)])
+    src = lvf.rfs(src, ep_ext, [(811, 859)])
     src = depth(src, 16)
 
     # This noise can burn in hell.

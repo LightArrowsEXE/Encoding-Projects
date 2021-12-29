@@ -79,8 +79,19 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     # Masking credits at the end
     get_max = core.std.Expr([grain, decs], "x y max")
-    sq_mask = lvf.mask.BoundingBox((920, 0), (1000, 1080)).get_mask(src).std.BoxBlur(hpasses=20)
-    max_masked = core.std.MaskedMerge(grain, get_max, sq_mask)
+
+    sq_mask = [
+        lvf.mask.BoundingBox((782, 603), (507, 389)),
+        lvf.mask.BoundingBox((0, 957), (1920, 123)),
+        lvf.mask.BoundingBox((1139, 835), (478, 142))
+    ]
+
+    sqmask = core.std.BlankClip(get_y(src))
+    for sq in sq_mask:
+        mask = sq.get_mask(src).std.BoxBlur(hpasses=20, vpasses=20)
+        sqmask = core.std.Expr([mask, sqmask], "x y +")
+
+    max_masked = core.std.MaskedMerge(get_max, grain, sqmask)
     max_ed = lvf.rfs(grain, max_masked, (5467, None))
 
     return max_ed
