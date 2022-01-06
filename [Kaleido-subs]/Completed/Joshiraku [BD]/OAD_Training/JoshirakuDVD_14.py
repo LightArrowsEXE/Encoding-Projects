@@ -43,7 +43,7 @@ PROPS_BD: Set[Tuple[str, int]] = {
 }
 
 vsgan = VSGAN('cuda')
-vsgan.load_model('assets/2xjoshiraku_500000_G.pth')
+vsgan.load_model('../assets/2xjoshiraku_500000_G.pth')
 
 # OP/ED Variables
 opstart = 0
