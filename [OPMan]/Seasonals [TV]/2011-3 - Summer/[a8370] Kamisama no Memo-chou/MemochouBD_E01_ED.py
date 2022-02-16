@@ -26,7 +26,7 @@ JP_BD.a_src_cut = VPath(JP_BD.name)
 
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
-    (0, 2156): {'b': 0.90}
+    (0, 2061): {'b': 0.90}
 }
 
 

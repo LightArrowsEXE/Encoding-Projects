@@ -37,9 +37,14 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import vardefunc as vdf
     import EoEfunc as eoe
     import havsfunc as haf
-    from vsutil import depth, get_y
+    from vsutil import depth, get_y, insert_clip
 
     src = JP_BD.clip_cut
+
+    # Fix a minor colouring error
+    src = insert_clip(src, src[1661], 1662)
+
+    # Edgefixing
     rkt = rekt.rektlvls(src, [0, -1], [17, 17], [0, 1, 2, 3, 4, 6], [16, 4, -1, 2, 1, 1])
     rkt = rekt.rektlvls(rkt, None, None, [-1, -2, -3, -4, -5, -7], [13, 6, -1, 2, 1, 1])
     rkt = depth(rkt, 32)
@@ -79,12 +84,12 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     grain = vdf.noise.Graigasm(
         thrs=[x << 8 for x in (32, 80, 128, 176)],
-        strengths=[(0.15, 0.0), (0.10, 0.0), (0.05, 0.0), (0.0, 0.0)],
+        strengths=[(0.20, 0.0), (0.15, 0.0), (0.10, 0.0), (0.0, 0.0)],
         sizes=(1.25, 1.20, 1.15, 1),
         sharps=(50, 40, 25, 0),
         grainers=[
-            vdf.noise.AddGrain(seed=69420, constant=False),
-            vdf.noise.AddGrain(seed=69420, constant=False),
+            vdf.noise.AddGrain(seed=69420, constant=True),
+            vdf.noise.AddGrain(seed=69420, constant=True),
             vdf.noise.AddGrain(seed=69420, constant=True)
         ]).graining(deband)
 

@@ -82,12 +82,12 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 
     grain = vdf.noise.Graigasm(
         thrs=[x << 8 for x in (32, 80, 128, 176)],
-        strengths=[(0.15, 0.0), (0.10, 0.0), (0.05, 0.0), (0.0, 0.0)],
+        strengths=[(0.20, 0.0), (0.15, 0.0), (0.10, 0.0), (0.0, 0.0)],
         sizes=(1.25, 1.20, 1.15, 1),
         sharps=(50, 40, 25, 0),
         grainers=[
-            vdf.noise.AddGrain(seed=69420, constant=False),
-            vdf.noise.AddGrain(seed=69420, constant=False),
+            vdf.noise.AddGrain(seed=69420, constant=True),
+            vdf.noise.AddGrain(seed=69420, constant=True),
             vdf.noise.AddGrain(seed=69420, constant=True)
         ]).graining(deband)
 
