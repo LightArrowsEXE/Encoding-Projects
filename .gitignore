@@ -190,6 +190,12 @@ gitignore-symlinks.sh
 !settings
 !requirements.txt
 
+# Exceptions for assets, masks, and README images
+!**/assets/*.png
+!**/assets/*.ass
+!**/masks/*.png
+!**/img/*.png
+
 # Exceptions to the exceptions
 *.lnk
 
@@ -205,6 +211,7 @@ gitignore-symlinks.sh
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
 \!temp_archiving
 Other/*
+old/*
 
 
 # A suffix for directories I want to temporarily prevent from being accidentally pushed
