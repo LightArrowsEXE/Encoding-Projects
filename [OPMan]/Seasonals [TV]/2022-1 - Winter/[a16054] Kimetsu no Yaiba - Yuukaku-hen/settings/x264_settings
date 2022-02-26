@@ -1,0 +1,7 @@
+-o {clip_output:s} - --demuxer y4m --frames {frames:d}
+--fps {fps_num:d}/{fps_den:d} --sar 1:1 --videoformat ntsc --range tv
+--colormatrix bt709 --colorprim bt709 --transfer bt709
+--preset placebo --crf 15 --deblock -2:-2 --min-keyint 23 --keyint 240 --ref 16 --bframes 16
+--aq-mode 3 --aq-strength 0.85 --qcomp 0.75 --rc-lookahead 72 --qpstep 2
+--psy-rd 0.95:0.0 --trellis 2 --me umh --merange 32 --no-mbtree --direct spatial --no-dct-decimate --no-fast-pskip
+--output-depth {bits:d}
