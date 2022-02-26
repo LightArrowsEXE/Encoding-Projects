@@ -195,6 +195,7 @@ gitignore-symlinks.sh
 !**/assets/*.ass
 !**/masks/*.png
 !**/img/*.png
+!**/img/*.jpg
 
 # Exceptions to the exceptions
 *.lnk
