@@ -1,0 +1,148 @@
+import multiprocessing as mp
+import os
+from pathlib import Path
+from typing import Any, Dict, Tuple, Union
+
+import vapoursynth as vs
+import yaml
+from lvsfunc.misc import source
+from vardautomation import FileInfo, PresetAAC, PresetBD, VPath, get_vs_core
+from vardefunc import initialise_input
+
+from project_module import encoder as enc
+from project_module import flt
+
+with open("config.yaml", 'r') as conf:
+    config = yaml.load(conf, Loader=yaml.FullLoader)
+
+core = get_vs_core(range(0, (mp.cpu_count() - 2)) if config['reserve_core'] else None)
+
+
+shader_file = 'assets/FSRCNNX_x2_56-16-4-1.glsl'
+if not Path(shader_file).exists():
+    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
+    shader_file = os.path.join(str(os.getenv("APPDATA")), hookpath)
+
+
+# Sources
+JP_BD = FileInfo(f"{config['bdmv_dir']}/かぐや様は告らせたい Vol.1/BD/BDMV/STREAM/00009.m2ts", (None, -24),
+                 idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD, PresetAAC])
+JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
+JP_BD.a_src_cut = VPath(JP_BD.name)
+
+
+# OP/ED scenefiltering
+opstart = 0
+edstart = False
+op_offset = 1
+ed_offset = 1
+
+
+zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
+}
+
+
+@initialise_input(bits=16)
+def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
+    """Main filterchain"""
+    import debandshit as dbs
+    import EoEfunc as eoe
+    import havsfunc as haf
+    import lvsfunc as lvf
+    import rekt
+    import vardefunc as vdf
+    from awsmfunc import bbmod
+    from vsutil import Range as VideoRange
+    from vsutil import depth, get_w, get_y, iterate
+
+    assert src.format
+
+    # Edgefixing (is it really dumb if it works? :cooldako: (don't answer that))
+    rkt = rekt.rektlvls(src, [0, -1], [5, 5], [0, -1], [5, 5])
+    fb = core.fb.FillBorders(rkt, left=1, right=1, top=1, bottom=1, mode="fillmargins")
+
+    ef = fb.std.MaskedMerge(bbmod(src, top=1, bottom=1, left=2, right=2, y=True, u=False, v=False),
+                            core.std.Expr([fb, rekt.rektlvls(fb, [0, -1], [-15, -15], [0, -1], [5, 5], [16, 256])],
+                            'x y - abs 0 > 255 0 ?'), 0, True)
+    bb_uv = depth(bbmod(ef, left=3, blur=20, y=False), 32)
+    cshift = flt.chroma_shifter(bb_uv, src_left=0.25)
+
+    src_y = get_y(cshift)
+
+    # Descaling and rescaling
+    l_mask = vdf.mask.FDOG().get_mask(src_y, lthr=0.125, hthr=0.027).rgsf.RemoveGrain(4).rgsf.RemoveGrain(4)
+    l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
+    sq_mask = lvf.mask.BoundingBox((4, 4), (src.width-4, src.height-4)).get_mask(src_y).std.Invert()
+
+    descale = lvf.kernels.Catrom().descale(src_y, get_w(874), 874)
+    upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
+
+    upscaled = vdf.scale.nnedi3cl_double(upscale, use_znedi=True, pscrn=1)
+    downscale = lvf.scale.ssim_downsample(upscaled, src.width, src.height)
+    scaled = vdf.misc.merge_chroma(downscale, cshift)
+
+    credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.155)
+    credit_mask = iterate(credit_mask, core.std.Inflate, 2)
+    credit_mask = iterate(credit_mask, core.std.Maximum, 2)
+    credit_mask = core.std.Expr([credit_mask, sq_mask], "x y -")
+    credit_mask = depth(credit_mask, 16, range_in=VideoRange.FULL, range=VideoRange.LIMITED)
+
+    # Denoising and deblocking
+    smd = depth(haf.SMDegrain(depth(scaled, 16), tr=3, thSAD=40), 32)
+    ref = smd.dfttest.DFTTest(slocation=[0.0, 4, 0.25, 16, 0.3, 512, 1.0, 512], planes=[0], **eoe.freq._dfttest_args)
+    bm3d = lvf.denoise.bm3d(smd, sigma=[0.2, 0], radius=3, ref=ref)
+
+    # Detail mask for later
+    ret = core.retinex.MSRCP(depth(get_y(smd), 16), sigma=[150, 300, 450], upper_thr=0.008)
+    detail_mask = lvf.mask.detail_mask_neo(ret, sigma=6, lines_brz=0.02) \
+        .rgvs.RemoveGrain(4).rgvs.RemoveGrain(4).std.Median().std.Convolution([1] * 9)
+
+    # Chroma defuckery. This is pain.
+    up_444 = vdf.scale.to_444(bm3d, bm3d.width, bm3d.height, join_planes=True)
+    rgb_bm3d = lvf.kernels.Catrom().resample(up_444, format=vs.RGBS)
+    corr_red = core.w2xnvk.Waifu2x(rgb_bm3d.std.Limiter(), noise=3, scale=1, model=2, precision=32)
+    conv_yuv = lvf.kernels.BicubicDidee(chromaloc=0).resample(corr_red, bm3d.format.id, matrix=1)
+    merge_chr = depth(core.std.Expr([bm3d, vdf.misc.merge_chroma(bm3d, conv_yuv)], "x y min"), 16)
+
+    decs = vdf.noise.decsiz(merge_chr, sigmaS=8.0, min_in=200 << 8, max_in=240 << 8)
+
+    # AA
+    baa = lvf.aa.based_aa(decs, str(shader_file))
+    sraa = lvf.sraa(decs, rfactor=1.35)
+    clmp = lvf.aa.clamp_aa(decs, baa, sraa, strength=1.3)
+
+    csharp = haf.ContraSharpening(clmp, decs, rep=13, planes=[1, 2])
+
+    # Deband
+    detail_mask = lvf.mask.detail_mask_neo(depth(smd, 16), detail_brz=0.04, lines_brz=0.005)
+    deband = [  # Why is the banding so damn STRONG holy shit
+        dbs.debanders.dumb3kdb(csharp, radius=16, threshold=20, grain=[16, 12], seed=69420),
+        dbs.debanders.dumb3kdb(csharp, radius=19, threshold=[28, 24], grain=[24, 12], seed=69420),
+        flt.placebo_debander(csharp, radius=10, threshold=3.5, iterations=2, grain=4),
+    ]
+    deband = core.average.Mean(deband)
+    deband = core.std.MaskedMerge(deband, csharp, detail_mask)
+
+    # Some of my filtering seems to cause a tint? Fixing
+    fix_tint = lvf.misc.shift_tint(deband, [0, 0, 0.25])
+
+    return fix_tint
+
+
+if __name__ == '__main__':
+    FILTERED = filterchain()
+    enc.Encoder(JP_BD, FILTERED).run(zones=zones)  # type: ignore
+elif __name__ == '__vapoursynth__':
+    FILTERED = filterchain()
+    if not isinstance(FILTERED, vs.VideoNode):
+        raise ImportError(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output just 1 clip")
+    else:
+        enc.dither_down(FILTERED).set_output(0)
+else:
+    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
+    FILTERED = filterchain()
+    if not isinstance(FILTERED, vs.VideoNode):
+        for i, clip_filtered in enumerate(FILTERED, start=1):
+            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+    else:
+        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
