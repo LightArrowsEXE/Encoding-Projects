@@ -158,7 +158,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     sraa = lvf.sraa(decs, rfactor=1.35)
     clmp = lvf.aa.clamp_aa(decs, baa, sraa, strength=1.3)
 
-    csharp = eoe.misc.ContraSharpening(clmp, decs, rep=13, planes=[1, 2])
+    csharp = eoe.misc.ContraSharpening(clmp, decs, rep=13, radius=2, planes=[1, 2])
 
     # Deband
     deband = [  # Why is the banding so damn STRONG holy shit
