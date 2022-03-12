@@ -34,19 +34,23 @@ def resolve_trims(trims: Any) -> Any:
 
 def parse_name(config: Dict[str, Any], file_name: str) -> VPath:
     """Converts a string to a proper path based on what's in the config file and __file__ name."""
-    file_name = __file__.split("_")
+    file_name = os.path.basename(file_name).split("_")
     file_name[-1] = os.path.splitext(file_name[-1])[0]
 
-    if config['show_name']:
-        file_name[0] = config['show_name']
+    output_name = config['output_name']
+    output_dir = config['output_dir']
+    show_name = config['show_name']
 
-    config['output_name'] = config['output_name'].replace('$$', file_name[0]).replace('%%', file_name[-1])
+    if show_name:
+        file_name[0] = show_name
 
-    if '&&' in config['output_name']:
-        version: int = len(glob(f"{config['output_dir']}/*{file_name[-1]}*.*", recursive=False)) + 1
-        config['output_name'] = config['output_name'].replace('&&', f"v{version}")
+    output_name = output_name.replace('$$', file_name[0]).replace('%%', file_name[-1])
 
-    return VPath(config['output_dir'] + '/' + config['output_name'])
+    if '&&' in output_name:
+        version: int = len(glob(f"{output_dir}/*{file_name[-1]}*.*", recursive=False)) + 1
+        output_name = output_name.replace('&&', f"v{version}")
+
+    return VPath(output_dir + '/' + os.path.basename(output_name) + '.mkv')
 
 
 def generate_comparison(src: FileInfo, enc: os.PathLike[str] | str, flt: vs.VideoNode,
