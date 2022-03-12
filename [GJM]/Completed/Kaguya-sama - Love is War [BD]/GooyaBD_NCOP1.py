@@ -42,7 +42,7 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 }
 
 
-@initialise_input(bits=16)
+@initialise_input()
 def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     """Main filterchain"""
     import debandshit as dbs
@@ -52,7 +52,6 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     import rekt
     import vardefunc as vdf
     from awsmfunc import bbmod
-    from vsutil import Range as VideoRange
     from vsutil import depth, get_w, get_y, iterate, scale_value
 
     assert src.format

@@ -42,7 +42,7 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 }
 
 
-@initialise_input(bits=16)
+@initialise_input()
 def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     """Main filterchain"""
     import debandshit as dbs
@@ -52,7 +52,6 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     import rekt
     import vardefunc as vdf
     from awsmfunc import bbmod
-    from vsutil import Range as VideoRange
     from vsutil import depth, get_w, get_y, iterate, scale_value
 
     assert src.format
@@ -85,7 +84,6 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     credit_mask = iterate(credit_mask, core.std.Inflate, 2)
     credit_mask = iterate(credit_mask, core.std.Maximum, 2)
     credit_mask = core.std.Expr([credit_mask, sq_mask], "x y -").std.Limiter()
-    credit_mask = depth(credit_mask, 16, range_in=VideoRange.FULL, range=VideoRange.LIMITED)
 
     # Denoising and deblocking
     smd = depth(haf.SMDegrain(depth(scaled, 16), tr=3, thSAD=40), 32)
