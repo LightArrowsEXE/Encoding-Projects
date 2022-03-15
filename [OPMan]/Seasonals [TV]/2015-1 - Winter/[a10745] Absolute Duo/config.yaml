@@ -1,0 +1,12 @@
+---
+# Base directory with all the BDMV files. This is often called "BDMV". This can be a relative path.
+bdmv_dir: "BDMV"
+# Reserve two threads to allow you to still do stuff on your system while the encode is running.
+reserve_core: False
+# Show name. Leave empty to determine the name from the python script's filename
+show_name:
+# Output directory for the premuxes. This can be a relative path.
+output_dir: "premux"
+# Output premux name. Show name and episode number are sourced from the python filename, unless set otherwise.
+# $$ = show name, %% = ep number, && = version number.
+output_name: "$$_%% (Premux)"
