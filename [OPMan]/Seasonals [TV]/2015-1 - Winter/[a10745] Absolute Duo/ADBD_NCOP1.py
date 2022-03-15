@@ -69,10 +69,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     grain = kgf.adaptive_grain(deband, 0.1, luma_scaling=10)
 
-    t = lvf.src(r"premux/ADBD_NCOP1 (Premux).mkv")
-    t2 = lvf.src(r"premux/ADBD_NCOP1 (Premux)_old.mkv")
-
-    return grain, t2, t
+    return grain
 
 
 if __name__ == '__main__':
