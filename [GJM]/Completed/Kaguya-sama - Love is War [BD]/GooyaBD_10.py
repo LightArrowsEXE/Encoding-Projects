@@ -60,7 +60,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     import lvsfunc as lvf
     import rekt
     import vardefunc as vdf
-    from stgfunc.tweaking import bbmod_fast as bbmod
+    from awsmfunc import bbmod
     from vsutil import depth, get_w, get_y, insert_clip, iterate, scale_value
 
     assert src.format
