@@ -60,6 +60,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     import lvsfunc as lvf
     import rekt
     import vardefunc as vdf
+    import vsdenoise as vsd
     from awsmfunc import bbmod
     from vsutil import depth, get_w, get_y, insert_clip, iterate
 
@@ -94,9 +95,9 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     den_src, den_ncs = depth(den_src, 32), depth(den_ncs, 32)
     diff = core.std.MakeDiff(den_src, den_ncs).dfttest.DFTTest(sigma=20.0)
 
-    # For some reason there's noise from previous credits remaining? Removing that here
-    diff_brz = vdf.misc.merge_chroma(depth(depth(diff.std.Binarize(0.025), 16).rgvs.RemoveGrain(3), 32), diff)
-    diff = core.std.Expr([diff, diff_brz], "x y min")
+    # For some reason there's ugly noise around the credits? Removing that here.
+    diff_brz = vdf.misc.merge_chroma(depth(depth(diff.std.Binarize(0.025), 16), 32), diff)
+    diff = core.std.Expr([diff, diff_brz.std.Inflate().std.Maximum()], "x y min")
 
     # And somehow it creates weird values in some places? Limiting here except for OP/ED
     diff_lim = diff.std.Limiter(0, 0)
@@ -125,7 +126,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     descale = lvf.kernels.Catrom().descale(src_y, get_w(874), 874)
     upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
 
-    upscaled = vdf.scale.nnedi3cl_double(descale, use_znedi=True, pscrn=1)
+    upscaled = vdf.scale.nnedi3_upscale(descale, use_znedi=True, pscrn=1)
     downscale = lvf.scale.ssim_downsample(upscaled, src.width, src.height)
     scaled = vdf.misc.merge_chroma(downscale, cshift)
 
@@ -137,7 +138,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     # Denoising and deblocking
     smd = depth(haf.SMDegrain(depth(scaled, 16), tr=3, thSAD=40), 32)
     ref = smd.dfttest.DFTTest(slocation=[0.0, 4, 0.25, 16, 0.3, 512, 1.0, 512], planes=[0], **eoe.freq._dfttest_args)
-    bm3d = lvf.denoise.bm3d(smd, sigma=[0.2, 0], radius=3, ref=ref)
+    bm3d = vsd.BM3DCudaRTC(smd, sigma=[0.2, 0], radius=3, ref=ref).clip
 
     # Detail mask for later
     ret = core.retinex.MSRCP(depth(get_y(smd), 16), sigma=[150, 300, 450], upper_thr=0.008)

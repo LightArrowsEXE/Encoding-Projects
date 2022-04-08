@@ -60,6 +60,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     import lvsfunc as lvf
     import rekt
     import vardefunc as vdf
+    import vsdenoise as vsd
     from awsmfunc import bbmod
     from vsutil import depth, get_w, get_y, insert_clip, iterate, scale_value
 
@@ -95,8 +96,8 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     diff = core.std.MakeDiff(den_src, den_ncs).dfttest.DFTTest(sigma=20.0)
 
     # For some reason there's noise from previous credits remaining? Removing that here
-    diff_brz = vdf.misc.merge_chroma(depth(depth(diff.std.Binarize(0.025), 16).rgvs.RemoveGrain(3), 32), diff)
-    diff = core.std.Expr([diff, diff_brz], "x y min")
+    diff_brz = vdf.misc.merge_chroma(depth(depth(diff.std.Binarize(0.025), 16), 32), diff)
+    diff = core.std.Expr([diff, diff_brz.std.Inflate().std.Maximum()], "x y min")
 
     # And somehow it creates weird values in some places? Limiting here except for OP/ED
     diff_lim = diff.std.Limiter(0, 0)
@@ -125,7 +126,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     descale = lvf.kernels.Catrom().descale(src_y, get_w(874), 874)
     upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
 
-    upscaled = vdf.scale.nnedi3cl_double(descale, use_znedi=True, pscrn=1)
+    upscaled = vdf.scale.nnedi3_upscale(descale, use_znedi=True, pscrn=1)
     downscale = lvf.scale.ssim_downsample(upscaled, src.width, src.height)
     scaled = vdf.misc.merge_chroma(downscale, cshift)
 

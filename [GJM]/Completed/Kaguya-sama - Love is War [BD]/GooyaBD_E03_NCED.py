@@ -51,6 +51,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     import lvsfunc as lvf
     import rekt
     import vardefunc as vdf
+    import vsdenoise as vsd
     from awsmfunc import bbmod
     from vsutil import depth, get_w, get_y, iterate, scale_value
 
@@ -76,7 +77,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     descale = lvf.kernels.Catrom().descale(src_y, get_w(874), 874)
     upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
 
-    upscaled = vdf.scale.nnedi3cl_double(descale, use_znedi=True, pscrn=1)
+    upscaled = vdf.scale.nnedi3_upscale(descale, use_znedi=True, pscrn=1)
     downscale = lvf.scale.ssim_downsample(upscaled, src.width, src.height)
     scaled = vdf.misc.merge_chroma(downscale, cshift)
 
@@ -88,7 +89,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> Union[vs.VideoNode, Tuple
     # Denoising and deblocking
     smd = depth(haf.SMDegrain(depth(scaled, 16), tr=3, thSAD=40), 32)
     ref = smd.dfttest.DFTTest(slocation=[0.0, 4, 0.25, 16, 0.3, 512, 1.0, 512], planes=[0], **eoe.freq._dfttest_args)
-    bm3d = lvf.denoise.bm3d(smd, sigma=[0.2, 0], radius=3, ref=ref)
+    bm3d = vsd.BM3DCudaRTC(smd, sigma=[0.2, 0], radius=3, ref=ref).clip
 
     # Detail mask for later
     ret = core.retinex.MSRCP(depth(get_y(smd), 16), sigma=[150, 300, 450], upper_thr=0.008)
