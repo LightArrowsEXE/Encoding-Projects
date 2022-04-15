@@ -47,6 +47,8 @@ ed_offset = 1
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 }
 
+run_script: bool = __name__ == '__main__'
+
 
 @initialise_input()
 def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
@@ -62,11 +64,16 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     import vardefunc as vdf
     import vsdenoise as vsd
     from awsmfunc import bbmod
-    from vsutil import depth, get_w, get_y, insert_clip, iterate, scale_value
+    from vsmlrt import Backend
+    from vsutil import depth, get_w, get_y, insert_clip, iterate
 
     assert src.format
     assert ncop.format
     assert nced.format
+
+    BM3D = vsd.BM3DCudaRTC if run_script else vsd.BM3DCPU
+    BACKEND = Backend.TRT(fp16=True, num_streams=2) if run_script \
+        else Backend.ORT_CUDA(fp16=False, num_streams=2)
 
     src_c = src
     b = core.std.BlankClip(src, length=1)
@@ -112,9 +119,9 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
 
     ef = fb.std.MaskedMerge(bbmod(src, top=1, bottom=1, left=2, right=2, y=True, u=False, v=False),
                             core.std.Expr([fb, rekt.rektlvls(fb, [0, -1], [-15, -15], [0, -1], [5, 5], [16, 256])],
-                            f'x y - abs 0 > {scale_value(255, 8, 16)} 0 ?'), 0, True)
+                            'x y - abs 0 > 255 0 ?'), 0, True)
     bb_uv = depth(bbmod(ef, left=3, blur=20, y=False), 32)
-    cshift = flt.chroma_shifter(bb_uv, src_left=0.25)
+    cshift = flt.chroma_shifter(bb_uv, src_left=0.4)
 
     src_y = get_y(cshift)
 
@@ -126,7 +133,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     descale = lvf.kernels.Catrom().descale(src_y, get_w(874), 874)
     upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
 
-    upscaled = vdf.scale.nnedi3_upscale(descale, use_znedi=True, pscrn=1)
+    upscaled = vdf.scale.nnedi3cl_double(descale, use_znedi=True, pscrn=1)
     downscale = lvf.scale.ssim_downsample(upscaled, src.width, src.height)
     scaled = vdf.misc.merge_chroma(downscale, cshift)
 
@@ -138,7 +145,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
     # Denoising and deblocking
     smd = depth(haf.SMDegrain(depth(scaled, 16), tr=3, thSAD=40), 32)
     ref = smd.dfttest.DFTTest(slocation=[0.0, 4, 0.25, 16, 0.3, 512, 1.0, 512], planes=[0], **eoe.freq._dfttest_args)
-    bm3d = vsd.BM3DCudaRTC(smd, sigma=[0.2, 0], radius=3, ref=ref).clip
+    bm3d = BM3D(smd, sigma=[0.2, 0], radius=3, ref=ref).clip
 
     # Detail mask for later
     ret = core.retinex.MSRCP(depth(get_y(smd), 16), sigma=[150, 300, 450], upper_thr=0.008)
@@ -146,35 +153,22 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut,
         .rgvs.RemoveGrain(4).rgvs.RemoveGrain(4).std.Median().std.Convolution([1] * 9)
 
     # Chroma defuckery. This is pain.
-    up_444 = vdf.scale.to_444(bm3d, bm3d.width, bm3d.height, join_planes=True)
-    rgb_bm3d = lvf.kernels.Catrom().resample(up_444, format=vs.RGBS)
-    corr_red = core.w2xnvk.Waifu2x(rgb_bm3d.std.Limiter(), noise=3, scale=1, model=2, precision=32)
-    conv_yuv = lvf.kernels.BicubicDidee(chromaloc=0).resample(corr_red, bm3d.format.id, matrix=1)
-    merge_chr = depth(core.std.Expr([bm3d, vdf.misc.merge_chroma(bm3d, conv_yuv)], "x y min"), 16)
+    debl = lvf.deblock.vsdpir(bm3d, strength=75, tiles=None if run_script else 8, backend=BACKEND)
+    merge_chr = depth(core.std.Expr([bm3d, vdf.misc.merge_chroma(bm3d, debl)], "x y min"), 16)
 
     decs = vdf.noise.decsiz(merge_chr, sigmaS=8.0, min_in=200 << 8, max_in=240 << 8)
 
-    # AA
-    baa = lvf.aa.based_aa(decs, str(shader_file))
-    sraa = lvf.sraa(decs, rfactor=1.35)
-    clmp = lvf.aa.clamp_aa(decs, baa, sraa, strength=1.3)
-
-    csharp = eoe.misc.ContraSharpening(clmp, decs, rep=13, radius=2, planes=[1, 2])
-
     # Deband
     deband = [  # Why is the banding so damn STRONG holy shit
-        dbs.debanders.dumb3kdb(csharp, radius=16, threshold=20, grain=[16, 12], seed=69420),
-        dbs.debanders.dumb3kdb(csharp, radius=19, threshold=[28, 24], grain=[24, 12], seed=69420),
-        flt.placebo_debander(csharp, radius=10, threshold=3.5, iterations=2, grain=4),
+        dbs.debanders.dumb3kdb(decs, radius=16, threshold=20, grain=[16, 12], seed=69420),
+        dbs.debanders.dumb3kdb(decs, radius=19, threshold=[28, 24], grain=[24, 12], seed=69420),
+        flt.placebo_debander(decs, radius=10, threshold=3.5, iterations=2, grain=4),
     ]
     deband = core.average.Mean(deband)
-    deband = core.std.MaskedMerge(deband, csharp, detail_mask)
-
-    # Some of my filtering seems to cause a tint? Fixing
-    fix_tint = lvf.misc.shift_tint(deband, [0, 0, 0.28])
+    deband = core.std.MaskedMerge(deband, decs, detail_mask)
 
     # Merging credits and other 1080p detail
-    restore_src = core.std.MaskedMerge(depth(fix_tint, 32), cshift, credit_mask)
+    restore_src = core.std.MaskedMerge(depth(deband, 32), cshift, credit_mask)
     merge_creds = core.std.MergeDiff(restore_src, diff)
 
     return merge_creds

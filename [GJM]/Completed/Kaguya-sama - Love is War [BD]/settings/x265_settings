@@ -1,4 +1,4 @@
--o {clip_output:s} - --y4m --frames {frames:d}
+-o {clip_output:s} - --y4m --frames {frames:d}  --numa-pools 16
 --fps {fps_num:d}/{fps_den:d} --sar 1 --videoformat ntsc --range limited
 --colormatrix bt709 --colorprim bt709 --transfer bt709
 --min-luma {min_luma:d} --max-luma {max_luma:d}
