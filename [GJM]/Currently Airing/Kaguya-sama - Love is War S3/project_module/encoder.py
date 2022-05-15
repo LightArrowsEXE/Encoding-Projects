@@ -4,21 +4,25 @@ from __future__ import annotations
 import collections
 import os
 import shutil
+import subprocess
+import sys
 from glob import glob
 from typing import Any, Dict, List, Sequence, Tuple
 
-import __main__
 import vapoursynth as vs
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
-from vardautomation import (FFV1, JAPANESE, X264, X265, AudioStream, Chapter,
-                            ChapterStream, FileInfo, MatroskaXMLChapters,
-                            MKVAudioExtracter, Mux, PassthroughAudioEncoder,
-                            Patch, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, logger, make_comps)
+from lvsfunc.types import Range
+from vardautomation import (FFV1, JAPANESE, X264, X265, AudioTrack, Chapter,
+                            FileInfo, MatroskaFile, MKVAudioExtracter,
+                            PassthroughAudioEncoder, Patch, RunnerConfig,
+                            SelfRunner, VideoTrack, VPath, logger, make_comps)
 from vsutil import depth
 
 core = vs.core
+
+
+caller_name = sys.argv[0]
 
 
 def dither_down(clip: vs.VideoNode) -> vs.VideoNode:
@@ -26,11 +30,15 @@ def dither_down(clip: vs.VideoNode) -> vs.VideoNode:
     return depth(clip, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])
 
 
-def resolve_trims(trims: Any) -> Any:
+def resolve_ap_trims(trims: Range | List[Range] | None, clip: vs.VideoNode) -> List[List[Range]]:
     """Convert list[tuple] into list[list]. begna pls"""
-    if all(isinstance(trim, tuple) for trim in trims):
-        return [list(trim) for trim in trims]
-    return trims
+    from lvsfunc.util import normalize_ranges
+
+    if trims is None:
+        return [[0, clip.num_frames-1]]
+
+    nranges = list(normalize_ranges(clip, trims))
+    return [list(trim) for trim in nranges]
 
 
 def parse_name(config: Dict[str, Any], file_name: str) -> VPath:
@@ -71,15 +79,9 @@ def generate_comparison(src: FileInfo, enc: os.PathLike[str] | str, flt: vs.Vide
 
 class Encoder:
     """"Regular encoding class"""
-    def __init__(self, file: FileInfo, clip: vs.VideoNode,
-                 chapter_list: List[Chapter] | None = None,
-                 chapter_names: Sequence[str] | None = None,
-                 chapter_offset: int | None = None) -> None:
+    def __init__(self, file: FileInfo, clip: vs.VideoNode) -> None:
         self.file = file
         self.clip = clip
-        self.chapter_list = chapter_list
-        self.chapter_names = chapter_names
-        self.chapter_offset = chapter_offset
 
     def run(self, clean_up: bool = True, lossless: bool = False, make_comp: bool = False,
             x264: bool = False, prefetch: int | None = None, flac: bool = False, all_tracks: bool = False,
@@ -107,9 +109,6 @@ class Encoder:
         :param settings:    Pass custom settings file. Else use default `settings/x26X_settings` file
         """
         assert self.file.a_src
-
-        if zones:
-            zones = collections.OrderedDict(sorted(zones.items()))
 
         # Video encoder
         logger.info(f'Encoding using {"x264" if x264 else "x265"}. Zones set: '
@@ -140,20 +139,22 @@ class Encoder:
             if any([audio_clip, audio_file]):
                 audio_file = audio_file or audio_clip.path.to_str()
 
+            logger.warning(self.file.trims_or_dfs)
+            trims = resolve_ap_trims(self.file.trims_or_dfs if not audio_clip
+                                    else audio_clip.trims_or_dfs, self.file.clip_cut)
+            logger.warning(trims)
+
             audio_files = video_source(
                 in_file=self.file.path.to_str() if not audio_file else audio_file,
                 out_file=self.file.a_src_cut,
-                trim_list=resolve_trims(self.file.trims_or_dfs if not audio_clip else audio_clip.trims_or_dfs),
+                trim_list=trims,
                 trims_framerate=self.file.clip.fps if not audio_clip else audio_clip.clip.fps,
                 frames_total=self.file.clip.num_frames if not audio_clip else audio_clip.clip.num_frames,
                 flac=flac, aac=flac is False, silent=False)
 
-            XML_TAG = 'settings/tags_aac.xml'
-
-            audio_tracks: List[AudioStream] = []
+            audio_tracks: List[AudioTrack] = []
             for track in audio_files:
-                audio_tracks += [AudioStream(VPath(track), 'FLAC 2.0' if flac else 'AAC 2.0',
-                                            JAPANESE, XML_TAG if not flac else None)]
+                audio_tracks += [AudioTrack(VPath(track), 'FLAC 2.0' if flac else 'AAC 2.0', JAPANESE)]
 
             if len(audio_tracks) > 1 and not all_tracks:
                 logger.warning(f'{len(audio_tracks)} audio tracks found! Only the first track will be included!')
@@ -165,26 +166,12 @@ class Encoder:
             audio_encoder = PassthroughAudioEncoder(self.file)
             audio_extracter = MKVAudioExtracter(self.file)
 
-        # Chapters
-        if self.chapter_list:
-            assert self.file.chapter
-            assert self.file.trims_or_dfs
-
-            if not isinstance(self.chapter_offset, int):
-                self.chapter_offset = self.file.trims_or_dfs[0] * -1  # type: ignore
-
-            chapxml = MatroskaXMLChapters(self.file.chapter)
-            chapxml.create(self.chapter_list, self.file.clip.fps)
-            chapxml.shift_times(self.chapter_offset, self.file.clip.fps)  # type: ignore
-            chapxml.set_names(self.chapter_names)
-            chapters = ChapterStream(chapxml.chapter_file, JAPANESE)
-
         # Muxing
-        muxer = Mux(
-            self.file,
-            streams=(
-                VideoStream(self.file.name_clip_output, 'Original encode by LightArrowsEXE@Kaleido', JAPANESE),
-                audio_tracks, chapters if self.chapter_list else None
+        muxer = MatroskaFile(
+            self.file.name_file_final,
+            (
+                VideoTrack(self.file.name_clip_output, 'Original encode by LightArrowsEXE@Kaleido', JAPANESE),
+                *audio_tracks
             )
         )
         config = RunnerConfig(
@@ -193,7 +180,7 @@ class Encoder:
             a_extracters=audio_extracter,
             a_cutters=None,
             a_encoders=audio_encoder,
-            muxer=muxer
+            mkv=muxer
         )
 
         runner = SelfRunner(self.clip, self.file, config)

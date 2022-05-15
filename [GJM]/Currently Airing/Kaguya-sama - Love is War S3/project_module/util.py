@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import vapoursynth as vs
-import yaml
 
 
 def _get_bits(clip: vs.VideoNode, expected_depth: int = 16) -> Tuple[int, vs.VideoNode]:
