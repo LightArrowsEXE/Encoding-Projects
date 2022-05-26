@@ -34,6 +34,7 @@ if edstart is not False:
 @initialise_input()
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain. Special thanks to Samaritan for sharing his script."""
+    import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
     import jvsfunc as jvf
@@ -66,9 +67,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     deband = dbs.dumb3kdb(cfix, radius=18, threshold=[32, 24, 24], grain=12)
     deband = core.std.MaskedMerge(deband, cfix, detail_mask)
 
-    adap_mask = core.adg.Mask(deband.std.PlaneStats(), 8)
-    grain = deband.noise.Add(var=0.20, type=2)
-    grain = core.std.MaskedMerge(deband, grain, adap_mask)
+    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
 
     return grain
 

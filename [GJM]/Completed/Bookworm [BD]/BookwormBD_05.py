@@ -62,6 +62,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     """Main filterchain. Special thanks to Samaritan for sharing his script."""
     from functools import partial
 
+    import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
     import jvsfunc as jvf
@@ -158,8 +159,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
 
     # Denoising, AA, weak chroma fix
     smd = haf.SMDegrain(scaled, tr=3, thSAD=50, Str=1.25)
-    knlm = vsd.knl_means_cl(smd, strength=0.35, tr=1, sr=2)
-    ccd = jvf.ccd(knlm, threshold=3, mode=3)
+    ccd = jvf.ccd(smd, threshold=3, mode=3)
     decs = vdf.noise.decsiz(ccd, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
@@ -183,9 +183,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
         deband_dark = core.std.MaskedMerge(deband, deband_dark, depth(dark_house_mask, 16))
         deband = lvf.rfs(deband, deband_dark, mask_dark_house)
 
-    adap_mask = core.adg.Mask(deband.std.PlaneStats(), 8)
-    grain = deband.noise.Add(var=0.20, type=2)
-    grain = core.std.MaskedMerge(deband, grain, adap_mask)
+    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
 
     # Merging credits and other 1080p detail
     restore_src = core.std.MaskedMerge(depth(grain, 32), bb, credit_mask)

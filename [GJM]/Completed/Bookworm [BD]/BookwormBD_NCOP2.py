@@ -30,6 +30,7 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 @initialise_input(bits=32)
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain. Special thanks to Samaritan for sharing his script."""
+    import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
     import jvsfunc as jvf
@@ -69,8 +70,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     # Denoising, AA, weak chroma fix
     smd = haf.SMDegrain(scaled, tr=3, thSAD=50, Str=1.25)
-    knlm = vsd.knl_means_cl(smd, strength=0.35, tr=1, sr=2)
-    ccd = jvf.ccd(knlm, threshold=3, mode=3)
+    ccd = jvf.ccd(smd, threshold=3, mode=3)
     decs = vdf.noise.decsiz(ccd, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
@@ -87,9 +87,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     deband = lvf.rfs(deband, deband_str, str_deband_ranges)
 
-    adap_mask = core.adg.Mask(deband.std.PlaneStats(), 8)
-    grain = deband.noise.Add(var=0.20, type=2)
-    grain = core.std.MaskedMerge(deband, grain, adap_mask)
+    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
 
     return grain
 
