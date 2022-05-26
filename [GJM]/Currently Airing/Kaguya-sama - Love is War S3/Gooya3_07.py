@@ -29,8 +29,8 @@ JP_WEB.a_src_cut = VPath(JP_WEB.name)
 
 
 # OP/ED scenefiltering
-opstart = False
-edstart = False
+opstart = 2326
+edstart = 32366
 op_offset = 1
 ed_offset = 1
 
@@ -49,17 +49,11 @@ deblock_ranges: List[Range] = [
 ]
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
-    (32052, 32129): {'b': 0.90}
 }
 
 
 for k, v in zones:
     deblock_ranges += [(k, v)]
-
-# Adding zones that shouldn't be deblocked
-zones |= {
-    (32370, 34528): {'b': 1.15}
-}
 
 run_script: bool = __name__ == '__main__'
 
@@ -120,10 +114,6 @@ def filterchain(src: vs.VideoNode = JP_WEB.clip_cut) -> Union[vs.VideoNode, Tupl
 
     if ff_first:
         dehalo = dehalo.std.FreezeFrames(ff_first, ff_last, ff_repl)
-
-    if '05' in __file__:
-        clean_frame = lvf.src("assets/05/clean_frame.png", dehalo)
-        dehalo = lvf.rfs(dehalo, clean_frame, [(19501, 19557)])
 
     detail_mask = lvf.mask.detail_mask(dehalo, rad=4, brz_a=0.015, brz_b=0.05)
     deband = core.std.MaskedMerge(core.average.Mean([
