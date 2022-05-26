@@ -156,14 +156,16 @@ rename.py
 !requirements.txt
 
 # Exceptions for assets, masks, and README images
-!**/assets/*.png
-!**/assets/*.ass
-!**/masks/*.png
-!**/img/*.png
-!**/img/*.jpg
+!**/assets/**/*
+!**/.assets/**/*
+!**/*mask*/**/*
+!**/*img*/**/*
 
 # Exceptions to the exceptions
 *.lnk
+*.hook
+*.glsl
+**/hidden/*
 
 
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
