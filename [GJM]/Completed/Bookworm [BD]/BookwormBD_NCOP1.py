@@ -79,9 +79,10 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     scaled = depth(planes.clip, 16)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(scaled, tr=3, thSAD=50, Str=1.25)
-    ccd = jvf.ccd(smd, threshold=3, mode=3)
-    decs = vdf.noise.decsiz(ccd, min_in=200 << 8, max_in=240 << 8)
+    smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
+    bm3d = vsd.BM3DCudaRTC(scaled, [0.5, 0], radius=3, ref=smd).clip
+    knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
+    decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
 

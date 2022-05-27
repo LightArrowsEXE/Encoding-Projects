@@ -52,10 +52,10 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(src, tr=3, thSAD=50, Str=1.25)
-    knlm = vsd.knl_means_cl(smd, strength=0.35, tr=1, sr=2)
-    ccd = jvf.ccd(knlm, threshold=3, mode=3)
-    decs = vdf.noise.decsiz(ccd, min_in=200 << 8, max_in=240 << 8)
+    smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
+    bm3d = vsd.BM3DCudaRTC(scaled, [0.5, 0], radius=3, ref=smd).clip
+    knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
+    decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
     aa = lvf.rfs(aa, decs, no_rescale[-1])  # Do not AA the ED

@@ -69,7 +69,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     import vardefunc as vdf
     import vsdenoise as vsd
     import vsmask as vsm
-    from vsutil import depth, get_w, insert_clip, iterate
+    from vsutil import depth, get_w, get_y, insert_clip, iterate
     from xvs import mwcfix
 
     assert src.format
@@ -83,7 +83,6 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     nced = vdf.util.initialise_clip(nced)
 
     # Extend to make sure I catch any final frames
-    ncop = ncop + ncop[-1]
     nced = nced + nced[-1] * 2
 
     diff_rfs: List[Range] = []
@@ -151,14 +150,15 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     scaled = depth(planes.clip, 16)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(scaled, tr=3, thSAD=50, Str=1.25)
-    ccd = jvf.ccd(smd, threshold=3, mode=3)
-    decs = vdf.noise.decsiz(ccd, min_in=200 << 8, max_in=240 << 8)
+    smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
+    bm3d = vsd.BM3DCudaRTC(scaled, [0.5, 0], radius=3, ref=smd).clip
+    knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
+    decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
     aa = lvf.rfs(aa, decs, no_rescale[-1])  # Do not AA the ED
 
-    cfix = mwcfix(aa, warp=3)
+    cfix = mwcfix(aa, restore=0.75, warp=3, thresh=64)
 
     # Debanding and graining
     detail_mask = lvf.mask.detail_mask_neo(cfix)
@@ -176,7 +176,8 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
         deband_dark = core.std.MaskedMerge(deband, deband_dark, depth(dark_house_mask, 16))
         deband = lvf.rfs(deband, deband_dark, mask_dark_house)
 
-    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
+    grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
+                            grainer=lambda x: core.noise.Add(x, type=3, xsize=2.8, ysize=2.8, var=2.5, uvar=0.4))
 
     # Merging credits and other 1080p detail
     restore_src = core.std.MaskedMerge(depth(grain, 32), src, credit_mask)
