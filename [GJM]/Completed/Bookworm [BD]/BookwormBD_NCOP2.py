@@ -33,12 +33,11 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
-    import jvsfunc as jvf
     import lvsfunc as lvf
     import vardefunc as vdf
     import vsdenoise as vsd
     import vsmask as vsm
-    from vsutil import depth, get_w, iterate
+    from vsutil import depth, get_w, get_y, iterate
     from xvs import mwcfix
 
     assert src.format

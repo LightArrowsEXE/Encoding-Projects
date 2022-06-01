@@ -37,7 +37,6 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
-    import jvsfunc as jvf
     import lvsfunc as lvf
     import vardefunc as vdf
     import vsdenoise as vsd
@@ -52,8 +51,8 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
-    bm3d = vsd.BM3DCudaRTC(scaled, [0.5, 0], radius=3, ref=smd).clip
+    smd = haf.SMDegrain(src_y, tr=2, thSAD=150)
+    bm3d = vsd.BM3DCudaRTC(src, [0.5, 0], radius=3, ref=smd).clip
     knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
     decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
 

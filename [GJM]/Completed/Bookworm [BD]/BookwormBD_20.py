@@ -61,7 +61,6 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     import adptvgrnMod as adp
     import debandshit as dbs
     import havsfunc as haf
-    import jvsfunc as jvf
     import lvsfunc as lvf
     import vardefunc as vdf
     import vsdenoise as vsd
