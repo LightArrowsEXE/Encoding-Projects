@@ -6,6 +6,6 @@ exclude =
     stubs/*,
     */*raining*/*,
     *dgi.json.py,
-    */ivtc/*.py
+    */ivtc*/*.py
 show-source = True
 statistics = True
