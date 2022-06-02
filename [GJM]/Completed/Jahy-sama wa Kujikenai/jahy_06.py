@@ -18,7 +18,7 @@ EP_NUM = __file__[-5:-3]
 
 
 # Sources
-JP_clip = FileInfo(f'sources/{EP_NUM}/[NC-Raws] 迦希女王不会放弃！ - {EP_NUM} [B-Global][WEB-DL][1080p][AVC AAC][ENG_TH_SRT][MKV].mkv',
+JP_clip = FileInfo(f'sources/{EP_NUM}/[NC-Raws] 迦希女王不会放弃！ - {EP_NUM} [B-Global][WEB-DL][1080p][AVC AAC][ENG_TH_SRT][MKV].mkv',  # noqa
                    idx=lambda x: source(x, force_lsmas=True, cachedir=''),
                    preset=[PresetWEB, PresetAAC])
 JP_clip.name_file_final = VPath(f"{enc_type.lower()}/Jahy_{EP_NUM} ({enc_type}).mkv")
@@ -71,7 +71,6 @@ def pre_freeze() -> vs.VideoNode:
 
 def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     """Regular VapourSynth filterchain"""
-    import EoEfunc as eoe
     import havsfunc as haf
     import lvsfunc as lvf
     import vardefunc as vdf

@@ -1,7 +1,6 @@
 """The encoder class. This is where the actual magic happens."""
 import binascii
 import os
-from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
 
 import vapoursynth as vs
@@ -172,5 +171,5 @@ class Encoder:
         if clean_up:
             try:
                 runner.do_cleanup()
-            except:
+            except Exception:
                 pass
