@@ -191,3 +191,4 @@ old/*
 *.lnk
 *.pth
 **/*hidden*/**/*
+*/.mypy_cache/**/*
