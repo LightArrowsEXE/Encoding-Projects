@@ -1,11 +1,11 @@
-from typing import Optional, Sequence, Tuple, Union
+from typing import Tuple, Union
 
 import vapoursynth as vs
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, FileInfo, MplsReader, PresetAAC,
-                            PresetBD, PresetChapXML, VPath)
+from vardautomation import FileInfo, PresetAAC, PresetBD, PresetChapXML, VPath
 
-from project_module import encoder as enc, flt
+from project_module import encoder as enc
+from project_module import flt
 
 core = vs.core
 core.num_threads = 4
@@ -37,7 +37,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     """Main filterchain"""
     import havsfunc as haf
     import lvsfunc as lvf
-    import rekt
     import vardefunc as vdf
     from adptvgrnMod import adptvgrnMod
     from awsmfunc import bbmod
