@@ -6,9 +6,8 @@ from typing import Any, List, Optional, Tuple, Union
 import vapoursynth as vs
 from lvsfunc.misc import source
 from vardautomation import (JAPANESE, AudioStream, BasicTool, EztrimCutter,
-                            FFV1Encoder, FileInfo, Mux, Patch,
-                            RunnerConfig, SelfRunner, VideoStream, X265Encoder,
-                            make_comps)
+                            FFV1Encoder, FileInfo, Mux, Patch, RunnerConfig,
+                            SelfRunner, VideoStream, X265Encoder, make_comps)
 from vardautomation.status import Status
 from vsutil import depth
 
