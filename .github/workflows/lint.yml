@@ -27,6 +27,6 @@ jobs:
           pip install .
       - name: Running flake8
         run: flake8 lvsfunc
-      - name: Running mypy
-        if: steps.dependencies.outcome == 'success'
-        run: mypy -p lvsfunc
+      # - name: Running mypy
+      #   if: steps.dependencies.outcome == 'success'
+      #   run: mypy -p lvsfunc
