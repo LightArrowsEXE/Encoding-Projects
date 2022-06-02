@@ -59,7 +59,7 @@ Alternatively, please send in an issue.
 [gjm]: https://github.com/GoodJobMedia/gjmbatchscripts
 [ddy]: https://github.com/DameDesuYo
 
-[//]: Github pages
+[//]: Github
 [old_branch]: https://github.com/LightArrowsEXE/Encoding-Projects/tree/old_scripts
 [projects_all]: https://github.com/LightArrowsEXE/Encoding-Projects/projects
 [issues]: https://github.com/LightArrowsEXE/Encoding-Projects/issues
