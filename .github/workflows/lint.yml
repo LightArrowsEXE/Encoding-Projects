@@ -1,4 +1,4 @@
-name: lint (flake8)
+name: lint
 
 on:
   push:
@@ -21,7 +21,9 @@ jobs:
           cache: true
       - name: Install dependencies
         id: dependencies
-        run: python3 -m pip install --upgrade pip
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
       - name: Running flake8
         run: flake8 lvsfunc
       # - name: Running mypy

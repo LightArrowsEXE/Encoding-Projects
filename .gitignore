@@ -155,7 +155,7 @@ rename.py
 # Exceptions
 !**/.github/**/*
 !settings
-!requirements.txt
+!requirements*.txt
 
 
 # Exceptions for assets, masks, and README images
