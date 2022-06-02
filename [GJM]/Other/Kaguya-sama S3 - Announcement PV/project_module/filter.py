@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 import vapoursynth as vs
-from vsutil import depth, get_w, get_y, iterate, join, plane
+from vsutil import depth, get_y, iterate, join, plane
 
 from .util import _get_bits
 
@@ -130,7 +130,6 @@ def bestframeselect(clips: List[vs.VideoNode], ref: vs.VideoNode,
     debug: display values of prop for each clip, and which clip was picked
     """
     from functools import partial
-    from lvsfunc.util import get_prop
 
     def _prop_comp(lst, comp_func, prop):
         return comp_func(range(len(lst)), key=lambda i: lst[i][prop])
