@@ -157,7 +157,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
 
     # Denoising, AA, weak chroma fix
     smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
-    bm3d = vsd.BM3DCudaRTC(scaled, [0.5, 0], radius=3, ref=smd).clip
+    bm3d = vsd.BM3DCudaRTC(scaled, [0.65, 0], radius=3, ref=smd).clip
     knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
     decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
 
