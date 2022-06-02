@@ -23,7 +23,7 @@ jobs:
         id: dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
           pip install .
       - name: Running flake8
         run: flake8 lvsfunc

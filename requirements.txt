@@ -1,0 +1,10 @@
+awsmfunc>=1.3.1
+havsfunc>=33
+lvsfunc>=0.4.2
+stgfunc>=0.1.1
+vardefunc>=0.6.2
+vs-debandshit>=0.4.5
+vs-kernels>=1.0.2
+vsdpir>=2.1.0
+vsmask>=0.3.0
+vsutil>=0.6.0
