@@ -4,11 +4,11 @@ import shutil
 from typing import Any, List, Optional, Tuple, Union
 
 import vapoursynth as vs
-from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, AudioStream, FFV1Encoder, FileInfo, Mux,
-                            Patch, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X265Encoder, make_comps, BasicTool, EztrimCutter)
+from vardautomation import (JAPANESE, AudioStream, BasicTool, EztrimCutter,
+                            FFV1Encoder, FileInfo, Mux, Patch,
+                            RunnerConfig, SelfRunner, VideoStream, X265Encoder,
+                            make_comps)
 from vardautomation.status import Status
 from vsutil import depth
 
@@ -149,4 +149,3 @@ class Patcher:
 
         if clean_up:
             runner.do_cleanup()
-
