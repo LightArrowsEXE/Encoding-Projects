@@ -1,4 +1,4 @@
-name: lint
+name: lint (flake8)
 
 on:
   push:
