@@ -235,7 +235,7 @@ class Encoding:
 
         v_encoder = X265Encoder('settings/x265_settings_BD')
 
-        ap_video_source(self.file.path_without_ext.to_str() + ".mkv",  # mkv because >chapters first and begna's code breaks
+        ap_video_source(self.file.path_without_ext.to_str() + ".mkv",  # mkv because >chapters first and begna's code breaks  # noqa
                         [self.file.frame_start, self.file.frame_end],
                         framerate=self.clip.fps,
                         noflac=True, noaac=False, nocleanup=False, silent=False)
