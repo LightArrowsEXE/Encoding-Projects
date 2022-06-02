@@ -18,7 +18,7 @@ JP_BD = FileInfo(r'BDMV/[BDMV][210224][Majo no Tabitabi][Blu-Ray BOX下巻]/BDMV
                  (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''),
                  preset=[PresetBD, PresetAAC])
 JP_BD_NCED = FileInfo(r'BDMV/[BDMV][アニメ][210127][MAJO_NO_TABITABI_1][Blu-Ray BOX 上]/BDMV/STREAM/00016.m2ts',
-                     (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
+                      (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
 JP_WEB = FileInfo(fr'WebSrc/Wandering Witch Elaina E{EP_NUM} [1080p][AAC][JapDub][GerSub][Web-DL].mkv',
                   (None, None), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
 JP_BD.name_file_final = VPath(f"premux/{JP_BD.name} (Premux).mkv")
@@ -42,10 +42,10 @@ def pre_corrections() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     Alongside that, they also introduced a couple of errors occasionally which I also fix here.
     Comments with examples of what I'm changing/fixing included if big enough.
     """
-    import lvsfunc as lvf
+    import lvsfunc as lvf  # noqa
 
     src_BD = JP_BD.clip_cut
-    src_WEB = JP_WEB.clip_cut
+    src_WEB = JP_WEB.clip_cut  # noqa
 
     # No fixes in this episode
     fixed = src_BD
@@ -61,7 +61,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import vardefunc as vdf
     from adptvgrnMod import adptvgrnMod
     from ccd import ccd
-    from vsutil import depth, get_w, get_y
+    from vsutil import depth, get_y
 
     src: vs.VideoNode = pre_corrections()  # type:ignore[assignment]
     src_NCED = JP_BD_NCED.clip_cut
@@ -113,7 +113,7 @@ elif __name__ == '__vapoursynth__':
         enc.dither_down(FILTERED).set_output(0)
 else:
     JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    #FILTERED = pre_corrections()
+    # FILTERED = pre_corrections()
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):

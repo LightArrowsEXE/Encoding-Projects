@@ -18,7 +18,7 @@ JP_BD = FileInfo(r'BDMV/[BDMV][アニメ][210127][MAJO_NO_TABITABI_1][Blu-Ray BO
                  (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''),
                  preset=[PresetBD, PresetAAC])
 JP_BD_NCED = FileInfo(r'BDMV/[BDMV][アニメ][210127][MAJO_NO_TABITABI_1][Blu-Ray BOX 上]/BDMV/STREAM/00016.m2ts',
-                     (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
+                      (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
 JP_WEB = FileInfo(fr'WebSrc/Wandering Witch Elaina E{EP_NUM}v2 [1080p][AAC][JapDub][GerSub][Web-DL].mkv',
                   (None, None), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
 JP_BD.name_file_final = VPath(f"premux/{JP_BD.name} (Premux).mkv")
@@ -43,10 +43,10 @@ def pre_corrections() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     Alongside that, they also introduced a couple of errors occasionally which I also fix here.
     Comments with examples of what I'm changing/fixing included if big enough.
     """
-    import lvsfunc as lvf
+    import lvsfunc as lvf  # noqa
 
     src_BD = JP_BD.clip_cut
-    src_WEB = JP_WEB.clip_cut
+    src_WEB = JP_WEB.clip_cut  # noqa
 
     # Make sure the Waka rip matches up to the BD as much as it has to
     src_WEB = src_WEB[:2421] + src_WEB[2420] + src_WEB[2421:]
@@ -70,7 +70,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import vardefunc as vdf
     from adptvgrnMod import adptvgrnMod
     from ccd import ccd
-    from vsutil import depth, get_w, get_y
+    from vsutil import depth, get_y
 
     src: vs.VideoNode = pre_corrections()  # type:ignore[assignment]
     src_NCED = JP_BD_NCED.clip_cut
@@ -81,7 +81,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
         start_frame=edstart, thr=25, prefilter=False) if edstart is not False \
         else get_y(core.std.BlankClip(src))
     credit_mask = depth(ed_mask, 16).std.Binarize()
-
 
     rkt = rekt.rektlvls(src, [0, 1079], [7, 7], [0, 1919], [7, 7], prot_val=None)
     rkt = depth(rkt, 16)
@@ -123,7 +122,7 @@ elif __name__ == '__vapoursynth__':
         enc.dither_down(FILTERED).set_output(0)
 else:
     JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    #FILTERED = pre_corrections()
+    # FILTERED = pre_corrections()
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
