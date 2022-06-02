@@ -1,3 +1,5 @@
+# Encoding Projects
+
 Various of my scripts for encoding anime.
 Most have public releases
 under various Fansub group names,
@@ -13,11 +15,12 @@ I also accept pull requests,
 so if there's something you feel could be improved
 don't hesitate to send one in!
 
-### You can find subtitle files for some groups here:
-- [Kaleido-subs](https://github.com/Kaleido-subs/Kaleidosubs)
-- [Good Job! Media subs](https://github.com/Fyurie/gjmbatchscripts)
+**You can find subtitle files for some groups here:**
 
-# Directories, naming, and what they mean
+- [Kaleido-subs][kaleido]
+- [Good Job! Media subs][gjm]
+
+## Directories, naming, and what they mean
 
 Tags are added to clarify
 what the scripts are intended for.
@@ -33,7 +36,6 @@ If a directory is untagged,
 please apply common sense
 when looking over the scripts.
 
-
 | Directory | Description | Updates? |
 |-----------|-------------| ---------|
 | Completed | Scripts are finalized and fully encoded locally | Might receive updates with significant filter changes |
@@ -42,10 +44,23 @@ when looking over the scripts.
 | Other | Scripts for minor projects, standalone OP/EDs, etc. | Might receive updates with significant filter changes |
 | Work in Progress | Scripts for projects that are currently being worked on | Continual updates |
 
-# Contact
+## Old scripts
+
+My repo has gone through some clean-up lately.
+This is due to personal coding style changes
+and more emphasis being placed on linting and automation,
+as well as a change in common modules run.
+For an archived version, please check out the [old_scripts branch][old_branch]
+
+## Contact
 
 If you wish to contact me,
 please do so through Discord.
-My Discord tag is **LightArrowsEXE#0476**.<br>
+My Discord tag is **LightArrowsEXE#0476**.
+
 Alternatively, please send in an issue
 or a pull request.
+
+[kaleido]: https://github.com/Kaleido-subs/Kaleidosubs
+[gjm]: https://github.com/Fyurie/gjmbatchscripts
+[old_branch]: https://github.com/LightArrowsEXE/Encoding-Projects/tree/old_scripts
