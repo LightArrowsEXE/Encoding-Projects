@@ -1,10 +1,9 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Tuple, Union
 
 import vapoursynth as vs
 from lvsfunc.misc import source
-from lvsfunc.types import Range
 from vardautomation import FileInfo, PresetBD, PresetFLAC, VPath
 
 from project_module import encoder as enc
