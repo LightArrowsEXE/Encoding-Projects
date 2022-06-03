@@ -1,8 +1,7 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import vapoursynth as vs
 from lvsfunc.misc import source
-from lvsfunc.types import Range
 from vardautomation import FileInfo, PresetWEB, VPath
 
 from project_module import encoder as enc

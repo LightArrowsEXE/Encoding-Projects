@@ -11,8 +11,8 @@ core.num_threads = 4
 
 # Sources
 JP_CR = FileInfo(r'websrc/CHRONOS RULER E12 [1080p][AAC][JapDub][GerEngSub][Web-DL].mkv', (31529, None),
-                   idx=lambda x: source(x, force_lsmas=True, cachedir=''),
-                   preset=[PresetWEB, PresetAAC])
+                 idx=lambda x: source(x, force_lsmas=True, cachedir=''),
+                 preset=[PresetWEB, PresetAAC])
 JP_CR.name_file_final = VPath(f"premux/{JP_CR.name} (Premux).mkv")
 JP_CR.a_src_cut = VPath(f"{JP_CR.name}_cut.aac")
 JP_CR.do_qpfile = True
@@ -26,7 +26,6 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     from adptvgrnMod import adptvgrnMod
     from ccd import ccd
     from vsutil import depth, get_w, get_y, iterate
-    from xvs import WarpFixChromaBlend
 
     # Can't mean this one out this time because of credit changes
     src = JP_CR.clip_cut
@@ -64,7 +63,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
 if __name__ == '__main__':
     FILTERED = filterchain()
     enc.Encoder(JP_CR, FILTERED).run(clean_up=True)  # type: ignore[arg-type]
-    #enc.Patcher(JP_CR, FILTERED).patch(ranges=[(1162, 1216), (2059, 2157)])  # type: ignore[arg-type]
+    # enc.Patcher(JP_CR, FILTERED).patch(ranges=[(1162, 1216), (2059, 2157)])  # type: ignore[arg-type]
 elif __name__ == '__vapoursynth__':
     FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):

@@ -4,12 +4,11 @@ import shutil
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import vapoursynth as vs
-from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, AudioStream, Chapter, ChapterStream,
-                            FFV1Encoder, FileInfo, MatroskaXMLChapters, Mux,
-                            Patch, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X265Encoder, make_comps)
+from vardautomation import (JAPANESE, Chapter, ChapterStream, FFV1Encoder,
+                            FileInfo, MatroskaXMLChapters, Mux, Patch,
+                            RunnerConfig, SelfRunner, VideoStream, X265Encoder,
+                            make_comps)
 from vardautomation.status import Status
 from vsutil import depth
 
@@ -140,11 +139,11 @@ class Encoder:
 
         if clean_up:
             runner.do_cleanup()
-            for at in audio_files:
-                try:
-                    os.remove(at)
-                except FileNotFoundError:
-                    Status.warn(f"File {at} not found! Skipping")
+            # for at in audio_files:
+            #     try:
+            #         os.remove(at)
+            #     except FileNotFoundError:
+            #         Status.warn(f"File {at} not found! Skipping")
 
         if make_comp:
             try:

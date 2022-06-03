@@ -7,7 +7,7 @@ from lvsfunc.misc import source
 from vardautomation import FileInfo, PresetBD, PresetFLAC, VPath
 
 from project_module import encoder as enc
-from project_module import flt, util
+from project_module import flt
 
 core = vs.core
 

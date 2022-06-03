@@ -19,8 +19,8 @@ if not Path(shader_file).exists():
 
 
 # Sources
-JP_BD = FileInfo(r"E:/src/[BDMV] Fairy gone/[BDMV][190717][TBR29111D][Fairy gone フェアリーゴーン Vol.1]/BDROM/BDMV/STREAM/00004.m2ts",
-                 (24, -24),  idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD, PresetFLAC])
+JP_BD = FileInfo(r"E:/src/[BDMV] Fairy gone/[BDMV][190717][TBR29111D][Fairy gone フェアリーゴーン Vol.1]/BDROM/BDMV/STREAM/00004.m2ts",  # noqa
+                 (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD, PresetFLAC])
 JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
 JP_BD.a_src_cut = JP_BD.name
 JP_BD.do_qpfile = True
