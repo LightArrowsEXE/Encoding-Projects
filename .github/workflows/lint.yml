@@ -25,7 +25,7 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r requirements-dev.txt
       - name: Running flake8
-        run: flake8 lvsfunc
+        run: flake8 .
       # - name: Running mypy
       #   if: steps.dependencies.outcome == 'success'
-      #   run: mypy -p lvsfunc
+      #   run: mypy -p .
