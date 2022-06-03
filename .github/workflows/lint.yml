@@ -1,0 +1,31 @@
+name: lint
+
+on:
+  push:
+    paths:
+      - "**.py"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      - name: Install VapourSynth
+        uses: Irrational-Encoding-Wizardry/install-vapoursynth-action@v0.1
+        with:
+          version: latest
+          cache: true
+      - name: Install dependencies
+        id: dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Running flake8
+        run: flake8 .
+      # - name: Running mypy
+      #   if: steps.dependencies.outcome == 'success'
+      #   run: mypy -p .

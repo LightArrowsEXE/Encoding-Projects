@@ -12,8 +12,8 @@ core.num_threads = 4
 
 # Sources
 JP_BD = FileInfo(r'BDMV/[BDMV][アニメ][210127][MAJO_NO_TABITABI_1][Blu-Ray BOX 上]/BDMV/STREAM/00007.m2ts', (24, -24),
-                   idx=lambda x: source(x, force_lsmas=True, cachedir=''),
-                   preset=[PresetBD, PresetAAC])
+                 idx=lambda x: source(x, force_lsmas=True, cachedir=''),
+                 preset=[PresetBD, PresetAAC])
 JP_BD.name_file_final = VPath(f"premux/{JP_BD.name} (Premux).mkv")
 JP_BD.a_src_cut = VPath(f"{JP_BD.name}_cut.aac")
 JP_BD.do_qpfile = True
@@ -27,7 +27,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import vardefunc as vdf
     from adptvgrnMod import adptvgrnMod
     from ccd import ccd
-    from vsutil import depth, get_w, get_y
+    from vsutil import depth, get_y
 
     src = JP_BD.clip_cut
 

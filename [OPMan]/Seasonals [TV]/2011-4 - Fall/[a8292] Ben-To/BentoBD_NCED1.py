@@ -1,14 +1,9 @@
-from typing import List, Tuple
-
 import vapoursynth as vs
 from lvsfunc.misc import source
-from lvsfunc.types import Range
-from vardautomation import (FSRCNNX_56_16_4_1, JAPANESE, AudioCutter,
-                            AudioStream, BasicTool, FileInfo, FlacEncoder, Mux,
-                            PresetBD, PresetFLAC, RunnerConfig, SelfRunner,
-                            VideoStream, VPath, X265Encoder)
-from vardefunc.misc import get_bicubic_params
-from vsutil import get_w
+from vardautomation import (JAPANESE, AudioCutter, AudioStream, BasicTool,
+                            FileInfo, FlacEncoder, Mux, PresetBD, PresetFLAC,
+                            RunnerConfig, SelfRunner, VideoStream, VPath,
+                            X265Encoder)
 
 from bento_filters import flt
 
@@ -42,7 +37,7 @@ def main() -> vs.VideoNode:
     aa_rep = flt.clamped_aa(denoised)
     darken = FastLineDarkenMOD(aa_rep, strength=48, protection=6, luma_cap=255, threshold=2)
 
-    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})
+    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})  # noqa
     pdeband = flt.placebo_debander(darken, grain=4, deband_args={'iterations': 2, 'threshold': 8.0, 'radius': 10})
     deband = replace_ranges(deband, pdeband, [])
 

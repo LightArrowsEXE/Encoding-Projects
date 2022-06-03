@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import vapoursynth as vs
 from vsutil import depth, fallback, join, plane
@@ -14,7 +14,7 @@ def rescaler(clip: vs.VideoNode, height: int) -> vs.VideoNode:
     from lvsfunc.kernels import Bicubic, BicubicSharp
     from vardefunc.mask import FDOG
     from vardefunc.scale import nnedi3_upscale
-    from vsutil import Range, depth, get_w, get_y
+    from vsutil import depth, get_w, get_y
 
     clip = depth(clip, 32)
 

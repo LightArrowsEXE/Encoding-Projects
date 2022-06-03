@@ -49,15 +49,15 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     src = JP_BD.clip_cut
     src_c = src
     src_ncop, src_nced = JP_NCOP.clip_cut, JP_NCED.clip_cut
-    b = core.std.BlankClip(src, length=1)
+    # b = core.std.BlankClip(src, length=1)
 
-    # OP/ED stack comps to check if they line up
-    if opstart is not False:
-        op_scomp = lvf.scomp(src[opstart:opstart+src_ncop.num_frames-1]+b, src_ncop[:-op_offset]+b) \
-            .text.Text('src', 7).text.Text('op', 9)
-    if edstart is not False:
-        ed_scomp = lvf.scomp(src[edstart:edstart+src_nced.num_frames-1]+b, src_nced[:-ed_offset]+b) \
-            .text.Text('src', 7).text.Text('ed', 9)
+    # # OP/ED stack comps to check if they line up
+    # if opstart is not False:
+    #     op_scomp = lvf.scomp(src[opstart:opstart+src_ncop.num_frames-1]+b, src_ncop[:-op_offset]+b) \
+    #         .text.Text('src', 7).text.Text('op', 9)
+    # if edstart is not False:
+    #     ed_scomp = lvf.scomp(src[edstart:edstart+src_nced.num_frames-1]+b, src_nced[:-ed_offset]+b) \
+    #         .text.Text('src', 7).text.Text('ed', 9)
 
     # Splicing in NCs and diff'ing back the credits
     if opstart is not False:

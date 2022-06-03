@@ -155,4 +155,3 @@ class Patcher:
 
         if clean_up:
             runner.do_cleanup()
-

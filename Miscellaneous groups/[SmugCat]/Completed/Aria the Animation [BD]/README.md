@@ -1,1 +1,0 @@
-Note that these encodes are a mere base for someone with more time and autism to work on. I will not be doing any indepth tricks, just a generic encode that at the very least looks better than those shitty BDs.

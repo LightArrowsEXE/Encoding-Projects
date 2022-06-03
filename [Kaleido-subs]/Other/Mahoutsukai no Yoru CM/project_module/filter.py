@@ -1,8 +1,6 @@
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Union
 
-import lvsfunc as lvf
 import vapoursynth as vs
-import vardefunc as vdf
 from vsutil import depth, join, plane
 
 from .util import _get_bits

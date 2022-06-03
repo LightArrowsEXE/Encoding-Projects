@@ -66,7 +66,7 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     from awsmfunc import bbmod
     from ccd import ccd
     from debandshit import dumb3kdb
-    from vsutil import depth, iterate, join, split, join, plane, split
+    from vsutil import depth, iterate, join, plane, split
 
     src = JP_BD.clip_cut
 

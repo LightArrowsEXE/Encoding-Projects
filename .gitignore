@@ -88,6 +88,7 @@ __pycache__/
 *.pyi
 *$py.class
 
+
 # Misc
 *.7z
 *.avs
@@ -152,20 +153,16 @@ rename.py
 
 
 # Exceptions
+!**/.github/**/*
 !settings
-!requirements.txt
+!requirements*.txt
+
 
 # Exceptions for assets, masks, and README images
 !**/assets/**/*
 !**/.assets/**/*
 !**/*mask*/**/*
 !**/*img*/**/*
-
-# Exceptions to the exceptions
-*.lnk
-*.hook
-*.glsl
-**/hidden/*
 
 
 # Ignoring a temp archival directory. Git annoyingly keeps bugging me about them, so I'm ignoring scripts/projects I haven't touched in a long time here.
@@ -185,3 +182,13 @@ old/*
 
 # Ignore lossless files. These are generally used as intermediary files to check temporal consistency or encoding settings.
 *lossless*
+
+
+# Exceptions to the exceptions
+*.glsl
+*.hook
+*.lgd
+*.lnk
+*.pth
+**/*hidden*/**/*
+*/.mypy_cache/**/*

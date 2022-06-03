@@ -9,7 +9,7 @@ from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
 from vardautomation import (FFV1, JAPANESE, X264, X265, AudioStream, Chapter,
                             ChapterStream, FileInfo, MatroskaXMLChapters, Mux,
-                            Patch, Preset, PresetBD, RunnerConfig, SelfRunner,
+                            Patch, Preset, RunnerConfig, SelfRunner,
                             SlowPicsConf, VideoStream, VPath, logger,
                             make_comps)
 from vsutil import depth
@@ -104,8 +104,8 @@ class Encoder:
         logger.info(f'Audio codec: {"AAC" if flac is False else "FLAC"}')
 
         if alt_src:
-            logger.info("Audio source override detected! Using the following file for the audio!\n" +
-                        alt_src.path.to_str())
+            logger.info("Audio source override detected! Using the following file for the audio!\n"
+                        + alt_src.path.to_str())
 
         if passthrough:
             logger.warning("`passthrough` has not been implemented yet!")

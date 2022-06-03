@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Union
 
 import lvsfunc as lvf
 import vapoursynth as vs
-import yaml
 import zzfunc as zzf
 from lvsfunc.kernels import Catrom
 from vsmask.edge import FDOGTCanny

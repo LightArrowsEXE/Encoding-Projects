@@ -1,19 +1,17 @@
 """The encoder class. This is where the actual magic happens."""
 from __future__ import annotations
 
-import collections
 import os
 import shutil
-import subprocess
 import sys
 from glob import glob
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Tuple
 
 import vapoursynth as vs
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
 from lvsfunc.types import Range
-from vardautomation import (FFV1, JAPANESE, X264, X265, AudioTrack, Chapter,
+from vardautomation import (FFV1, JAPANESE, X264, X265, AudioTrack,
                             FileInfo, MatroskaFile, MKVAudioExtracter,
                             PassthroughAudioEncoder, Patch, RunnerConfig,
                             SelfRunner, VideoTrack, VPath, logger, make_comps)
@@ -141,7 +139,7 @@ class Encoder:
 
             logger.warning(self.file.trims_or_dfs)
             trims = resolve_ap_trims(self.file.trims_or_dfs if not audio_clip
-                                    else audio_clip.trims_or_dfs, self.file.clip_cut)
+                                     else audio_clip.trims_or_dfs, self.file.clip_cut)
             logger.warning(trims)
 
             audio_files = video_source(

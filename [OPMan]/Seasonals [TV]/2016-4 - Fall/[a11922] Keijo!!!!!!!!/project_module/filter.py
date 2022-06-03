@@ -1,12 +1,9 @@
-from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import lvsfunc as lvf
 import vapoursynth as vs
 import vardefunc as vdf
-from lvsfunc.kernels import BicubicSharp, Kernel, Spline36
-from lvsfunc.util import get_prop
-from vsutil import depth, get_w, get_y, iterate, join, plane
+from vsutil import depth, get_y, join, plane
 
 from .util import _get_bits
 

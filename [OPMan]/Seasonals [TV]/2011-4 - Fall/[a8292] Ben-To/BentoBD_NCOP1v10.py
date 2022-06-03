@@ -1,15 +1,12 @@
-import subprocess
-from typing import List, Tuple
+from typing import List
 
 import vapoursynth as vs
 from lvsfunc.misc import replace_ranges, source
 from lvsfunc.types import Range
-from vardautomation import (FSRCNNX_56_16_4_1, JAPANESE, AudioCutter,
-                            AudioStream, BasicTool, FileInfo, FlacEncoder, Mux,
-                            PresetBD, PresetFLAC, RunnerConfig, SelfRunner,
-                            VideoStream, VPath, X265Encoder)
-from vardefunc.misc import get_bicubic_params
-from vsutil import get_w, insert_clip
+from vardautomation import (JAPANESE, AudioCutter, AudioStream, BasicTool,
+                            FileInfo, FlacEncoder, Mux, PresetBD, PresetFLAC,
+                            RunnerConfig, SelfRunner, VideoStream, VPath,
+                            X265Encoder)
 
 from bento_filters import flt
 
@@ -48,7 +45,6 @@ def main() -> vs.VideoNode:
     from adptvgrnMod import adptvgrnMod
     from havsfunc import FastLineDarkenMOD
     from vsutil import depth
-    from xvs import WarpFixChromaBlend
 
     src_ep = JPBD_EP.clip_cut
     src_NCOP1 = JPBD_NCOP1.clip_cut
@@ -57,7 +53,8 @@ def main() -> vs.VideoNode:
     src_NCOP = replace_ranges(src_NCOP2, src_NCOP1, replace_op)
     src_NCOP = replace_ranges(src_NCOP, src_ep, replace_ep)
 
-    rkt = rekt.rektlvls(src_NCOP,
+    rkt = rekt.rektlvls(
+        src_NCOP,
         rownum=[0, 1079], rowval=[15, 15],
         colnum=[0, 1919], colval=[15, 15]
     )
@@ -73,7 +70,7 @@ def main() -> vs.VideoNode:
 
     darken = FastLineDarkenMOD(aa_ranges, strength=48, protection=6, luma_cap=255, threshold=2)
 
-    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})
+    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})  # noqa
     grain = adptvgrnMod(deband, strength=0.3, luma_scaling=10, size=1.25, sharp=80, grain_chroma=False, seed=42069)
 
     return depth(grain, 10).std.Limiter(16 << 2, [235 << 2, 240 << 2], [0, 1, 2])

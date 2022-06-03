@@ -8,10 +8,10 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 import vapoursynth as vs
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
-from vardautomation import (JAPANESE, AudioStream, BasicTool, Chapter,
-                            ChapterStream, FileInfo, MatroskaXMLChapters, Mux,
-                            Patch, RunnerConfig, SelfRunner, VideoStream,
-                            VPath, X264Encoder, X265Encoder, make_comps)
+from vardautomation import (JAPANESE, AudioStream, Chapter, ChapterStream,
+                            FileInfo, MatroskaXMLChapters, Mux, Patch,
+                            RunnerConfig, SelfRunner, VideoStream, VPath,
+                            X265Encoder, make_comps)
 from vardautomation.status import Status
 from vsutil import depth
 
@@ -124,7 +124,7 @@ class Encoder:
         runner = SelfRunner(self.clip, self.file, config)
         runner.run()
 
-        #appendCRC(self.file.name_file_final)
+        # appendCRC(self.file.name_file_final)
 
         if make_comp:
             try:

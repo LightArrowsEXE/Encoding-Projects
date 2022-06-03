@@ -1,14 +1,10 @@
-from typing import List, Tuple
+from typing import List
 
 import vapoursynth as vs
-from lvsfunc.misc import source, replace_ranges
+from lvsfunc.misc import replace_ranges, source
 from lvsfunc.types import Range
-from vardautomation import (FSRCNNX_56_16_4_1, JAPANESE, AudioCutter,
-                            AudioStream, BasicTool, FileInfo, FlacEncoder, Mux,
-                            Patch, PresetBD, PresetFLAC, RunnerConfig,
-                            SelfRunner, VideoStream, VPath, X265Encoder)
-from vardefunc.misc import get_bicubic_params
-from vsutil import get_w
+from vardautomation import (FileInfo, Patch, PresetBD, PresetFLAC, VPath,
+                            X265Encoder)
 
 from bento_filters import flt
 
@@ -55,7 +51,7 @@ def main() -> vs.VideoNode:
 
     darken = FastLineDarkenMOD(aa_ranges, strength=48, protection=6, luma_cap=255, threshold=2)
 
-    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})
+    deband = flt.masked_deband(darken, denoised=True, deband_args={'iterations': 2, 'threshold': 5.0, 'radius': 8, 'grain': 6})  # noqa
     pdeband = flt.placebo_debander(darken, grain=4, deband_args={'iterations': 2, 'threshold': 8.0, 'radius': 10})
     deband = replace_ranges(deband, pdeband, op_aisle)
 
@@ -75,8 +71,6 @@ class Encoding:
 
         self.preqpfileflt()
 
-        v_encoder = X265Encoder('x265', 'settings/x265_settings_BD')
-
         p = Patch(
             file_to_fix=f'premux/{JPBD_NCOP.name[:-2]}01 (Premux).mkv',
             filtered_clip=filtered,
@@ -88,7 +82,6 @@ class Encoding:
         )
         p.run()
         p.do_cleanup()
-
 
     def preqpfileflt(self) -> None:
         """Pre-QP file generation filtering so the scenes match properly"""

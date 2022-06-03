@@ -1,5 +1,4 @@
 from typing import Tuple
-from pathlib import Path
 
 import vapoursynth as vs
 

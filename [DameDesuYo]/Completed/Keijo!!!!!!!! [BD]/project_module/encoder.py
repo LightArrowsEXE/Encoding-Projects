@@ -7,7 +7,6 @@ import shutil
 from glob import glob
 from typing import Any, Dict, List, Sequence, Tuple
 
-import __main__
 import vapoursynth as vs
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source

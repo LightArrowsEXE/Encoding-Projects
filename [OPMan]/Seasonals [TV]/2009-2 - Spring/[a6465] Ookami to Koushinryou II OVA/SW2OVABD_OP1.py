@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
-import awsmfunc
 
 import vapoursynth as vs
 from lvsfunc.misc import source

@@ -7,9 +7,7 @@ import shutil
 from glob import glob
 from typing import Any, Dict, List, Sequence, Tuple
 
-import __main__
 import vapoursynth as vs
-import yaml
 from bvsfunc.util.AudioProcessor import video_source
 from lvsfunc.misc import source
 from vardautomation import (FFV1, JAPANESE, X264, X265, AudioStream, Chapter,
