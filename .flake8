@@ -7,5 +7,6 @@ exclude =
     */*raining*/*,
     *dgi.json.py,
     */ivtc*/*.py
+    */*_hidden/*
 show-source = True
 statistics = True
