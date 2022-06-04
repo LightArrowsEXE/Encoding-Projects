@@ -1,28 +1,20 @@
 from __future__ import annotations
 
-import multiprocessing as mp
 from typing import Any, Dict, List, Tuple
 
 import vapoursynth as vs
-import yaml
-from lvsfunc.misc import source
+import vsencode as vse
 from lvsfunc.types import Range
-from vardautomation import FileInfo, PresetBD, VPath, get_vs_core
 from vardefunc import initialise_input
 
-from project_module import encoder as enc
 from project_module import flt
 
-with open("config.yaml", 'r') as conf:
-    config = yaml.load(conf, Loader=yaml.FullLoader)
+ini = vse.generate.init_project()
 
-core = get_vs_core(range(0, (mp.cpu_count() - 2)) if config['reserve_core'] else None)
+core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 # Sources
-JP_BD = FileInfo(f"{config['bdmv_dir']}/[BDMV][Keijo!!!!!!!!][Vol.1]/BDMV/STREAM/00003.m2ts",  # noqa
-                 (24, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD])
-JP_BD.name_file_final = enc.parse_name(config, __file__)
-JP_BD.a_src_cut = VPath(JP_BD.name)
+JP_BD = vse.FileInfo(f"{ini.bdmv_dir}/[BDMV][Keijo!!!!!!!!][Vol.1]/BDMV/STREAM/00003.m2ts", (24, -24))
 
 
 # OP/ED start times
@@ -44,14 +36,14 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.V
     import havsfunc as haf
     import lvsfunc as lvf
     import vardefunc as vdf
-    from ccd import ccd
+    import jvsfunc as jvf
 
     # Denoising. This BD has very ugly compression artefacting (looks sharpened?)
     smd = haf.SMDegrain(src, tr=3, thSAD=50)
     ref = smd.dfttest.DFTTest(slocation=[0.0, 4, 0.25, 16, 0.3, 512, 1.0, 512], planes=[0], **eoe.freq._dfttest_args)
     bm3d = lvf.denoise.bm3d(smd, sigma=[0.65, 0], radius=3, ref=ref)
 
-    den_uv = ccd(bm3d, threshold=6)
+    den_uv = jvf.ccd(bm3d, threshold=6)
     den_uv = lvf.rfs(bm3d, den_uv, chroma_denoise)
 
     decs = vdf.noise.decsiz(den_uv, sigmaS=12, min_in=192 << 8, max_in=236 << 8)
@@ -72,20 +64,25 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.V
     return final
 
 
+FILTERED = filterchain()
+
+
 if __name__ == '__main__':
-    FILTERED = filterchain()
-    enc.Encoder(JP_BD, FILTERED).run(zones=zones, flac=True)  # type: ignore
+    vse.EncodeRunner(JP_BD, FILTERED).video('x265', '.settings/x265_settings', zones=zones) \
+        .audio('flac').mux('LightArrowsEXE@DameDesuYo').run()
 elif __name__ == '__vapoursynth__':
-    FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
-        raise ImportError(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output just 1 clip")
+        raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
     else:
-        enc.dither_down(FILTERED).set_output(0)
+        vse.video.finalize_clip(FILTERED).set_output(0)
 else:
-    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).text.Text('src').set_output(0)
-    FILTERED = filterchain()
+    JP_BD.clip_cut.set_output(0)
+
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
-            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+            clip_filtered.set_output(i)
     else:
-        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
+        FILTERED.set_output(1)
+
+    for i, audio_node in enumerate(JP_BD.audios_cut, start=10):
+        audio_node.set_output(i)
