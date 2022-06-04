@@ -127,7 +127,7 @@ FILTERED = filterchain()
 
 if __name__ == '__main__':
     vse.EncodeRunner(JP_BD, FILTERED).video('x265', '.settings/x265_settings', zones=zones) \
-        .audio('aac').mux('LightArrowsEXE@Kaleido').run()
+        .audio('flac').mux('LightArrowsEXE@DameDesuYo').run()
 elif __name__ == '__vapoursynth__':
     if not isinstance(FILTERED, vs.VideoNode):
         raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
