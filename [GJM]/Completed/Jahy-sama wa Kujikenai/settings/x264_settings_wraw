@@ -1,5 +1,5 @@
 --demuxer y4m -o {clip_output:s} -
---fps {fps_num:d}/{fps_den:d} --range tv --colormatrix bt709 --colorprim bt709 --transfer bt709
+--fps {fps_num:d}/{fps_den:d} --range tv --colormatrix {matrix:s} --colorprim {primaries:s} --transfer {transfer:s}
 --preset medium --crf 17.5 --deblock -2:-2 --min-keyint 23 --keyint 240 --ref 1 --bframes 1
 --aq-mode 3 --aq-strength 0.95 --qcomp 0.72 --psy-rd 0.90:0.0
 --direct spatial --no-dct-decimate --no-fast-pskip
