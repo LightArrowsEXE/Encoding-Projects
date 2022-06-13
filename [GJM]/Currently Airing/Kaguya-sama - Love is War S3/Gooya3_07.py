@@ -45,15 +45,11 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 }
 
 for k, v in zones:
-    deblock_zones |= [((k, v), 50)]
+    deblock_zones.append(((k, v), 50))
 
-deblock_ranges: List[Range] = []
+deblock_ranges: List[Range] = [x[0] for x in deblock_zones]
 
-for zones in deblock_zones:
-    for range, _ in zones:
-        deblock_ranges |= range
-
-deblock_ranges |= [
+deblock_ranges + [
 ]
 
 
