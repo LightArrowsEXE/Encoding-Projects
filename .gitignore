@@ -1,12 +1,13 @@
 # Video, Audio & Picture files
-*.264
-*.265
+*.*26*
 *.aac
 *.ac3
+*.avi
 *.bmp
 *.d2v
 *.flac
-*.h264
+*.flv
+*.gif*
 *.jpeg
 *.jpg
 *.log
@@ -15,14 +16,18 @@
 *.m3u
 *.m3u8
 *.m4a
-*.mka
-*.mks
-*.mkv
-*.mp2
-*.mp3
-*.mp4
+*.mk*
+*.mng
+*.mov
+*.mp*
+*.mpeg
+*.mpv
+*.nsv
+*.ogg
 *.opus
 *.png
+*.qt
+*.rmvb
 *.tif
 *.ts
 *.undefined
@@ -32,6 +37,7 @@
 *.wav
 *.webm
 *.webp
+*.wmv
 *.y4m
 
 
@@ -84,6 +90,7 @@
 # Python files
 __pycache__/
 *.egg-info/
+*.mypy_cache/
 *.py[cod]
 *.pyi
 *$py.class
@@ -174,6 +181,7 @@ old/*
 
 # A suffix for directories I want to temporarily prevent from being accidentally pushed
 *_hidden
+*secret.py
 
 
 # There is a good reason for this (no, there is not, besides annoyance)
