@@ -47,14 +47,15 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     assert src.format
 
     src_y = get_y(src)
-    l_mask = vsm.edge.FDOG().get_mask(src_y, lthr=0.125, hthr=0.025).rgsf.RemoveGrain(4).rgsf.RemoveGrain(4)
+    l_mask = vsm.edge.FDoG().edgemask(src_y, lthr=0.125, hthr=0.025).rgsf.RemoveGrain(4).rgsf.RemoveGrain(4)
     l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(src_y, tr=2, thSAD=150)
-    bm3d = vsd.BM3DCudaRTC(src, [0.65, 0], radius=3, ref=smd).clip
-    knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
-    decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
+    debl = core.deblock.Deblock(src_y, 20)
+    smd = haf.SMDegrain(src_y, tr=3, thSAD=150, prefilter=debl, mfilter=debl, Str=1.6)
+    bm3d = vsd.BM3DCudaRTC(depth(src, 32), [0.6, 0], radius=3, ref=smd).clip
+    wnnm = depth(core.wnnm.WNNM(bm3d, [0, 2.8], radius=2, group_size=6, bm_range=10), 16)
+    decs = vdf.noise.decsiz(wnnm, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
     aa = lvf.rfs(aa, decs, no_rescale[-1])  # Do not AA the ED
