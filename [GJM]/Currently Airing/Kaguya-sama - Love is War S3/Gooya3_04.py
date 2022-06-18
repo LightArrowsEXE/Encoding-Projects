@@ -11,11 +11,13 @@ from vardefunc import initialise_input
 
 from project_module.filter import process_fileinfo
 
-ini = vse.generate.init_project()
+ini = vse.generate.init_project(venc_mode='x265')
 
 core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
+
+VSDPIR_STRENGTH_TYPE = List[Tuple[Range | List[Range], SupportsFloat | Any | None]]
 
 
 # Sources
@@ -45,15 +47,15 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 }
 
 for k, v in zones:
-    deblock_zones.append(((k, v), 50))
+    deblock_zones.append(((k, v), 50))  # type:ignore
 
-deblock_ranges: List[Range] = [x[0] for x in deblock_zones]
+deblock_ranges: List[Range] = [x[0] for x in deblock_zones]  # type:ignore
 
 deblock_ranges + [
 ]
 
 
-@initialise_input(bits=32)
+@initialise_input()
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain."""
     import adptvgrnMod as adp
@@ -71,7 +73,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     assert src.format
 
-    cdmgl = flt.chroma_demangle(src, return_sclip=True)
+    cdmgl = depth(flt.chroma_demangle(src), 32)
 
     # Rescaling
     with vdf.YUVPlanes(cdmgl) as planes:
@@ -150,7 +152,7 @@ if __name__ == '__main__':
     assert isinstance(FILTERED, vs.VideoNode)
     vse.EncodeRunner(SRC, FILTERED) \
         .video('x265', '.settings/x265_settings', zones=zones) \
-        .audio('aac') \
+        .audio('passthrough') \
         .mux('LightArrowsEXE@GoodJobMedia').run()
 elif __name__ == '__vapoursynth__':
     if not isinstance(FILTERED, vs.VideoNode):
