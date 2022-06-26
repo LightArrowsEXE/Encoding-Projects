@@ -2,27 +2,24 @@ from __future__ import annotations
 
 import ntpath
 from glob import glob
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, SupportsFloat, Tuple
 
 import vapoursynth as vs
 import vsencode as vse
-from lvsfunc.types import VSDPIR_STRENGTH_TYPE, Range
+from lvsfunc.types import Range
 from vardefunc import initialise_input
 
-from project_module.filter import process_fileinfo
-
-ini = vse.generate.init_project(venc_mode='x265')
+ini = vse.generate.init_project('x265')
 
 core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
 
-VSDPIR_STRENGTH_TYPE = List[Tuple[Range | List[Range], SupportsFloat | Any | None]]
+VSDPIR_STRENGTH_TYPE = List[Tuple[Range | List[Range], SupportsFloat | vs.VideoNode | None]]
 
 
 # Sources
 SRC = vse.FileInfo(f"{glob(f'{ini.bdmv_dir}/*{ntpath.basename(__file__)[-5:-3]} (*[*.mkv')[0]}")
-SRC = process_fileinfo(SRC)
 
 # Freezeframing
 ff_first: List[int] = [
@@ -39,12 +36,16 @@ ff_repl: List[int] = [
 no_scaled: List[Range] = [  # Ranges that should not be rescaled
 ]
 
-deblock_zones: List[Tuple[Range | List[Range], VSDPIR_STRENGTH_TYPE]] = [  # Ranges that require strong deblocking
+# Ranges that require strong deblocking
+deblock_zones: List[Tuple[Range | List[Range] | None, SupportsFloat | vs.VideoNode | None]] = [
 ]
 
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
-    (32052, 32129): {'b': 0.90}
+    (2527, 2649): {'b': 0.90},
+    (3026, 3059): {'b': 0.90},
+    (3504, 3575): {'b': 0.95},
+    (5810, 5883): {'b': 0.95},
 }
 
 for k, v in zones:
@@ -52,15 +53,11 @@ for k, v in zones:
 
 deblock_ranges: List[Range] = [x[0] for x in deblock_zones]  # type:ignore
 
-deblock_ranges + [
+deblock_ranges += [
 ]
 
-zones |= {  # Adding zones that shouldn't be deblocked
-    (32370, 34528): {'b': 1.15}
-}
 
-
-@initialise_input()
+@initialise_input
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain."""
     import adptvgrnMod as adp
@@ -70,7 +67,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     import vardefunc as vdf
     import vsdenoise as vsd
     import vsmask as vsm
-    from finedehalo import fine_dehalo
+    from vsdehalo import fine_dehalo
     from vskernels import kernels
     from vsutil import depth, get_w, get_y, iterate
 
@@ -114,7 +111,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     decs = vdf.noise.decsiz(depth(wnnm, 16), min_in=200 << 8, max_in=240 << 8)
 
     # Sometimes a scene is so heavily blocked, we need to deblock it.
-    debl = lvf.vsdpir(decs, strength=0, tiles=8, overlap=8, zones=deblock_zones)
+    debl = lvf.dpir(decs, strength=0, zones=deblock_zones)
     debl = lvf.rfs(decs, debl, deblock_ranges)
 
     dering = haf.HQDeringmod(debl, mthr=24, nrmode=2, sharp=0, darkthr=0)
@@ -127,10 +124,6 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     if ff_first:
         ec = ec.std.FreezeFrames(ff_first, ff_last, ff_repl)
-
-    if '05' in __file__:
-        clean_frame = lvf.src("assets/05/clean_frame.png", ec)
-        ec = lvf.rfs(ec, clean_frame, [(19501, 19557)])
 
     detail_mask = lvf.mask.detail_mask(ec, rad=4, brz_a=0.015, brz_b=0.05)
     deband = core.std.MaskedMerge(core.average.Mean([
@@ -151,10 +144,12 @@ FILTERED = filterchain()
 
 if __name__ == '__main__':
     assert isinstance(FILTERED, vs.VideoNode)
-    vse.EncodeRunner(SRC, FILTERED) \
-        .video('x265', '.settings/x265_settings', zones=zones) \
-        .audio('passthrough') \
-        .mux('LightArrowsEXE@GoodJobMedia').run()
+
+    runner = vse.EncodeRunner(SRC, FILTERED)
+    runner.video(zones=zones)
+    runner.audio('passthrough')
+    runner.mux('LightArrowsEXE@GoodJobMedia')
+    runner.run()
 elif __name__ == '__vapoursynth__':
     if not isinstance(FILTERED, vs.VideoNode):
         raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")

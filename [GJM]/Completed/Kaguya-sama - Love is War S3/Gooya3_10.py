@@ -2,27 +2,24 @@ from __future__ import annotations
 
 import ntpath
 from glob import glob
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, SupportsFloat, Tuple
 
 import vapoursynth as vs
 import vsencode as vse
-from lvsfunc.types import VSDPIR_STRENGTH_TYPE, Range
+from lvsfunc.types import Range
 from vardefunc import initialise_input
 
-from project_module.filter import process_fileinfo
-
-ini = vse.generate.init_project(venc_mode='x265')
+ini = vse.generate.init_project('x265')
 
 core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
 
-VSDPIR_STRENGTH_TYPE = List[Tuple[Range | List[Range], SupportsFloat | Any | None]]
+VSDPIR_STRENGTH_TYPE = List[Tuple[Range | List[Range], SupportsFloat | vs.VideoNode | None]]
 
 
 # Sources
 SRC = vse.FileInfo(f"{glob(f'{ini.bdmv_dir}/*{ntpath.basename(__file__)[-5:-3]} (*[*.mkv')[0]}")
-SRC = process_fileinfo(SRC)
 
 # Freezeframing
 ff_first: List[int] = [
@@ -39,35 +36,36 @@ ff_repl: List[int] = [
 no_scaled: List[Range] = [  # Ranges that should not be rescaled
 ]
 
-deblock_zones: List[Tuple[Range | List[Range], VSDPIR_STRENGTH_TYPE]] = [  # Ranges that require strong deblocking
+# Ranges that require strong deblocking
+deblock_zones: List[Tuple[Range | List[Range] | None, SupportsFloat | vs.VideoNode | None]] = [
 ]
 
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
-    (10388, 10483): {'b': 0.90},
-    (10484, 10573): {'b': 0.85},
-    (14812, 14829): {'b': 0.85},
-    (15202, 15303): {'b': 0.90},
-    (18075, 18128): {'b': 0.85},
-    (18294, 18551): {'b': 0.85},
-    (19392, 19544): {'b': 0.90},
-    (19992, 20135): {'b': 0.90},
-    (20509, 20607): {'b': 0.90},
-    (21253, 21366): {'b': 0.90},
-    (21604, 21632): {'b': 0.90},
+    (2158, 2957): {'b': 0.80},
+    (6459, 6742): {'b': 0.80},
+    (7158, 7211): {'b': 0.90},
+    (7668, 7211): {'b': 0.90},
+    (7762, 7837): {'b': 0.90},
+    (8846, 8875): {'b': 0.90},
+    (9435, 9488): {'b': 0.95},
+    (13659, 13786): {'b': 0.85},
+    (16819, 16854): {'b': 0.85},
+    (17149, 17181): {'b': 0.85},
+    (25051, 25128): {'b': 0.85},
+    (26344, 25128): {'b': 0.85},
 }
 
 for k, v in zones:
-    deblock_zones.append(((k, v), 50))  # type:ignore
+    deblock_zones.append(((k, v), 50))  # type:ignore  # type:ignore
 
-deblock_ranges: List[Range] = [x[0] for x in deblock_zones]  # type:ignore
+deblock_ranges: List[Range] = [x[0] for x in deblock_zones]  # type:ignore  # type:ignore
 
-deblock_ranges + [
-    (18240, 18293)
+deblock_ranges += [
 ]
 
 
-@initialise_input()
+@initialise_input
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain."""
     import adptvgrnMod as adp
@@ -77,7 +75,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     import vardefunc as vdf
     import vsdenoise as vsd
     import vsmask as vsm
-    from finedehalo import fine_dehalo
+    from vsdehalo import fine_dehalo
     from vskernels import kernels
     from vsutil import depth, get_w, get_y, iterate
 
@@ -121,7 +119,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     decs = vdf.noise.decsiz(depth(wnnm, 16), min_in=200 << 8, max_in=240 << 8)
 
     # Sometimes a scene is so heavily blocked, we need to deblock it.
-    debl = lvf.vsdpir(decs, strength=0, tiles=8, overlap=8, zones=deblock_zones)
+    debl = lvf.dpir(decs, strength=0, zones=deblock_zones)
     debl = lvf.rfs(decs, debl, deblock_ranges)
 
     dering = haf.HQDeringmod(debl, mthr=24, nrmode=2, sharp=0, darkthr=0)
@@ -154,10 +152,12 @@ FILTERED = filterchain()
 
 if __name__ == '__main__':
     assert isinstance(FILTERED, vs.VideoNode)
-    vse.EncodeRunner(SRC, FILTERED) \
-        .video('x265', '.settings/x265_settings', zones=zones) \
-        .audio('passthrough') \
-        .mux('LightArrowsEXE@GoodJobMedia').run()
+
+    runner = vse.EncodeRunner(SRC, FILTERED)
+    runner.video(zones=zones)
+    runner.audio('passthrough')
+    runner.mux('LightArrowsEXE@GoodJobMedia')
+    runner.run()
 elif __name__ == '__vapoursynth__':
     if not isinstance(FILTERED, vs.VideoNode):
         raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
