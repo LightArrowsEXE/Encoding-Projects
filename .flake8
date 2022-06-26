@@ -1,6 +1,6 @@
 [flake8]
 count = True
-ignore = W503,E226,B,C,D,E
+ignore = W503,E226,B,C,D,E,SIM105
 max-line-length = 120
 exclude =
     stubs/*,
@@ -10,6 +10,7 @@ exclude =
     */*_hidden/*,
     */*sakuga*/*,
     */*TEMP_ARCHIVING/*,
-    */*kaguya-sama-ova-encoding*/*
+    */*kaguya-sama-ova-encoding*/*,
+    */*project_module*/
 show-source = True
 statistics = True
