@@ -100,7 +100,6 @@ class Encoding:
 
 if __name__ == '__main__':
     filtered = main()
-    filtered = filtered
     Encoding(JPBD, filtered).run()
 else:
     JPBD.clip_cut.set_output(0)

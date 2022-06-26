@@ -116,8 +116,7 @@ class Encoding:
 
 if __name__ == '__main__':
     filtered = main()
-    filtered = filtered
-    Encoding(JPBD_NCOP2, filtered).run()
+        Encoding(JPBD_NCOP2, filtered).run()
 else:
     JPBD_EP.clip_cut.set_output(0)
     FILTERED = main()
