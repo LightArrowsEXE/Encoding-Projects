@@ -10,7 +10,7 @@ from project_module import flt
 core = vs.core
 
 
-cuda = True if __name__ == '__main__' else False
+cuda = __name__ == '__main__'
 
 
 # Sources
