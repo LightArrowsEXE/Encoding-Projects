@@ -1,37 +1,22 @@
 from __future__ import annotations
 
-import multiprocessing as mp
-import os
-from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import vapoursynth as vs
-import yaml
-from lvsfunc.misc import source
-from vardautomation import FileInfo, PresetBD, VPath, get_vs_core
+import vsencode as vse
 from vardefunc import initialise_input
-from vsutil import insert_clip
 
-from project_module import encoder as enc
 from project_module import flt
 
-with open("config.yaml", 'r') as conf:
-    config = yaml.load(conf, Loader=yaml.FullLoader)
+ini = vse.generate.init_project()
 
-core = get_vs_core(range(0, (mp.cpu_count() - 2)) if config['reserve_core'] else None)
+core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
-
-shader_file = 'assets/FSRCNNX_x2_56-16-4-1.glsl'
-if not Path(shader_file).exists():
-    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
-    shader_file = os.path.join(str(os.getenv("APPDATA")), hookpath)
+shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
 
 
 # Sources
-JP_BD = FileInfo(f"{config['bdmv_dir']}/RAKUDAI_KISHI_NO_CAVALRY_VOL2/BDROM/BDMV/STREAM/00002.m2ts", (24, -24),
-                 idx=lambda x: source(x), preset=[PresetBD])
-JP_BD.name_file_final = enc.parse_name(config, __file__)
-JP_BD.a_src_cut = VPath(JP_BD.name)
+SRC = vse.FileInfo(f"{ini.bdmv_dir}/RAKUDAI_KISHI_NO_CAVALRY_VOL2/BDROM/BDMV/STREAM/00002.m2ts", (24, -24))
 
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
@@ -39,14 +24,14 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 
 
 @initialise_input(bits=32)
-def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
+def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain"""
     import havsfunc as haf
+    import jvsfunc as jvf
     import kagefunc as kgf
     import lvsfunc as lvf
     import vardefunc as vdf
-    from ccd import ccd
-    from vsutil import depth, get_w, get_y
+    from vsutil import depth, get_w, get_y, insert_clip
 
     assert src.format
 
@@ -56,7 +41,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.V
     l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
 
     descale = lvf.kernels.Bicubic(b=.2, c=.4).descale(src_y, get_w(720), 720)
-    upscale = vdf.scale.fsrcnnx_upscale(descale, 1920, 1080, shader_file,
+    upscale = vdf.scale.fsrcnnx_upscale(descale, 1920, 1080, shader,
                                         downscaler=lvf.scale.ssim_downsample,
                                         undershoot=1.1, overshoot=1.5)
     upscale_min = core.akarin.Expr([src_y, upscale], "x y min")
@@ -64,7 +49,7 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.V
     scaled = depth(vdf.misc.merge_chroma(rescale, src), 16)
 
     smd = haf.SMDegrain(scaled, tr=3, thSAD=50)
-    ccd_uv = ccd(smd, threshold=3)
+    ccd_uv = jvf.ccd(smd, threshold=3)
     decs = vdf.noise.decsiz(ccd_uv, min_in=192 << 8, max_in=240 << 8)
 
     deband = flt.masked_f3kdb(decs, rad=18, thr=[24, 12], grain=[24, 12])
@@ -76,20 +61,25 @@ def filterchain(src: vs.VideoNode = JP_BD.clip_cut) -> vs.VideoNode | Tuple[vs.V
     return crossfade
 
 
+FILTERED = filterchain()
+
+
 if __name__ == '__main__':
-    enc.Encoder(JP_BD, filterchain()).run(zones=zones, flac=True)
+    vse.EncodeRunner(SRC, FILTERED).video('x265', 'settings/x265_settings', zones=zones) \
+        .audio('flac').mux('LightArrowsEXE@Kaleido').run()
 elif __name__ == '__vapoursynth__':
-    FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
-        raise ImportError(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
+        raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
     else:
-        enc.dither_down(FILTERED).set_output(0)
+        vse.video.finalize_clip(FILTERED).set_output(0)
 else:
-    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    FILTERED = filterchain()
+    SRC.clip_cut.set_output(0)
 
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
-            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+            clip_filtered.set_output(i)
     else:
-        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
+        FILTERED.set_output(1)
+
+    for i, audio_node in enumerate(SRC.audios_cut, start=10):
+        audio_node.set_output(i)

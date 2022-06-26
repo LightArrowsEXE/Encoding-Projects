@@ -1,5 +1,7 @@
 # Encoding Projects
 
+[![lint](https://github.com/LightArrowsEXE/Encoding-Projects/actions/workflows/lint.yml/badge.svg)][linter_gh]
+
 This is a collection of my scripts for encoding anime.
 Most have public releases under various fansub group names.
 
@@ -45,7 +47,7 @@ My repo has gone through some clean-up lately.
 This is both due to personal coding style changes,
 and more emphasis being put on linting and automation,
 as well as a change in common modules run.
-For an archived version, please check out the [old_scripts branch][old_branch]
+For an archived version, please check out the [old_scripts branch][old_branch].
 
 ## Contact
 
@@ -53,6 +55,9 @@ If you wish to contact me, the preferred method is through Discord.
 My Discord tag is **LightArrowsEXE#0476**.
 
 Alternatively, please send in an issue.
+
+[//]: Badges
+[linter_gh]: https://github.com/LightArrowsEXE/Encoding-Projects/actions/workflows/lint.yml
 
 [//]: Groups
 [kaleido]: https://github.com/Kaleido-subs/

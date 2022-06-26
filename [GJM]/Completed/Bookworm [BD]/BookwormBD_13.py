@@ -68,6 +68,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     import lvsfunc as lvf
     import vardefunc as vdf
     import vsdenoise as vsd
+    import vskernels as kernels
     import vsmask as vsm
     from vsutil import depth, get_w, get_y, insert_clip, iterate
     from xvs import mwcfix
@@ -125,7 +126,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
 
     # Minor fixes in the endcard
     beige = core.std.Crop(src, right=src.width-60, bottom=src.height-60)
-    beige = lvf.kernels.Point().scale(beige, src.width, src.height)
+    beige = kernels.Point().scale(beige, src.width, src.height)
 
     sqmask = core.akarin.Expr([
         lvf.mask.BoundingBox((17, 339), (6, 6)).get_mask(beige),
@@ -145,12 +146,12 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     with vdf.YUVPlanes(fix_beige) as planes:
         src_y = planes.Y
 
-        l_mask = vsm.edge.FDOG().get_mask(src_y, lthr=0.125, hthr=0.025).rgsf.RemoveGrain(4).rgsf.RemoveGrain(4)
+        l_mask = vsm.edge.FDoG().edgemask(src_y, lthr=0.125, hthr=0.025).rgsf.RemoveGrain(4).rgsf.RemoveGrain(4)
         l_mask = l_mask.std.Minimum().std.Deflate().std.Median().std.Convolution([1] * 9)
         sq_mask = lvf.mask.BoundingBox((4, 4), (src.width-4, src.height-4)).get_mask(src_y).std.Invert()
 
-        descale = lvf.kernels.Catrom().descale(src_y, get_w(812), 812)
-        upscale = lvf.kernels.Catrom().scale(descale, src.width, src.height)
+        descale = kernels.Catrom().descale(src_y, get_w(812), 812)
+        upscale = kernels.Catrom().scale(descale, src.width, src.height)
 
         credit_mask = lvf.scale.descale_detail_mask(src_y, upscale, threshold=0.035)
         credit_mask = iterate(credit_mask, core.std.Inflate, 2)
@@ -168,10 +169,11 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
     scaled = depth(planes.clip, 16)
 
     # Denoising, AA, weak chroma fix
-    smd = haf.SMDegrain(get_y(scaled), tr=2, thSAD=150)
-    bm3d = vsd.BM3DCudaRTC(scaled, [0.65, 0], radius=3, ref=smd).clip
-    knlm = vsd.knl_means_cl(bm3d, strength=0.35, channels=vsd.ChannelMode.CHROMA)
-    decs = vdf.noise.decsiz(knlm, min_in=200 << 8, max_in=240 << 8)
+    debl = core.deblock.Deblock(get_y(scaled), 20)
+    smd = haf.SMDegrain(get_y(scaled), tr=3, thSAD=150, prefilter=debl, mfilter=debl, Str=1.6)
+    bm3d = vsd.BM3DCudaRTC(depth(scaled, 32), [0.6, 0], radius=3, ref=smd).clip
+    wnnm = depth(core.wnnm.WNNM(bm3d, [0, 2.8], radius=2, group_size=6, bm_range=10), 16)
+    decs = vdf.noise.decsiz(wnnm, min_in=200 << 8, max_in=240 << 8)
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
     aa = lvf.rfs(aa, decs, no_rescale[-1])  # Do not AA the ED

@@ -1,4 +1,4 @@
-from . import encoder, filter as flt, util
+from . import filter as flt, util
 
 # flake8: noqa
 # mypy: ignore-errors
