@@ -1,37 +1,21 @@
-import os
 from functools import partial
-from pathlib import Path
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
-import vapoursynth as vs
-from lvsfunc.misc import source
+import vapoursynth as vs  # type:ignore
+import vsencode as vse
 from lvsfunc.types import Range
-from vardautomation import FileInfo, PresetBD, PresetFLAC, VPath
 
-from project_module import encoder as enc
-from project_module import flt
+ini = vse.generate.init_project('x265')
 
-core = vs.core
+core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
-
-shader_file = 'assets/FSRCNNX_x2_56-16-4-1.glsl'
-if not Path(shader_file).exists():
-    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
-    shader_file = os.path.join(str(os.getenv("APPDATA")), hookpath)
-
-use_cuda: bool = __name__ == '__main__'
+shader = vse.get_shader()
 
 
 # Sources
-JP_BD = FileInfo(r'BDMV/[BDMV][211020][PCXE-51002][小林さんちのメイドラゴンS][Vol.2]/MAIDRAGON_S_2/BDMV/STREAM/00002.m2ts',
-                 (None, -33), idx=lambda x: source(x, force_lsmas=True, cachedir=''), preset=[PresetBD, PresetFLAC])
-JP_OP = FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00004.m2ts',
-                 (None, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
-JP_ED = FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00005.m2ts',
-                 (None, -24), idx=lambda x: source(x, force_lsmas=True, cachedir=''))
-JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
-JP_BD.a_src_cut = VPath(JP_BD.name)
-JP_BD.do_qpfile = True
+JP_BD = vse.FileInfo(r'BDMV/[BDMV][211020][PCXE-51002][小林さんちのメイドラゴンS][Vol.2]/MAIDRAGON_S_2/BDMV/STREAM/00002.m2ts', (None, -33))
+JP_OP = vse.FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00004.m2ts', (None, -24))
+JP_ED = vse.FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00005.m2ts', (None, -24))
 
 
 # OP/ED filtering
@@ -42,7 +26,7 @@ ed_offset = 3
 
 
 # Scenefiltering
-stronger_deblock_ranges: Iterable[Range] = [  # Heavy compression artefacting
+stronger_deblock_ranges: List[Range] = [  # Heavy compression artefacting
 ]
 
 
@@ -56,8 +40,10 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     import havsfunc as haf
     import lvsfunc as lvf
     import vardefunc as vdf
-    from ccd import ccd
+    import jvsfunc as jvf
     from vsutil import depth, get_y, insert_clip
+
+    from project_module import flt
 
     src = JP_BD.clip_cut
     src_c = src
@@ -91,16 +77,16 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     # We wanna keep the denoising weak due to all the strong textures, but dark areas look so meh
     adap_mask = core.adg.Mask(src_y.std.PlaneStats(), 8).deblock.Deblock(24).dfttest.DFTTest(sigma=1.0)
 
-    pre_dp = lvf.deblock.vsdpir(src, strength=5, mode='deblock', matrix=1, cuda=use_cuda)
+    pre_dp = lvf.deblock.dpir(src, strength=5, mode='deblock', matrix=1)
     denoise_y_brgt = haf.SMDegrain(src, tr=3, thSAD=75, plane=0, chroma=False, prefilter=pre_dp, mfilter=pre_dp)
     denoise_y_dark = haf.SMDegrain(src, tr=3, thSAD=50, plane=0, chroma=False, prefilter=pre_dp, mfilter=pre_dp)
     denoise_y = core.std.MaskedMerge(denoise_y_brgt, denoise_y_dark, adap_mask)
 
-    denoise = ccd(denoise_y, threshold=3, matrix='709')
+    denoise = jvf.ccd(denoise_y, threshold=3, mode=3)
 
     if stronger_deblock_ranges:  # But sometimes...
         # Just gonna have to pray the VRAM usage doesn't spike too hard and kills the encode lol
-        deblock_str = lvf.deblock.vsdpir(denoise, strength=45, cuda=use_cuda, matrix=1)
+        deblock_str = lvf.deblock.dpir(denoise, strength=45, matrix=1)
         denoise = lvf.rfs(denoise, deblock_str, stronger_deblock_ranges)
 
     csharp = eoe.misc.ContraSharpening(denoise, src, 2, planes=[0])
@@ -108,14 +94,14 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     decs = vdf.noise.decsiz(csharp, sigmaS=8, min_in=208 << 8, max_in=232 << 8,
                             protect_mask=core.std.Prewitt(get_y(src), scale=0.5).std.Maximum())
 
-    baa = lvf.aa.based_aa(decs, str(shader_file))
+    baa = lvf.aa.based_aa(decs, shader)
     sraa = lvf.sraa(decs, rfactor=1.7)
     clmp = lvf.aa.clamp_aa(decs, baa, sraa, strength=1.2)
     clmp = core.rgvs.Repair(clmp, decs, 13)
 
     deband = core.average.Mean([
-        flt.masked_placebo(clmp, rad=3.5, thr=1.5, itr=2, grain=4),
-        flt.masked_placebo(clmp, rad=5, thr=2.5, itr=2, grain=4),
+        flt.masked_placebo(clmp, rad=3, thr=1, itr=2, grain=4),
+        flt.masked_placebo(clmp, rad=5, thr=2, itr=2, grain=4),
         flt.zzdeband(clmp, denoised=True)
     ])
 
@@ -140,22 +126,29 @@ def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
     return merge_creds
 
 
+FILTERED = filterchain()
+
+
 if __name__ == '__main__':
-    FILTERED = filterchain()
-    enc.Encoder(JP_BD, FILTERED).run(clean_up=True)  # type: ignore
+    runner = vse.EncodeRunner(JP_BD, FILTERED)
+    runner.video(zones=zones)
+    runner.audio('flac')
+    runner.mux('LightArrowsEXE@DameDesuYo')
+    runner.run()
 elif __name__ == '__vapoursynth__':
-    FILTERED = filterchain()
     if not isinstance(FILTERED, vs.VideoNode):
-        raise ImportError(
-            f"Input clip has multiple output nodes ({len(FILTERED)})! Please output just 1 clip"
-        )
+        raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! "
+                       "Please output a single clip")
     else:
-        enc.dither_down(FILTERED).set_output(0)
+        vse.video.finalize_clip(FILTERED).set_output(0)
 else:
-    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    FILTERED = filterchain()
+    JP_BD.clip_cut.set_output(0)
+
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
-            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+            clip_filtered.set_output(i)
     else:
-        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
+        FILTERED.set_output(1)
+
+    for i, audio_node in enumerate(JP_BD.audios_cut, start=10):
+        audio_node.set_output(i)
