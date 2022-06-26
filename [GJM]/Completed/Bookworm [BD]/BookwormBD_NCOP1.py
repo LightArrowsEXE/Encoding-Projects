@@ -87,7 +87,7 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
 
-    cfix = mwcfix(aa, warp=3)
+    cfix = mwcfix(aa, restore=0.75, warp=3, thresh=64)
 
     # Debanding and graining
     detail_mask = lvf.mask.detail_mask_neo(cfix)
@@ -99,7 +99,9 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     deband = lvf.rfs(deband, deband_str, str_deband_ranges)
 
-    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
+    grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     return grain
 

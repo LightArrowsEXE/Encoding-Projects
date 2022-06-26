@@ -1,8 +1,7 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 
 import vapoursynth as vs
 import vsencode as vse
-from lvsfunc.types import Range
 from vardefunc import initialise_input
 
 ini = vse.generate.init_project()
@@ -17,10 +16,6 @@ SRC = vse.FileInfo(f"{ini.bdmv_dir}/[BDMV]HONZUKI/HONZUKI_4/BDMV/STREAM/00011.m2
 # OP/ED scenefiltering
 opstart = 0
 op_offset = 1
-
-
-str_deband_ranges: List[Range] = [  # Ranges with stronger banding
-]
 
 
 zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
@@ -77,19 +72,16 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
 
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
 
-    cfix = mwcfix(aa, warp=3)
+    cfix = mwcfix(aa, restore=0.75, warp=3, thresh=64)
 
     # Debanding and graining
     detail_mask = lvf.mask.detail_mask_neo(cfix)
     deband = dbs.dumb3kdb(cfix, radius=18, threshold=[32, 24, 24], grain=12)
     deband = core.std.MaskedMerge(deband, cfix, detail_mask)
 
-    deband_str = dbs.dumb3kdb(cfix, radius=24, threshold=[64, 48, 48], grain=[24, 12])
-    deband_str = core.std.MaskedMerge(deband_str, cfix, detail_mask)
-
-    deband = lvf.rfs(deband, deband_str, str_deband_ranges)
-
-    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
+    grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     return grain
 

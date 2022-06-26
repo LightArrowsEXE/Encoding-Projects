@@ -30,6 +30,8 @@ zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
 if edstart is not False:
     no_rescale += [(edstart, edstart+SRC.clip_cut.num_frames-1-ed_offset)]
 
+    zones |= {(edstart, edstart+SRC.clip_cut.num_frames-1-ed_offset): {'b': 0.69}}
+
 
 @initialise_input()
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
@@ -60,14 +62,16 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     aa = lvf.aa.nneedi3_clamp(decs, strength=1.4, mask=depth(l_mask, 16).std.Limiter())
     aa = lvf.rfs(aa, decs, no_rescale[-1])  # Do not AA the ED
 
-    cfix = mwcfix(aa, warp=3)
+    cfix = mwcfix(aa, restore=0.75, warp=3, thresh=64)
 
     # Debanding and graining
     detail_mask = lvf.mask.detail_mask_neo(cfix)
     deband = dbs.dumb3kdb(cfix, radius=18, threshold=[32, 24, 24], grain=12)
     deband = core.std.MaskedMerge(deband, cfix, detail_mask)
 
-    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
+    grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     return grain
 

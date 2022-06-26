@@ -186,7 +186,8 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
         deband = lvf.rfs(deband, deband_dark, mask_dark_house)
 
     grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
-                            grainer=lambda x: core.noise.Add(x, type=3, xsize=2.8, ysize=2.8, var=2.5, uvar=0.4))
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     # Merging credits and other 1080p detail
     restore_src = core.std.MaskedMerge(depth(grain, 32), bb, credit_mask)

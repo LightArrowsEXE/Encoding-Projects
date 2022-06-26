@@ -67,7 +67,9 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     deband = dbs.dumb3kdb(cfix, radius=18, threshold=[32, 24, 24], grain=12)
     deband = core.std.MaskedMerge(deband, cfix, detail_mask)
 
-    grain = adp.adptvgrnMod(deband, strength=0.25, size=1.15, luma_scaling=8)
+    grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     return grain
 

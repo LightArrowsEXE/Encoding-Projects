@@ -50,7 +50,7 @@ if opstart is not False:
     op_replace_chr: List[Range] = [(opstart+827, opstart+846), (827, 846)]
 
 if edstart is not False:
-    no_rescale += [(edstart, edstart+NCED.clip_cut.num_frames-1-ed_offset)]
+    zones |= {(edstart, edstart+NCED.clip_cut.num_frames-1-ed_offset): {'b': 0.69}}
 
 
 @initialise_input()
@@ -178,7 +178,8 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut,
         deband = lvf.rfs(deband, deband_dark, mask_dark_house)
 
     grain = adp.adptvgrnMod(deband, luma_scaling=8, static=False, temporal_average=50,
-                            grainer=lambda x: core.noise.Add(x, type=3, xsize=2.8, ysize=2.8, var=2.5, uvar=0.4))
+                            grainer=lambda x: core.noise.Add(x, xsize=2.6, ysize=2.6, var=3.0, uvar=0.4,
+                                                             every=2, type=3))
 
     # Merging credits and other 1080p detail
     restore_src = core.std.MaskedMerge(depth(grain, 32), src, credit_mask)
