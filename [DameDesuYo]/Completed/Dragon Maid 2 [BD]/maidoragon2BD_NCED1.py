@@ -12,7 +12,7 @@ shader = vse.get_shader()
 
 
 # Sources
-JP_BD = vse.FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00005.m2ts', (None, -24))
+JP_BD = vse.FileInfo(r'BDMV/[BDMV][211225][PCXE-51004][小林さんちのメイドラゴンS][Vol.4]/MAIDRAGON_S_4/BDMV/STREAM/00005.m2ts', (None, -24))  # noqa
 
 
 # OP/ED filtering
