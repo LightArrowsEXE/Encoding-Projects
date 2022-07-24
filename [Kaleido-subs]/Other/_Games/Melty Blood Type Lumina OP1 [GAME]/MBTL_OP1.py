@@ -1,95 +1,126 @@
-import os
-from pathlib import Path
-from typing import Tuple, Union
+from typing import Any, Dict, Tuple
 
 import vapoursynth as vs
-from lvsfunc.misc import source
-from vardautomation import FileInfo, PresetBD, PresetFLAC, VPath
+import vsencode as vse
+from vardefunc import initialise_input
 
-from project_module import encoder as enc
-from project_module import flt
-
-core = vs.core
-
-
-shader_file = Path(r'assets/FSRCNNX_x2_56-16-4-1.glsl')
-if not shader_file.exists:
-    hookpath = r"mpv/shaders/FSRCNNX_x2_56-16-4-1.glsl"
-    shader_file = os.path.join(os.getenv("APPDATA"), hookpath)
+ini = vse.generate.init_project("x265")
+shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
+core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 
 # Sources
-JP_BD = FileInfo(r'src/4mx21x.mkv', (None, None), preset=[PresetBD, PresetFLAC],
-                 idx=lambda x: source(x, force_lsmas=True, cachedir=''))
-JP_BD.name_file_final = VPath(fr"premux/{JP_BD.name} (Premux).mkv")
-JP_BD.a_src_cut = VPath("stack black.flac")
-JP_BD.do_qpfile = True
+SRC = vse.FileInfo(f"{ini.bdmv_dir}/4mx21x.mkv")  # noqa
 
 
-"""
-    Switch OP has significantly more detail, but the Steam OP has much less haloing
-    and weird "wavey" artefacting (but also uses the wrong colourspace lol).
-
-    I can't really take the best of both worlds unfortunately,
-    so it's a trade-off between whether you like having more detail or less artefacting.
-    If you prefer less artefacting, grab the OPMan release. Else this one.
-"""
+# OP/ED filtering
+opstart = 0
 
 
-def filterchain() -> Union[vs.VideoNode, Tuple[vs.VideoNode, ...]]:
+# Scenefiltering and zoning.
+zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
+}
+
+
+@initialise_input
+def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain"""
+    import havsfunc as haf  # type:ignore
     import lvsfunc as lvf
     import vardefunc as vdf
-    from vsutil import depth, split, join
-    from finedehalo import fine_dehalo
+    import vsdehalo as vsdh
+    import vskernels as kernels
+    from debandshit import dumb3kdb, placebo_deband
+    from stgfunc import Grainer, adaptive_grain
+    from vsdehalo import contrasharpening_dehalo  # type:ignore
+    from vsrgtools import contrasharpening, sbr
+    from vsutil import depth, get_w
 
-    src = JP_BD.clip_cut
-    src = depth(src, 16)
-    src = core.resize.Bicubic(src, chromaloc_in=1, chromaloc=0)
+    assert src.format
 
-    debl = lvf.deblock.vsdpir(src, strength=1, i444=True)
-    debl = depth(debl, 16)
-    decs = vdf.noise.decsiz(debl, sigmaS=8, min_in=200 << 8, max_in=235 << 8)
+    # Preparing clips
+    src = vdf.initialise_clip(src, 32)
+    src = src.resize.Point(chromaloc_in=0, chromaloc=1)
 
-    planes = split(decs)
-    planes[2] = fine_dehalo(planes[2], rx=2, ry=2, brightstr=0.9, darkstr=0)
-    cdehalo = join(planes)
+    # Upscaling
+    fscrnnx = vdf.scale.fsrcnnx_upscale(
+        src, get_w(1080), 1080, shader, downscaler=lvf.scale.ssim_downsample,
+        overshoot=1.5, undershoot=1.5, profile='slow', strength=40
+    )
 
-    dehalo = lvf.dehalo.bidehalo(cdehalo, sigmaS=1.5, sigmaS_final=1)
+    nnedi3 = kernels.BicubicDidee().scale(vdf.nnedi3_upscale(src), fscrnnx.width, fscrnnx.height)
+    upscale = vdf.misc.merge_chroma(fscrnnx, nnedi3)
+    upscale = vdf.to_444(upscale, upscale.width, upscale.height, True)
 
-    baa = lvf.aa.based_aa(dehalo, str(shader_file))
-    sraa = lvf.sraa(dehalo, rfactor=1.65)
-    clmp = lvf.aa.clamp_aa(dehalo, baa, sraa, strength=1.3)
+    # Deblocking
+    dpir = lvf.dpir(upscale, strength=25, tiles=8, overlap=16, i444=True)
+    upscale, dpir = [depth(clip, 16) for clip in [upscale, dpir]]
 
-    deband = flt.masked_f3kdb(clmp, thr=[32, 24])
+    csharp = contrasharpening(dpir, upscale)
+    csharp = contrasharpening_dehalo(csharp, upscale)
 
-    grain = vdf.noise.Graigasm(  # Mostly stolen from Varde tbh
-        thrs=[x << 8 for x in (32, 80, 128, 176)],
-        strengths=[(0.25, 0.0), (0.2, 0.0), (0.15, 0.0), (0.0, 0.0)],
-        sizes=(1.15, 1.1, 1.05, 1),
-        sharps=(65, 50, 40, 40),
-        grainers=[
-            vdf.noise.AddGrain(seed=69420, constant=True),
-            vdf.noise.AddGrain(seed=69420, constant=False),
-            vdf.noise.AddGrain(seed=69420, constant=False)
-        ]).graining(deband)
+    # Dehaloing. Converting to OPP for additional accuracy
+    dehalo_opp = kernels.Catrom().resample(csharp, vs.RGB24).bm3d.RGB2OPP(0)
+
+    dering = haf.HQDeringmod(dehalo_opp, mthr=24, minp=3, nrmode=2, sharp=0, darkthr=0, planes=[0])
+    fdehalo = vsdh.fine_dehalo(dehalo_opp, rx=2, ry=2, thma=204, darkstr=0.15, planes=[0])
+    dehalo = core.akarin.Expr([dehalo_opp, dering, fdehalo], ["x y - abs x z - abs < y z ?", ""])
+    dehalo = vsdh.fine_dehalo(dehalo_opp, dehalo, planes=[0])
+
+    dehalo_dark = vsdh.dehalo_alpha(dehalo, rx=4, ry=4, darkstr=0.25, brightstr=0, planes=[0])
+    dehalo_dark = core.akarin.Expr([dehalo, dehalo_dark], "x y max")
+    dehalo_uv = vsdh.dehalo_alpha(dehalo_dark, rx=3, ry=3, darkstr=0.25, brightstr=0.55, planes=[2])
+    dehalo_csharp = contrasharpening(dehalo_uv, dehalo)
+
+    dehalo_yuv = kernels.Catrom().resample(dehalo_csharp.bm3d.OPP2RGB(0), vs.YUV420P16, 1)
+    darken = haf.FastLineDarkenMOD(dehalo_yuv, 32, protection=12)
+
+    # Debanding
+    detail_mask = lvf.mask.detail_mask_neo(darken, detail_brz=0.005, lines_brz=0.012)
+    detail_mask = sbr(detail_mask, 3)
+
+    deband = core.average.Mean([
+        dumb3kdb(darken, radius=18, threshold=[24, 16], grain=[16, 12]),
+        dumb3kdb(darken, radius=21, threshold=[32, 24], grain=[24, 16]),
+        placebo_deband(darken, iterations=2, threshold=5, radius=20, grain=4),
+    ]).std.MaskedMerge(darken, detail_mask)
+    deband = contrasharpening(deband, darken)
+
+    # Cleaning super bright areas
+    decs = vdf.decsiz(deband, min_in=200 << 8, max_in=240 << 8)
+
+    # Graining
+    grain = adaptive_grain(
+        decs, [2.25, 0.35], luma_scaling=8, static=False, temporal_average=100,
+        grainer=Grainer.AddNoise, size=2.0, type=3, every=2, seed=69420
+    )
 
     return grain
 
 
-if __name__ == '__main__':
-    enc.Encoder(JP_BD, filterchain()).run(clean_up=False)  # type: ignore
-elif __name__ == '__vapoursynth__':
-    FILTERED = filterchain()
+FILTERED = filterchain()
+
+
+if __name__ == "__main__":
+    runner = vse.EncodeRunner(SRC, FILTERED)
+    runner.video(zones=zones)
+    runner.audio("flac", external_audio_file="./stack black.flac")
+    runner.mux("LightArrowsEXE@Kaleido")
+    runner.run()
+elif __name__ == "__vapoursynth__":
     if not isinstance(FILTERED, vs.VideoNode):
-        raise ImportError(f"Input clip has multiple output nodes ({len(FILTERED)})! Please output a single clip")
+                raise vs.Error(f"Input clip has multiple output nodes ({len(FILTERED)})! "
+                               "Please output a single clip")
     else:
-        enc.dither_down(FILTERED).set_output(0)
+        vse.video.finalize_clip(FILTERED).set_output(0)
 else:
-    JP_BD.clip_cut.std.SetFrameProp('node', intval=0).set_output(0)
-    FILTERED = filterchain()
+    SRC.clip_cut.resize.Bicubic(1920, 1080).text.Text("src").set_output(0)
+
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
-            clip_filtered.std.SetFrameProp('node', intval=i).set_output(i)
+            clip_filtered.set_output(i)
     else:
-        FILTERED.std.SetFrameProp('node', intval=1).set_output(1)
+        FILTERED.set_output(1)
+
+    for i, audio_node in enumerate(SRC.audios_cut, start=10):
+        audio_node.set_output(i)
