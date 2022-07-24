@@ -9,20 +9,20 @@ shader = vse.get_shader("FSRCNNX_x2_56-16-4-1.glsl")
 core = vse.util.get_vs_core(reserve_core=ini.reserve_core)
 
 
-# Sources
+# Sources.
 SRC = vse.FileInfo(f"{ini.bdmv_dir}/4mx21x.mkv")  # noqa
 
 
-# OP/ED filtering
+# OP/ED filtering.
 opstart = 0
 
 
 # Scenefiltering and zoning.
-zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder
+zones: Dict[Tuple[int, int], Dict[str, Any]] = {  # Zones for the encoder.
 }
 
 
-@initialise_input
+@initialise_input(bits=32)
 def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.VideoNode, ...]:
     """Main filterchain"""
     import havsfunc as haf  # type:ignore
@@ -39,7 +39,6 @@ def filterchain(src: vs.VideoNode = SRC.clip_cut) -> vs.VideoNode | Tuple[vs.Vid
     assert src.format
 
     # Preparing clips
-    src = vdf.initialise_clip(src, 32)
     src = src.resize.Point(chromaloc_in=0, chromaloc=1)
 
     # Upscaling
@@ -114,7 +113,7 @@ elif __name__ == "__vapoursynth__":
     else:
         vse.video.finalize_clip(FILTERED).set_output(0)
 else:
-    SRC.clip_cut.resize.Bicubic(1920, 1080).text.Text("src").set_output(0)
+    SRC.clip_cut.set_output(0)
 
     if not isinstance(FILTERED, vs.VideoNode):
         for i, clip_filtered in enumerate(FILTERED, start=1):
