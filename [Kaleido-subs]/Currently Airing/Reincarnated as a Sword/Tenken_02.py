@@ -7,22 +7,22 @@ ini = vse.generate.init_project("x265")
 core = vs.core
 run = __name__ in ('__vapoursynth__', '__main__')
 
-BGLOBAL = vse.FileInfo("src/Tensei shitara Ken Deshita - 01 - 2160p WEB H.264 -NanDesKa (B-Global).mkv", (None, None))  # noqa
-ABEMA = vse.FileInfo("src/[NICE SIMULCAST HIDIVE] Tensei Shitara Ken Deshita (Reincarnated as a Sword) - 01.mkv", (None, None))  # noqa
+BGLOBAL = vse.FileInfo("src/Tensei shitara Ken Deshita - 02 (B-Global 2160p).mkv", (None, None))  # noqa
+ABEMA = vse.FileInfo("src/[NanakoRaws] Tensei Shitara Ken Deshita - 02 (1080p).mp4", (None, None))  # noqa
 
 
 # Scenefiltering
 
 # Freezeframing for speed boosts. [start, end], replacing the frame with the start frame.
 freeze_ranges: list[list[int]] = [
-    [813, 1934, 2128, 2162, 2237, 2688, 2760, 2812, 2957, 3085, 20795, 20891, 20927, 21191, 21263, 21365, 21656, 21716,
-     28029, ],
-    [863, 2004, 2161, 2212, 2302, 2724, 2793, 2836, 3070, 3155, 20890, 20926, 21070, 21262, 21364, 21433, 21715, 21847,
-     28094]
+    [],
+    []
 ]
 
 # Zones for the encoder.
-zones: dict[tuple[int, int], dict[str, Any]] = {}
+zones: dict[tuple[int, int], dict[str, Any]] = {
+    (8732, 9019): {'q': 14},
+}
 
 
 def filterchain(clip: vs.VideoNode) -> vs.VideoNode | tuple[vs.VideoNode]:

@@ -1,9 +1,9 @@
--o {clip_output:s} - --y4m --frames {frames:d} --numa-pools {thread:d}
+-o {clip_output:s} - --y4m --frames {frames:d}
 --fps {fps_num:d}/{fps_den:d} --videoformat ntsc --range limited
 --colormatrix {matrix:d} --colorprim {primaries:d} --transfer {transfer:d}
 --min-luma {min_luma:d} --max-luma {max_luma:d} --chromaloc {chromaloc:d}
 --sar {sarden:d}:{sarnum:d}
---preset slow --crf 14 --deblock=-2:-2 --min-keyint {min_keyint:d} --keyint {keyint:d} --ref 5 --bframes 8
+--preset slow --crf 13 --deblock=-2:-2 --min-keyint {min_keyint:d} --keyint {keyint:d} --ref 5 --bframes 8
 --aq-mode 3 --aq-strength 0.60 --qcomp 0.75 --cbqpoffs -2 --crqpoffs -2 --rc-lookahead 72
 --rd 5 --rdoq-level 2 --psy-rd 2.25 --psy-rdoq 2.25 --no-open-gop --no-cutree --qpstep 2
 --b-intra --weightb --tu-intra-depth 2 --tu-inter-depth 2 --tskip --no-limit-modes
