@@ -94,6 +94,7 @@ __pycache__/
 *.py[cod]
 *.pyi
 *$py.class
+deps/*
 
 
 # Misc
@@ -197,6 +198,7 @@ old/*
 *.hook
 *.lgd
 *.lnk
+*.lwi
 *.pth
 **/*hidden*/**/*
 */.mypy_cache/**/*
